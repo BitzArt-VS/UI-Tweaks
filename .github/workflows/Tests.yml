@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '*'
+
+jobs:
+  tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+          
+      - name: Install Vintage Story
+        run: |
+          sudo apt update
+          sudo apt install -y flatpak
+          flatpak -y --user install https://flatpak.vintagestory.at/VintageStory.flatpakref
+          install_path=$(flatpak info --show-location at.vintagestory.VintageStory)
+          echo "VINTAGE_STORY=$install_path/files/extra/vintagestory" >> $GITHUB_ENV
+          echo "Vintage Story installed at: $VINTAGE_STORY"
+
+      - name: Build
+        run: |
+          dotnet build QuickSearch.sln --configuration Release -p:VINTAGE_STORY="$VINTAGE_STORY"
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal

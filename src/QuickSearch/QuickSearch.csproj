@@ -8,6 +8,12 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DebugSymbols>False</DebugSymbols>
+		<DebugType>None</DebugType>
+		<GenerateDependencyFile>false</GenerateDependencyFile>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Reference Include="VintagestoryAPI">
 			<HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
@@ -52,15 +58,29 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="modinfo.json">
+		<None Include="..\..\mod\quicksearch\modinfo.json" Visible="False">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="modicon.png" Condition="Exists('modicon.png')">
+		<None Include="..\..\assets\**" Visible="false">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<Link>assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		</None>
 	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\mod\quicksearch\modicon.png" Condition="Exists('..\..\mod\quicksearch\modicon.png')" Visible="False">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
+
+	<Target Name="Package" AfterTargets="Publish">
+		<ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(PublishDir)..\$(MSBuildProjectName).zip" Overwrite="true" />
+	</Target>
 
 </Project>

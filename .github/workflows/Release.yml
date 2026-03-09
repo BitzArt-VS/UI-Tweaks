@@ -1,0 +1,70 @@
+﻿name: Release QuickSearch
+
+on:
+  repository_dispatch:
+  push:
+    tags:
+    - "QuickSearch-v[0-9]+.[0-9]+.[0-9]+*"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+
+  release:
+    name: Release QuickSearch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Verify commit
+        run: |
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+          git branch --remote --contains | grep origin/main
+
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/QuickSearch-v/}" >> $GITHUB_ENV
+
+      - name: Set version in modinfo.json
+        run: |
+          jq --arg v "$VERSION" '.version = $v' mod/quicksearch/modinfo.json > tmp.json && mv tmp.json mod/quicksearch/modinfo.json
+
+      - name: Install Vintage Story
+        run: |
+          sudo apt update
+          sudo apt install -y flatpak
+          flatpak -y --user install https://flatpak.vintagestory.at/VintageStory.flatpakref
+          install_path=$(flatpak info --show-location at.vintagestory.VintageStory)
+          echo "VINTAGE_STORY=$install_path/files/extra/vintagestory" >> $GITHUB_ENV
+          echo "Vintage Story installed at: $VINTAGE_STORY"
+
+      - name: Build
+        run: |
+          dotnet build QuickSearch.sln --configuration Release -p:Version="$VERSION" -p:VINTAGE_STORY="$VINTAGE_STORY"
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+
+      - name: Publish
+        run: |
+          dotnet publish ./src/QuickSearch/QuickSearch.csproj -o ./release/${VERSION}/src
+          mv ./release/${VERSION}/QuickSearch.zip ./release/${VERSION}/QuickSearch_v${VERSION}.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: 🔍QuickSearch v${{ env.VERSION }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            release/${{ env.VERSION }}/QuickSearch_v${{ env.VERSION }}.zip

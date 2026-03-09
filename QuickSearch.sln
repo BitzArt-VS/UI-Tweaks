@@ -1,28 +1,74 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickSearch", "src\QuickSearch\QuickSearch.csproj", "{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "build\ZZCakeBuild\CakeBuild.csproj", "{BC68EDF6-C294-4819-B7F4-9EA99B73E69D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{86D89413-5D57-4798-A1E1-A4909F3C7B22}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{CC1D1218-B8C5-4545-AA96-83F6E3C7F923}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{5470158F-AB64-46C8-9879-7BD859CD12E2}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\Release.yml = .github\workflows\Release.yml
+		.github\workflows\Tests.yml = .github\workflows\Tests.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{443C801B-6E87-4E03-A3A1-7B190DF692B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickSearch.Tests", "tests\QuickSearch.Tests\QuickSearch.Tests.csproj", "{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{D9C5F0C3-4E1C-4963-BE96-077988EABD5E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quicksearch", "quicksearch", "{CC8914DF-092D-409E-957B-B5E55660B37D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E}"
+	ProjectSection(SolutionItems) = preProject
+		assets\quicksearch\lang\en.json = assets\quicksearch\lang\en.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mod", "mod", "{6A3CC29A-E852-43DF-A375-8B7F66F60345}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quicksearch", "quicksearch", "{DC7B1062-1AA0-4601-B6EB-1AD503C2A374}"
+	ProjectSection(SolutionItems) = preProject
+		mod\quicksearch\modicon.png = mod\quicksearch\modicon.png
+		mod\quicksearch\modinfo.json = mod\quicksearch\modinfo.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BC68EDF6-C294-4819-B7F4-9EA99B73E69D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC68EDF6-C294-4819-B7F4-9EA99B73E69D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC68EDF6-C294-4819-B7F4-9EA99B73E69D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC68EDF6-C294-4819-B7F4-9EA99B73E69D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC} = {86D89413-5D57-4798-A1E1-A4909F3C7B22}
+		{5470158F-AB64-46C8-9879-7BD859CD12E2} = {CC1D1218-B8C5-4545-AA96-83F6E3C7F923}
+		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B} = {443C801B-6E87-4E03-A3A1-7B190DF692B2}
+		{CC8914DF-092D-409E-957B-B5E55660B37D} = {ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}
+		{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E} = {CC8914DF-092D-409E-957B-B5E55660B37D}
+		{DC7B1062-1AA0-4601-B6EB-1AD503C2A374} = {6A3CC29A-E852-43DF-A375-8B7F66F60345}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B4A6136-C930-461B-A957-1875D0E1D80D}
 	EndGlobalSection
 EndGlobal
