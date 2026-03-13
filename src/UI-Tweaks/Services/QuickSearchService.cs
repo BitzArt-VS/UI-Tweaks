@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
@@ -21,16 +20,18 @@ internal class QuickSearchService(ICoreClientAPI clientApi) : IDisposable
         clientApi.Input.AddHotKey(ModHotKeys.QuickSearch, (keys) =>
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            if (_dialog.IsOpened())
+            {
+                _dialog.TryClose();
+                return true;
+            }
+
+            _dialog.ignoreNextKeyPress = true;
             _dialog.TryOpen();
 
             return true;
         });
-    }
-
-    private Task OpenAsync()
-    {
-        
-        return Task.CompletedTask;
     }
 
     public void Dispose()
@@ -41,6 +42,11 @@ internal class QuickSearchService(ICoreClientAPI clientApi) : IDisposable
         }
 
         _dialog.Dispose();
+
+        if (!clientApi.Input.HotKeys.Remove(ModHotKeys.QuickSearch.Code))
+        {
+            throw new InvalidOperationException($"Failed to unregister hotkey with code '{ModHotKeys.QuickSearch.Code}'");
+        }
 
         _isDisposed = true;
     }
