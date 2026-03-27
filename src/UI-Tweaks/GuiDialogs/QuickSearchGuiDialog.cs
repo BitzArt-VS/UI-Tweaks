@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
@@ -14,8 +13,9 @@ namespace BitzArt.UI.Tweaks;
 
 internal partial class QuickSearchGuiDialog : GuiDialog
 {
+    private readonly UiTweaksModConfig.QuickSearchConfig _config;
+
     private readonly QuickSearchService _searchService;
-    private readonly List<IFlatListItem> _results;
     private readonly QuickSearchResultItem _calculatorResultItem = new();
 
     private Action<string, bool, bool>? _setSearchText;
@@ -23,21 +23,18 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
     public override double DrawOrder => 0.3;
 
-    public QuickSearchGuiDialog(ICoreClientAPI clientApi, QuickSearchService search) : base(clientApi)
+    public QuickSearchGuiDialog(ICoreClientAPI clientApi, QuickSearchService search, UiTweaksModConfig modConfig) : base(clientApi)
     {
         _searchService = search;
-        _results = [];
+        _config = modConfig.QuickSearch;
 
-        RegisterQuickSearchHotKey();
         Compose();
     }
-
-    const double _listHeight = 200;
 
     private void Compose()
     {
         var searchFieldBounds = ElementBounds.Fixed(0, 20, 424, 32);
-        var resultListBounds = ElementBounds.Fixed(0, 60, 400, _listHeight);
+        var resultListBounds = ElementBounds.Fixed(0, 60, 400, _config.ResultListHeight);
 
         var clipBounds = resultListBounds.ForkBoundingParent();
 
@@ -54,7 +51,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
                 .AddTextInput(searchFieldBounds, OnTextInputChanged, key: "quick-search-input")
                 .AddInset(resultListBounds)
                 .BeginClip(clipBounds)
-                    .AddFlatList(resultListBounds, OnItemClicked, _results, "resultList")
+                    .AddFlatList(resultListBounds, OnItemClicked, key: "resultList")
                 .EndClip()
                 .AddVerticalScrollbar(OnNewScrollbarValue, scrollbarBounds, "scrollbar")
             .EndChildElements()
@@ -65,7 +62,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
         if (scrollbar is not null && flatList is not null)
         {
-            scrollbar.SetHeights((float)_listHeight, (float)flatList.insideBounds.fixedHeight);
+            scrollbar.SetHeights(_config.ResultListHeight, (float)flatList.insideBounds.fixedHeight);
         }
         
 
@@ -90,28 +87,10 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
     protected void OnNewScrollbarValue(float value)
     {
-        var stacklist = SingleComposer.GetFlatList("resultList");
+        var resultList = SingleComposer.GetFlatList("resultList");
 
-        stacklist.insideBounds.fixedY = 3 - value;
-        stacklist.insideBounds.CalcWorldBounds();
-    }
-
-    private void RegisterQuickSearchHotKey()
-    {
-        ClientApi.Input.AddHotKey(ModHotKeys.QuickSearch, (keys) =>
-        {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-
-            if (IsOpened())
-            {
-                TryClose();
-                return true;
-            }
-
-            TryOpenOnKeyPress();
-
-            return true;
-        });
+        resultList.insideBounds.fixedY = 3 - value;
+        resultList.insideBounds.CalcWorldBounds();
     }
 
     public override void OnGuiOpened()
@@ -156,13 +135,11 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
         ClientApi.Gui.PlaySound("menubutton_press");
 
-        Search();
+        Task.Run(Search);
     }
 
     private void Search()
     {
-        _results.Clear();
-
         // Check if the input looks like a math expression before trying to evaluate it
         if (!string.IsNullOrWhiteSpace(_input) && GetMathRegex().IsMatch(_input))
         {
@@ -184,8 +161,12 @@ internal partial class QuickSearchGuiDialog : GuiDialog
                 // A custom parser would be more versatile and efficient.
                 var result = new DataTable().Compute(input, null);
 
-                _calculatorResultItem.Text = $"={result}";
-                _results.Add(_calculatorResultItem);
+                ClientApi.Event.EnqueueMainThreadTask(() =>
+                {
+                    _calculatorResultItem.Text = $"={result}";
+                    var resultList = SingleComposer.GetFlatList("resultList");
+                    resultList.Elements = [_calculatorResultItem];
+                }, $"{Constants.ModId}-quicksearch-set-calc-result");
 
                 return;
             }
@@ -199,13 +180,18 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
     private void SearchItems()
     {
-        _results.AddRange(_searchService.Search(_input));
+        List<IFlatListItem> results = [.. _searchService.Search(_input)];
 
-        var resultList = SingleComposer.GetFlatList("resultList");
-        resultList.CalcTotalHeight();
+        ClientApi.Event.EnqueueMainThreadTask(() =>
+        {
+            var resultList = SingleComposer.GetFlatList("resultList");
+            resultList.Elements = results;
 
-        var scrollbar = SingleComposer.GetScrollbar("scrollbar");
-        scrollbar.SetHeights((float)_listHeight, (float)resultList.insideBounds.fixedHeight);
+            resultList.CalcTotalHeight();
+
+            var scrollbar = SingleComposer.GetScrollbar("scrollbar");
+            scrollbar.SetHeights(_config.ResultListHeight, (float)resultList.insideBounds.fixedHeight);
+        }, $"{Constants.ModId}-quicksearch-set-results");
 
         return;
     }
@@ -214,7 +200,14 @@ internal partial class QuickSearchGuiDialog : GuiDialog
     {
         Task.Run(() =>
         {
-            var item = (QuickSearchResultItem)_results.ElementAtOrDefault(index)!;
+            var resultList = SingleComposer.GetFlatList("resultList");
+            var item = (QuickSearchResultItem)resultList.Elements.ElementAtOrDefault(index)!;
+
+            if (item is null)
+            {
+                return;
+            }
+
             if (item.OnClicked(ClientApi))
             {
                 ClientApi.Event.EnqueueMainThreadTask(() =>
@@ -234,17 +227,6 @@ internal partial class QuickSearchGuiDialog : GuiDialog
         }
 
         base.OnMouseDown(args);
-    }
-
-    public override void OnMouseUp(MouseEvent args)
-    {
-        if (!IsInDialog(args))
-        {
-            TryClose();
-            args.Handled = true;
-        }
-
-        base.OnMouseUp(args);
     }
 
     private bool IsInDialog(MouseEvent args)
