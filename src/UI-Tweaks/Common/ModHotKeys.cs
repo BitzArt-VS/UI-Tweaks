@@ -7,7 +7,7 @@ namespace BitzArt.UI.Tweaks;
 public static class ModHotKeys
 {
     public static ModHotKey QuickSearch { get; }
-        = ModHotKey.FromLang(Constants.ModId, "search", HotkeyType.HelpAndOverlays, "quicksearch-hotkey-name", GlKeys.N);
+        = ModHotKey.FromLang(Constants.ModId, "search", HotkeyType.HelpAndOverlays, "quicksearch", GlKeys.N);
 }
 
 public record ModHotKey

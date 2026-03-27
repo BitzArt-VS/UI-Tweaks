@@ -7,24 +7,23 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks;
 
-internal partial class QuickSearchDialog : ModGuiDialog
+internal partial class QuickSearchGuiDialog : GuiDialog
 {
     private readonly QuickSearchService _searchService;
     private readonly List<IFlatListItem> _results;
+    private readonly QuickSearchResultItem _calculatorResultItem = new();
 
     private Action<string, bool, bool>? _setSearchText;
     private string _input = string.Empty;
 
-    private CancellationTokenSource? _searchCancellationTokenSource;
-
     public override double DrawOrder => 0.3;
 
-    public QuickSearchDialog(ICoreClientAPI clientApi, QuickSearchService search) : base(clientApi)
+    public QuickSearchGuiDialog(ICoreClientAPI clientApi, QuickSearchService search) : base(clientApi)
     {
         _searchService = search;
         _results = [];
@@ -37,8 +36,8 @@ internal partial class QuickSearchDialog : ModGuiDialog
 
     private void Compose()
     {
-        var searchFieldBounds = ElementBounds.Fixed(0, 0, 424, 32);
-        var resultListBounds = ElementBounds.Fixed(0, 40, 400, _listHeight);
+        var searchFieldBounds = ElementBounds.Fixed(0, 20, 424, 32);
+        var resultListBounds = ElementBounds.Fixed(0, 60, 400, _listHeight);
 
         var clipBounds = resultListBounds.ForkBoundingParent();
 
@@ -49,9 +48,11 @@ internal partial class QuickSearchDialog : ModGuiDialog
 
         SingleComposer = ClientApi.Gui
             .CreateCompo("quicksearch-dialog", ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle))
-            .AddGrayBG(bgBounds)
+            .AddShadedDialogBG(bgBounds, true)
+            .AddDialogTitleBar(Lang.Get($"{Constants.ModId}:quicksearch"), () => TryClose())
             .BeginChildElements(bgBounds)
                 .AddTextInput(searchFieldBounds, OnTextInputChanged, key: "quick-search-input")
+                .AddInset(resultListBounds)
                 .BeginClip(clipBounds)
                     .AddFlatList(resultListBounds, OnItemClicked, _results, "resultList")
                 .EndClip()
@@ -118,7 +119,7 @@ internal partial class QuickSearchDialog : ModGuiDialog
         Compose();
 
         _setSearchText!.Invoke(_input, true, true);
-        RunSearch();
+        Search();
 
         ClientApi.Logger.VerboseDebug($"QuickSearch is now: ON");
     }
@@ -155,71 +156,56 @@ internal partial class QuickSearchDialog : ModGuiDialog
 
         ClientApi.Gui.PlaySound("menubutton_press");
 
-        RunSearch();
+        Search();
     }
 
-    private void RunSearch()
+    private void Search()
     {
-        _searchCancellationTokenSource?.Cancel();
-        _searchCancellationTokenSource = new();
+        _results.Clear();
 
-        Task.Run(() =>
+        // Check if the input looks like a math expression before trying to evaluate it
+        if (!string.IsNullOrWhiteSpace(_input) && GetMathRegex().IsMatch(_input))
         {
-            _results.Clear();
-
-            // Check if the input looks like a math expression before trying to evaluate it
-            if (!string.IsNullOrWhiteSpace(_input) && GetMathRegex().IsMatch(_input))
+            try
             {
-                try
+                // Replace percentage matches with their decimal equivalents before evaluating the expression.
+                // (DataTable.Compute doesn't support percentages)
+                var input = GetPercentageRegex().Replace(_input, match =>
                 {
-                    // Replace percentage matches with their decimal equivalents before evaluating the expression.
-                    // (DataTable.Compute doesn't support percentages)
-                    var input = GetPercentageRegex().Replace(_input, match =>
+                    if (double.TryParse(match.Groups[1].Value, out var number))
                     {
-                        if (double.TryParse(match.Groups[1].Value, out var number))
-                        {
-                            return (number / 100).ToString();
-                        }
-                        return match.Value; // If parsing fails, return the original match
-                    });
+                        return (number / 100).ToString();
+                    }
+                    return match.Value; // If parsing fails, return the original match
+                });
 
-                    // Quick and dirty way to evaluate simple math expressions without writing a custom parser.
-                    // Requires a try-catch to function though, which is unfortunate.
-                    // A custom parser would be more versatile and efficient.
-                    var result = new DataTable().Compute(input, null);
+                // Quick and dirty way to evaluate simple math expressions without writing a custom parser.
+                // Requires a try-catch to function though, which is unfortunate.
+                // A custom parser would be more versatile and efficient.
+                var result = new DataTable().Compute(input, null);
 
-                    _results.Add(new QuickSearchResultItem(result.ToString()!));
+                _calculatorResultItem.Text = $"={result}";
+                _results.Add(_calculatorResultItem);
 
-                    return;
-                }
-                catch
-                {
-                }
+                return;
             }
-
-            Search(_searchCancellationTokenSource.Token);
-        });
-    }
-
-    private void Search(CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
+            catch
+            {
+            }
         }
 
+        SearchItems();
+    }
+
+    private void SearchItems()
+    {
         _results.AddRange(_searchService.Search(_input));
 
         var resultList = SingleComposer.GetFlatList("resultList");
         resultList.CalcTotalHeight();
 
-        ClientApi.Event.EnqueueMainThreadTask(() =>
-        {
-            var scrollbar = SingleComposer.GetScrollbar("scrollbar");
-
-            scrollbar.SetHeights((float)_listHeight, (float)resultList.insideBounds.fixedHeight);
-
-        }, "quicksearch-update-scrollbar");
+        var scrollbar = SingleComposer.GetScrollbar("scrollbar");
+        scrollbar.SetHeights((float)_listHeight, (float)resultList.insideBounds.fixedHeight);
 
         return;
     }

@@ -10,18 +10,38 @@ internal class QuickSearchResultItem : IFlatListItem
 {
     bool IFlatListItem.Visible => true;
 
-    private readonly string? _text;
+    public string? Text
+    {
+        get => field;
+        set
+        {
+            field = value;
+            _texture?.Dispose();
+            _texture = null;
+        }
+    }
 
     private readonly ItemStack? _itemStack;
-    private LoadedTexture? _texture;
-    private ElementBounds? _scissorBounds;
+
+    private readonly string? _pageCode;
+    private readonly LinkTextComponent? _pageLink;
     private readonly InventoryBase? _unspoilableInventory;
     private readonly DummySlot? _dummySlot;
+    private ElementBounds? _scissorBounds;
 
-    public QuickSearchResultItem(ItemStack itemStack) : this()
+    private LoadedTexture? _texture;
+    
+    public QuickSearchResultItem(ItemStack itemStack, ICoreClientAPI clientApi) : this()
     {
         _itemStack = itemStack;
-        _text = itemStack.GetName();
+        Text = itemStack.GetName();
+
+        _pageCode = _itemStack.Collectible
+            .GetCollectibleInterface<IHandBookPageCodeProvider>()?
+            .HandbookPageCodeForStack(clientApi.World, _itemStack)
+            ?? GuiHandbookItemStackPage.PageCodeForStack(_itemStack);
+
+        _pageLink = new($"handbook://{_pageCode}");
 
         _unspoilableInventory = new CreativeInventoryTab(1, "not-used", null);
         _dummySlot = new DummySlot(itemStack, _unspoilableInventory);
@@ -29,7 +49,7 @@ internal class QuickSearchResultItem : IFlatListItem
 
     public QuickSearchResultItem(string text) : this()
     {
-        _text = text;
+        Text = text;
     }
 
     public QuickSearchResultItem() { }
@@ -38,13 +58,13 @@ internal class QuickSearchResultItem : IFlatListItem
     {
         _texture?.Dispose();
         using var font = _itemStack is null ? CairoFont.WhiteMediumText() : CairoFont.WhiteSmallText();
-        _texture = new TextTextureUtil(clientApi).GenTextTexture(_text, font);
+        _texture = new TextTextureUtil(clientApi).GenTextTexture(Text, font);
 
         _scissorBounds = ElementBounds.FixedSize(50, 50);
         _scissorBounds.ParentBounds = clientApi.Gui.WindowBounds;
     }
 
-    public void RenderListEntryTo(ICoreClientAPI clientApi, float dt, double x, double y, double cellWidth, double cellHeight)
+    void IFlatListItem.RenderListEntryTo(ICoreClientAPI clientApi, float dt, double x, double y, double cellWidth, double cellHeight)
     {
         if (_texture is null)
         {
@@ -53,20 +73,18 @@ internal class QuickSearchResultItem : IFlatListItem
 
         if (_itemStack is not null)
         {
-            RenderItemStack(clientApi, dt, x, y, cellWidth, cellHeight);
+            RenderItemStack(clientApi, x, y);
             return;
         }
-        if (_text is not null)
+        if (Text is not null)
         {
-            RenderText(clientApi, dt, x, y, cellWidth, cellHeight);
+            RenderText(clientApi, x, y);
             return;
         }
     }
 
-    private void RenderText(ICoreClientAPI clientApi, float dt, double x, double y, double cellWidth, double cellHeight)
+    private void RenderText(ICoreClientAPI clientApi, double x, double y)
     {
-        float size = (float)GuiElement.scaled(25);
-
         clientApi.Render.Render2DTexturePremultipliedAlpha(
             _texture!.TextureId,
             x,
@@ -77,7 +95,7 @@ internal class QuickSearchResultItem : IFlatListItem
         );
     }
 
-    private void RenderItemStack(ICoreClientAPI clientApi, float dt, double x, double y, double cellWidth, double cellHeight)
+    private void RenderItemStack(ICoreClientAPI clientApi, double x, double y)
     {
         float size = (float)GuiElement.scaled(25);
         float pad = (float)GuiElement.scaled(10);
@@ -104,19 +122,14 @@ internal class QuickSearchResultItem : IFlatListItem
 
     public bool OnClicked(ICoreClientAPI clientApi)
     {
-        if (_itemStack is null)
+        if (_itemStack is null || _pageCode is null)
         {
             return false;
         }
 
-        var pageCode = _itemStack.Collectible
-            .GetCollectibleInterface<IHandBookPageCodeProvider>()?
-            .HandbookPageCodeForStack(clientApi.World, _itemStack)
-            ?? GuiHandbookItemStackPage.PageCodeForStack(_itemStack);
-
         clientApi.Event.EnqueueMainThreadTask(() =>
         {
-            clientApi.LinkProtocols["handbook"]!.Invoke(new($"handbook://{pageCode}"));
+            clientApi.LinkProtocols["handbook"]!.Invoke(_pageLink);
         },"quicksearch-open-handbook-entry");
 
         return true;

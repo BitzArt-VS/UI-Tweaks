@@ -90,7 +90,7 @@ internal partial class QuickSearchService : IDisposable
                     var name = item.GetName();
                     var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                    var itemEntry = new ItemEntry(item, name, new(item));
+                    var itemEntry = new ItemEntry(item, name, new(item, clientApi));
 
                     foreach (var word in words)
                     {

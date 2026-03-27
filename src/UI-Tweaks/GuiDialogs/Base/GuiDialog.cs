@@ -3,7 +3,7 @@ using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
 
-internal class ModGuiDialog(ICoreClientAPI clientApi) : GuiDialog(clientApi)
+internal class GuiDialog(ICoreClientAPI clientApi) : Vintagestory.API.Client.GuiDialog(clientApi)
 {
     protected bool IsDisposed = false;
     public override string? ToggleKeyCombinationCode => null;
