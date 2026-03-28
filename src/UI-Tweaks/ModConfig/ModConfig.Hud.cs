@@ -7,10 +7,20 @@ internal partial class UiTweaksModConfig
     internal partial class HudConfig
     {
         [JsonProperty("healthbarTooltip")]
-        public TooltipOptions HealthbarTooltip { get; set; } = new();
+        public HealthbarTooltipOptions HealthbarTooltip { get; set; } = new();
 
         [JsonProperty("satietyTooltip")]
-        public TooltipOptions SatietyTooltip { get; set; } = new();
+        public SatietyTooltipOptions SatietyTooltip { get; set; } = new();
+
+        public class HealthbarTooltipOptions : TooltipOptions
+        {
+            public override string Format { get; set; } = "{current} / {maximum} ({percent}%)";
+        }
+
+        public class SatietyTooltipOptions : TooltipOptions
+        {
+            public override string Format { get; set; } = "{current} / {maximum} ({percent}%)   |   {hunger}%";
+        }
 
         public class TooltipOptions
         {
@@ -18,7 +28,7 @@ internal partial class UiTweaksModConfig
             public bool Enable { get; set; } = true;
 
             [JsonProperty("format")]
-            public string Format { get; set; } = "{0} / {1}";
+            public virtual string Format { get; set; } = "{current} / {maximum}";
 
             [JsonProperty("offset")]
             public ComponentOffset Offset { get; set; } = new();

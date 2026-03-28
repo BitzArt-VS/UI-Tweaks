@@ -1,31 +1,51 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks;
 
 internal class HealthbarTooltip : HudElement
 {
     private readonly UiTweaksModConfig.HudConfig.TooltipOptions _config;
+    
     private readonly CairoFont _font = CairoFont.WhiteDetailText();
 
-    private long? _tickListenerId;
+    private static readonly string[][] _formatReplacements =
+    [
+        ["current", "curr", "cur", "c"],
+        ["maximum", "max", "m", "total"],
+        ["percentage", "percent", "p", "%"]
+    ];
 
-    private float? _currentHealth;
-    private float? _maxHealth;
+    private readonly string _format;
+    private readonly bool _usePercentage;
+
+    private long? _tickListenerId;
+    private EntityPlayer? _playerEntity;
 
     public HealthbarTooltip(ICoreClientAPI clientApi, UiTweaksModConfig.HudConfig.TooltipOptions config)
         : base(clientApi)
     {
         _config = config;
+        _format = _config.Format;
+
+        for (int i = 0; i < _formatReplacements.Length; i++)
+        {
+            foreach (var placeholder in _formatReplacements[i])
+            {
+                _format = _format.Replace($"{{{placeholder}}}", $"{{{i}}}");
+            }
+        }
+
+        _usePercentage = _format.Contains("{2}");
 
         var componentBoundary = ElementBounds
             .FixedPos(EnumDialogArea.CenterBottom, -252.0 + _config.Offset.X, -83.0 + _config.Offset.Y)
-            .WithFixedSize(200.0, 20.0);
+            .WithFixedSize(400.0, 20.0);
 
         SingleComposer = clientApi.Gui
             .CreateCompo("healthbar-tooltip", componentBoundary)
-            .AddRichtext(string.Empty, CairoFont.WhiteDetailText(), ElementBounds.Fixed(0, 0, 200.0, 20.0), "value")
+            .AddRichtext(string.Empty, CairoFont.WhiteDetailText(), ElementBounds.Fixed(0, 0, 400.0, 20.0), "value")
             .Compose();
 
         _tickListenerId = clientApi.Event.RegisterGameTickListener(OnGameTick, 100);
@@ -35,11 +55,26 @@ internal class HealthbarTooltip : HudElement
 
     private void OnGameTick(float _)
     {
-        Task.Run(UpdateValues);
+        _playerEntity = ClientApi.World?.Player?.Entity;
+
+        if (_playerEntity?.WatchedAttributes is null)
+        {
+            return;
+        }
+
+        _playerEntity.WatchedAttributes.RegisterModifiedListener("stats", UpdateStats);
+
+        ClientApi.Event.UnregisterGameTickListener(_tickListenerId!.Value);
+        _tickListenerId = null;
     }
 
-    private void UpdateValues()
+    private void UpdateStats()
     {
+        if (_playerEntity?.WatchedAttributes is null)
+        {
+            return;
+        }
+
         var healthAttribute = ClientApi.World?.Player?.Entity?.WatchedAttributes?.GetTreeAttribute("health");
 
         if (healthAttribute is null)
@@ -50,25 +85,23 @@ internal class HealthbarTooltip : HudElement
         var current = healthAttribute.TryGetFloat("currenthealth");
         var max = healthAttribute.TryGetFloat("maxhealth");
 
-        if (current is null || max is null || current == _currentHealth && max == _maxHealth)
+        if (current is null || max is null)
         {
             return;
         }
 
-        _currentHealth = current;
-        _maxHealth = max;
+        var percentage = _usePercentage && current is not null && max is not null
+            ? max > 0 ? current / max * 100 : 0
+            : 0;
 
-        var percentage = Math.Round((double)(max > 0 ? current / max * 100 : 0), 1);
+        var value = string.Format(_format, [
+            Math.Round(current!.Value, 1),
+            Math.Round(max!.Value, 1),
+            Math.Round(percentage!.Value, 1)]);
 
-        var format = _config.Format;
-        var value = string.Format(format, [Math.Round(current.Value, 1), Math.Round(max.Value, 1), percentage]);
-
-        var textComponent = SingleComposer.GetRichtext("value");
-        
-        ClientApi.Event.EnqueueMainThreadTask(() =>
-        {
-            textComponent.SetNewText($"<font align=center>{value}</font>", _font);
-        }, $"{Constants.ModId}-healthbar-tooltip-update");
+        SingleComposer
+            .GetRichtext("value")
+            .SetNewText($"<font align=center>{value}</font>", _font);
     }
 
     public override void Dispose()

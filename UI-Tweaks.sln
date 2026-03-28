@@ -43,6 +43,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-tweaks", "ui-tweaks", "{
 		mod\ui-tweaks\modinfo.json = mod\ui-tweaks\modinfo.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{3CD451C1-DDE4-4594-AE82-41DAC0BE75B3}"
+	ProjectSection(SolutionItems) = preProject
+		docs\book.toml = docs\book.toml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A2469B22-50BE-4BA6-BBF8-20C228328DF2}"
+	ProjectSection(SolutionItems) = preProject
+		docs\src\01.overview.md = docs\src\01.overview.md
+		docs\src\02.features.md = docs\src\02.features.md
+		docs\src\03.compatibility.md = docs\src\03.compatibility.md
+		docs\src\04.installation.md = docs\src\04.installation.md
+		docs\src\05.configuration.md = docs\src\05.configuration.md
+		docs\src\06.contributing.md = docs\src\06.contributing.md
+		docs\src\SUMMARY.md = docs\src\SUMMARY.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +84,7 @@ Global
 		{CC8914DF-092D-409E-957B-B5E55660B37D} = {ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}
 		{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E} = {CC8914DF-092D-409E-957B-B5E55660B37D}
 		{DC7B1062-1AA0-4601-B6EB-1AD503C2A374} = {6A3CC29A-E852-43DF-A375-8B7F66F60345}
+		{A2469B22-50BE-4BA6-BBF8-20C228328DF2} = {3CD451C1-DDE4-4594-AE82-41DAC0BE75B3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B4A6136-C930-461B-A957-1875D0E1D80D}
