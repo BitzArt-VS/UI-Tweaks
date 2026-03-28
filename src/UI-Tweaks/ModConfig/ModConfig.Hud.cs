@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace BitzArt.UI.Tweaks;
 
@@ -24,21 +25,21 @@ internal partial class UiTweaksModConfig
 
         public class TooltipOptions
         {
-            [JsonProperty("enable")]
+            [JsonProperty("enable", Order = 1)]
             public bool Enable { get; set; } = true;
 
-            [JsonProperty("format")]
+            [JsonProperty("format", Order = 2)]
             public virtual string Format { get; set; } = "{current} / {maximum}";
 
-            [JsonProperty("offset")]
+            [JsonProperty("offset", Order = 3)]
             public ComponentOffset Offset { get; set; } = new();
 
             public class ComponentOffset
             {
-                [JsonProperty("x")]
+                [JsonProperty("x", Order = 1)]
                 public double X { get; set; } = 0.0;
 
-                [JsonProperty("y")]
+                [JsonProperty("y", Order = 2)]
                 public double Y { get; set; } = 0.0;
             }
         }
