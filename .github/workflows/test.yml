@@ -6,6 +6,10 @@ on:
       - main
     tags-ignore:
       - '*'
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/test.yml"
 
 jobs:
   tests:

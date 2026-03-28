@@ -1,0 +1,6 @@
+[book]
+title = "BitzArt's UI Tweaks"
+
+[output.html]
+git-repository-url = "https://github.com/BitzArt-VS/UI-Tweaks"
+git-repository-icon = "fab-github"

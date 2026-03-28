@@ -1,44 +1,25 @@
-[![Tests](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/Tests.yml/badge.svg?branch=main)](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/Tests.yml)
+[![Discord](https://img.shields.io/discord/1480549455114797220?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/eZUFCVWWtK)
 
-# Features
+[![Tests](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml)
 
-## HUD Elements
-> 💡 Inspired by [Extended HUD info](https://mods.vintagestory.at/extendedhudinfo/).
+# UI Tweaks
 
-Customize your HUD by enabling additional elements provided by UI Tweaks:
+UI Tweaks is a mod for Vintage Story that enhances the user interface by adding various quality-of-life features and visual improvements. The mod aims to provide a more intuitive and customizable UI experience for players, making it easier to navigate and interact with the game.
 
-- **HP Label**: Displays current / maximum HP as a number or a percentage above the health bar. Customizable format.
-- **Satiety Label**: Displays current / maximum satiety as a number or a percentage above the satiety bar. Customizable format.
+<!-- TODO: Some screenshots and stuff here. -->
 
-## Quick Search
+## Resources
 
-> 💡 Inspired by [Satisfactory's](https://www.satisfactorygame.com/) quick search feature.
+Make sure to check out the [Documentation](https://bitzart-vs.github.io/UI-Tweaks) for detailed information on features, installation instructions, and how to contribute to the project!
 
-QuickSearch allows quickly searching for handbook entries by name. Simply press the configured hotkey (default: `N`) and start typing the name of the entry you want to find.
+[![documentation](https://img.shields.io/badge/documentation-20B2AA?style=for-the-badge)](https://bitzart-vs.github.io/UI-Tweaks)
 
-This search behaves differently from the vanilla handbook search. We hope you find it intuitive and easy to use. Try it out and let us know what you think!
+- [Overview](https://bitzart-vs.github.io/UI-Tweaks/01.overview.html)
+- [Features](https://bitzart-vs.github.io/UI-Tweaks/02.features.html)
+- [Compatibility](https://bitzart-vs.github.io/UI-Tweaks/03.compatibility.html)
+- [Installation](https://bitzart-vs.github.io/UI-Tweaks/04.installation.html)
+- [Contributing](https://bitzart-vs.github.io/UI-Tweaks/05.contributing.html)
 
-Also check out the [Calculator](#calculator) feature below, which allows Quick Search to double as a simple calculator.
+## License
 
-### We think Quick Search may benefit from the following features in the future:
-
-- Search guide entries
-- Search by description
-- Search by tags
-
-
-## Calculator
-> 💡 Inspired by [Satisfactory's](https://www.satisfactorygame.com/) quick search feature.
-
-[QuickSearch](#quick-search) also allows calculating mathematical expressions right in the search box!
-
-Supported operations:
-- Addition: `+`
-- Subtraction: `-`
-- Multiplication: `*`
-- Division: `/`
-- Percentages: `%`
-- Parentheses: `()`
-- More operations may be added in the future!
-
-## ... more features coming soon!
+[![License](https://img.shields.io/badge/Apache%202.0-%230072C6?style=for-the-badge)](https://github.com/BitzArt-VS/UI-Tweaks/blob/main/LICENSE)
