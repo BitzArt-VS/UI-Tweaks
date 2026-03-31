@@ -1,8 +1,9 @@
-﻿using Vintagestory.API.Client;
+﻿using System;
+using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
 
-internal class HudElement(ICoreClientAPI clientApi) : Vintagestory.API.Client.HudElement(clientApi)
+public class HudElement(ICoreClientAPI clientApi) : Vintagestory.API.Client.HudElement(clientApi)
 {
     protected ICoreClientAPI ClientApi = clientApi;
 
@@ -12,5 +13,7 @@ internal class HudElement(ICoreClientAPI clientApi) : Vintagestory.API.Client.Hu
     {
         base.Dispose();
         ClientApi = null!;
+
+        GC.SuppressFinalize(this);
     }
 }

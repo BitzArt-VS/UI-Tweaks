@@ -9,5 +9,7 @@ public enum GameStatusDetailType
     PlayerCurrentSatiety = 201,
     PlayerMaxSatiety = 202,
     PlayerSatietyPercentage = 203,
-    PlayerSatietyHungerRate = 204
+    PlayerSatietyHungerRate = 204,
+
+    TemporalStability = 1301
 }

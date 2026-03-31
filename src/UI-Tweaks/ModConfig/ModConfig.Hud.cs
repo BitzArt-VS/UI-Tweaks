@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
 namespace BitzArt.UI.Tweaks;
 
@@ -15,24 +14,32 @@ internal partial class UiTweaksModConfig
 
         public class HealthbarTooltipOptions : TooltipOptions
         {
+            public override string ComponentName => "ui-tweaks-tooltips-healthbar";
             public override string Format { get; set; } = "{current} / {maximum} ({percent}%)";
         }
 
         public class SatietyTooltipOptions : TooltipOptions
         {
+            public override string ComponentName => "ui-tweaks-tooltips-satiety";
             public override string Format { get; set; } = "{current} / {maximum} ({percent}%)   |   {hunger}%";
         }
 
-        public class TooltipOptions
+        public abstract class TooltipOptions : IHudTooltipConfiguration
         {
+            [JsonIgnore]
+            public abstract string ComponentName { get; }
+
             [JsonProperty("enable", Order = 1)]
             public bool Enable { get; set; } = true;
 
             [JsonProperty("format", Order = 2)]
-            public virtual string Format { get; set; } = "{current} / {maximum}";
+            public abstract string Format { get; set; }
 
             [JsonProperty("offset", Order = 3)]
             public ComponentOffset Offset { get; set; } = new();
+
+            double IHudTooltipConfiguration.X => Offset.X;
+            double IHudTooltipConfiguration.Y => Offset.Y;
 
             public class ComponentOffset
             {
