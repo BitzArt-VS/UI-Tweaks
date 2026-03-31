@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BitzArt.UI.Tweaks.Services;
 
-internal partial class GameStatusService
+public partial class GameStatusService
 {
     private class DetailRecordCollection
     {

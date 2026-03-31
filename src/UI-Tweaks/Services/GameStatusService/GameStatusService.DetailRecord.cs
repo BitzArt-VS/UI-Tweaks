@@ -2,7 +2,7 @@
 
 namespace BitzArt.UI.Tweaks.Services;
 
-internal partial class GameStatusService
+public partial class GameStatusService
 {
     private class DetailRecord<T>(GameStatusDetailType detail, string name, Func<T, T>? onUpdate = null) : DetailRecord(detail, name)
     {

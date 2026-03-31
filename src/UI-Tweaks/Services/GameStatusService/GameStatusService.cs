@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks.Services;
 
@@ -15,11 +18,14 @@ namespace BitzArt.UI.Tweaks.Services;
 /// to arbitrary subsets of these updates,
 /// allowing updates from different sources in a single callback.
 /// </summary>
-internal partial class GameStatusService : IDisposable
+public partial class GameStatusService : IDisposable
 {
     private readonly ICoreClientAPI _clientApi;
+    private SystemTemporalStability? _temporalStabilitySystem;
 
     private long? _tickListenerId;
+    private CancellationTokenSource? _updateThreadCts;
+    private Thread? _updateThread;
     private EntityPlayer? _playerEntity;
 
     private readonly SubscriptionCollection _subscriptions;
@@ -33,6 +39,8 @@ internal partial class GameStatusService : IDisposable
     private DetailRecord _playerSatietyMax;
     private DetailRecord _playerSatietyPercent;
     private DetailRecord _playerSatietyHungerRate;
+
+    private DetailRecord _temporalStability;
 
     public GameStatusService(ICoreClientAPI clientApi)
     {
@@ -56,6 +64,9 @@ internal partial class GameStatusService : IDisposable
         _playerSatietyHungerRate = new DetailRecord<float>(GameStatusDetailType.PlayerSatietyHungerRate, "player-satiety-hunger", x => (float)Math.Round(x * 100, 0));
         _detailRecords.Add(_playerSatietyHungerRate);
 
+        _temporalStability = new DetailRecord<float>(GameStatusDetailType.TemporalStability, "player-temporal-stability", x => (float)Math.Round(x * 100, 0));
+        _detailRecords.Add(_temporalStability);
+
         _tickListenerId = _clientApi.Event.RegisterGameTickListener(_ =>
         {
             _playerEntity = _clientApi.World?.Player?.Entity;
@@ -65,20 +76,63 @@ internal partial class GameStatusService : IDisposable
                 return;
             }
 
-            UpdateStats();
+            if (_updateThread is not null)
+            {
+                _clientApi.Logger.Warning("GameStatusService: Update thread already running.");
+
+                _clientApi.Event.UnregisterGameTickListener(_tickListenerId!.Value);
+                return;
+            }
+
+            _updateThreadCts = new();
+            var token = _updateThreadCts.Token;
+
+            _updateThread = new Thread(async () =>
+            {
+                _clientApi.Logger.Debug("GameStatusService: Update thread started.");
+
+                while (!token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        UpdateStats();
+                        await Task.Delay(50, _updateThreadCts.Token);
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex)
+                    {
+                        _clientApi.Logger.Error("Error updating game status details: " + ex);
+                    }
+                }
+
+                _clientApi.Logger.Debug("GameStatusService: Update thread exiting.");
+            })
+            {
+                IsBackground = true,
+                Name = "UI-Tweaks Status Updates Thread"
+            };
+
+            _updateThread.Start();
+
+            _clientApi.Event.UnregisterGameTickListener(_tickListenerId!.Value);
 
         }, 100);
     }
 
     public void Dispose()
     {
-        if (_tickListenerId.HasValue)
+        if (_tickListenerId is not null)
         {
             _clientApi.Event.UnregisterGameTickListener(_tickListenerId.Value);
             _tickListenerId = null;
         }
 
-        _playerEntity?.WatchedAttributes?.UnregisterListener(UpdateStats);
+        _updateThreadCts?.Cancel();
+        _updateThreadCts = null;
+
+        _updateThread = null;
+
+        GC.SuppressFinalize(this);
     }
 
     private void UpdateStats()
@@ -101,8 +155,11 @@ internal partial class GameStatusService : IDisposable
 
         var hungerRate = _playerEntity!.Stats.GetBlended("hungerrate");
 
-        DetailRecord[] affectedDetails = [_playerHealthCurrent, _playerHealthMax, _playerHealthPercentage, _playerSatietyCurrent, _playerSatietyMax, _playerSatietyPercent, _playerSatietyHungerRate];
-        object?[] values = [healthCurrent, healthMax, healthPercent, satietyCurrent, satietyMax, satietyPercent, hungerRate];
+        _temporalStabilitySystem ??= _clientApi.ModLoader.GetModSystem<SystemTemporalStability>();
+        var temporalStability = _temporalStabilitySystem!.GetTemporalStability(_playerEntity.Pos.AsBlockPos);
+
+        DetailRecord[] affectedDetails = [_playerHealthCurrent, _playerHealthMax, _playerHealthPercentage, _playerSatietyCurrent, _playerSatietyMax, _playerSatietyPercent, _playerSatietyHungerRate, _temporalStability];
+        object?[] values = [healthCurrent, healthMax, healthPercent, satietyCurrent, satietyMax, satietyPercent, hungerRate, temporalStability];
 
         List<DetailRecord> updatedDetails = new(affectedDetails.Length);
         for (int i = 0; i < affectedDetails.Length; i++)

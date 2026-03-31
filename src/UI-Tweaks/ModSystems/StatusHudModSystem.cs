@@ -11,8 +11,8 @@ public class StatusHudModSystem : ClientModSystem
 
     private GameStatusService? _gameStatusService;
 
-    private HealthbarTooltip? _healthbarTooltip;
-    private SatietyTooltip? _satietyTooltip;
+    private HealthbarTooltipLabel? _healthbarTooltip;
+    private SatietyTooltipLabel? _satietyTooltip;
 
     protected override void Start(ICoreClientAPI clientApi)
     {

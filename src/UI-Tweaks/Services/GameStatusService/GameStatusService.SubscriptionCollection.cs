@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BitzArt.UI.Tweaks.Services;
 
-internal partial class GameStatusService
+public partial class GameStatusService
 {
     private class SubscriptionCollection
     {
