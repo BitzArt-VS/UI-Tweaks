@@ -34,7 +34,7 @@ public partial class GameStatusService
             }
         }
 
-        public void OnUpdate(List<DetailRecord> details)
+        public void OnUpdate(IEnumerable<DetailRecord> details)
         {
             var subscriptions = details.SelectMany(d =>
             {

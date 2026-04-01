@@ -158,8 +158,8 @@ public partial class GameStatusService : IDisposable
         _temporalStabilitySystem ??= _clientApi.ModLoader.GetModSystem<SystemTemporalStability>();
         var temporalStability = _temporalStabilitySystem!.GetTemporalStability(_playerEntity.Pos.AsBlockPos);
 
-        DetailRecord[] affectedDetails = [_playerHealthCurrent, _playerHealthMax, _playerHealthPercentage, _playerSatietyCurrent, _playerSatietyMax, _playerSatietyPercent, _playerSatietyHungerRate, _temporalStability];
-        object?[] values = [healthCurrent, healthMax, healthPercent, satietyCurrent, satietyMax, satietyPercent, hungerRate, temporalStability];
+        Span<DetailRecord> affectedDetails = [_playerHealthCurrent, _playerHealthMax, _playerHealthPercentage, _playerSatietyCurrent, _playerSatietyMax, _playerSatietyPercent, _playerSatietyHungerRate, _temporalStability];
+        Span<float?> values = [healthCurrent, healthMax, healthPercent, satietyCurrent, satietyMax, satietyPercent, hungerRate, temporalStability];
 
         List<DetailRecord> updatedDetails = new(affectedDetails.Length);
         for (int i = 0; i < affectedDetails.Length; i++)
