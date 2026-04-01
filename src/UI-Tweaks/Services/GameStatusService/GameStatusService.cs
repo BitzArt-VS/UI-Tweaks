@@ -7,17 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks.Services;
 
 /// <summary>
 /// A service that aggregates game status updates
-/// and allows other components to dynamically subscribe
-/// to arbitrary subsets of these updates,
+/// and allows other components to dynamically subscribe to arbitrary subsets of these updates,
 /// allowing updates from different sources in a single callback.
 /// </summary>
+/// <remarks>
+/// This service runs on a separate thread, and will notify subscribers of changes from that thread.
+/// Dispatching to the UI thread is necessary when doing any UI updates in the callback.
+/// </remarks>
 public partial class GameStatusService : IDisposable
 {
     private readonly ICoreClientAPI _clientApi;
@@ -31,16 +33,18 @@ public partial class GameStatusService : IDisposable
     private readonly SubscriptionCollection _subscriptions;
     private readonly DetailRecordCollection _detailRecords;
 
-    private DetailRecord _playerHealthCurrent;
-    private DetailRecord _playerHealthMax;
-    private DetailRecord _playerHealthPercentage;
+    private readonly DetailRecord<float> _playerHealthCurrent;
+    private readonly DetailRecord<float> _playerHealthMax;
+    private readonly DetailRecord<float> _playerHealthPercentage;
 
-    private DetailRecord _playerSatietyCurrent;
-    private DetailRecord _playerSatietyMax;
-    private DetailRecord _playerSatietyPercent;
-    private DetailRecord _playerSatietyHungerRate;
+    private readonly DetailRecord<float> _playerSatietyCurrent;
+    private readonly DetailRecord<float> _playerSatietyMax;
+    private readonly DetailRecord<float> _playerSatietyPercent;
+    private readonly DetailRecord<float> _playerSatietyHungerRate;
 
-    private DetailRecord _temporalStability;
+    private readonly DetailRecord<float> _playerTemporalStability;
+
+    private readonly DetailRecord<float> _playerLocationTemporalStability;
 
     public GameStatusService(ICoreClientAPI clientApi)
     {
@@ -48,24 +52,27 @@ public partial class GameStatusService : IDisposable
         _subscriptions = new();
         _detailRecords = new();
 
-        _playerHealthCurrent = new DetailRecord<float>(GameStatusDetailType.PlayerCurrentHealth, "player-health-current", x => (float)Math.Round(x, 1));
+        _playerHealthCurrent = new(GameStatusDetailType.PlayerCurrentHealth, "player-health-current", x => (float)Math.Round(x, 1));
         _detailRecords.Add(_playerHealthCurrent);
-        _playerHealthMax = new DetailRecord<float>(GameStatusDetailType.PlayerMaxHealth, "player-health-max", x => (float)Math.Round(x, 1));
+        _playerHealthMax = new(GameStatusDetailType.PlayerMaxHealth, "player-health-max", x => (float)Math.Round(x, 1));
         _detailRecords.Add(_playerHealthMax);
-        _playerHealthPercentage = new DetailRecord<float>(GameStatusDetailType.PlayerHealthPercentage, "player-health-percent", x => (float)Math.Round(x, 1));
+        _playerHealthPercentage = new(GameStatusDetailType.PlayerHealthPercentage, "player-health-percent", x => (float)Math.Round(x, 0));
         _detailRecords.Add(_playerHealthPercentage);
 
-        _playerSatietyCurrent = new DetailRecord<float>(GameStatusDetailType.PlayerCurrentSatiety, "player-satiety-current", x => (float)Math.Round(x, 1));
+        _playerSatietyCurrent = new(GameStatusDetailType.PlayerCurrentSatiety, "player-satiety-current", x => (float)Math.Round(x, 0));
         _detailRecords.Add(_playerSatietyCurrent);
-        _playerSatietyMax = new DetailRecord<float>(GameStatusDetailType.PlayerMaxSatiety, "player-satiety-max", x => (float)Math.Round(x, 1));
+        _playerSatietyMax = new(GameStatusDetailType.PlayerMaxSatiety, "player-satiety-max", x => (float)Math.Round(x, 0));
         _detailRecords.Add(_playerSatietyMax);
-        _playerSatietyPercent = new DetailRecord<float>(GameStatusDetailType.PlayerSatietyPercentage, "player-satiety-percent", x => (float)Math.Round(x, 1));
+        _playerSatietyPercent = new(GameStatusDetailType.PlayerSatietyPercentage, "player-satiety-percent", x => (float)Math.Round(x, 0));
         _detailRecords.Add(_playerSatietyPercent);
-        _playerSatietyHungerRate = new DetailRecord<float>(GameStatusDetailType.PlayerSatietyHungerRate, "player-satiety-hunger", x => (float)Math.Round(x * 100, 0));
+        _playerSatietyHungerRate = new(GameStatusDetailType.PlayerSatietyHungerRate, "player-satiety-hunger", x => (float)Math.Round(x * 100, 0));
         _detailRecords.Add(_playerSatietyHungerRate);
 
-        _temporalStability = new DetailRecord<float>(GameStatusDetailType.TemporalStability, "player-temporal-stability", x => (float)Math.Round(x * 100, 0));
-        _detailRecords.Add(_temporalStability);
+        _playerTemporalStability = new(GameStatusDetailType.PlayerTemporalStability, "player-temporal-stability", x => (float)Math.Round(x * 100, 0));
+        _detailRecords.Add(_playerTemporalStability);
+
+        _playerLocationTemporalStability = new(GameStatusDetailType.PlayerLocationTemporalStability, "player-location-temporal-stability", x => (float)Math.Round(x * 100, 0));
+        _detailRecords.Add(_playerLocationTemporalStability);
 
         _tickListenerId = _clientApi.Event.RegisterGameTickListener(_ =>
         {
@@ -137,7 +144,12 @@ public partial class GameStatusService : IDisposable
 
     private void UpdateStats()
     {
-        var healthAttribute = _playerEntity!.WatchedAttributes?.GetTreeAttribute("health");
+        if (_playerEntity?.WatchedAttributes is null)
+        {
+            throw new InvalidOperationException("Player entity or watched attributes not available.");
+        }
+
+        var healthAttribute = _playerEntity.WatchedAttributes.GetTreeAttribute("health");
 
         var healthCurrent = healthAttribute?.TryGetFloat("currenthealth");
         var healthMax = healthAttribute?.TryGetFloat("maxhealth");
@@ -145,7 +157,7 @@ public partial class GameStatusService : IDisposable
             ? healthCurrent.Value / healthMax.Value * 100.0f
             : null;
 
-        var hungerAttribute = _playerEntity.WatchedAttributes?.GetTreeAttribute("hunger");
+        var hungerAttribute = _playerEntity.WatchedAttributes.GetTreeAttribute("hunger");
 
         var satietyCurrent = hungerAttribute?.TryGetFloat("currentsaturation");
         var satietyMax = hungerAttribute?.TryGetFloat("maxsaturation");
@@ -153,21 +165,46 @@ public partial class GameStatusService : IDisposable
             ? satietyCurrent.Value / satietyMax.Value * 100.0f
             : null;
 
-        var hungerRate = _playerEntity!.Stats.GetBlended("hungerrate");
+        var hungerRate = _playerEntity.Stats.GetBlended("hungerrate");
+
+        var playerTemporalStability = (float)_playerEntity.WatchedAttributes.GetDouble("temporalStability");
 
         _temporalStabilitySystem ??= _clientApi.ModLoader.GetModSystem<SystemTemporalStability>();
-        var temporalStability = _temporalStabilitySystem!.GetTemporalStability(_playerEntity.Pos.AsBlockPos);
+        var playerLocationTemporalStability = _temporalStabilitySystem!.GetTemporalStability(_playerEntity.Pos.AsBlockPos);
 
-        Span<DetailRecord> affectedDetails = [_playerHealthCurrent, _playerHealthMax, _playerHealthPercentage, _playerSatietyCurrent, _playerSatietyMax, _playerSatietyPercent, _playerSatietyHungerRate, _temporalStability];
-        Span<float?> values = [healthCurrent, healthMax, healthPercent, satietyCurrent, satietyMax, satietyPercent, hungerRate, temporalStability];
+        Span<DetailRecord<float>> affectedDetails =
+        [
+            _playerHealthCurrent,
+            _playerHealthMax,
+            _playerHealthPercentage,
+            _playerSatietyCurrent,
+            _playerSatietyMax,
+            _playerSatietyPercent,
+            _playerSatietyHungerRate,
+            _playerTemporalStability,
+            _playerLocationTemporalStability
+        ];
 
-        List<DetailRecord> updatedDetails = new(affectedDetails.Length);
+        Span<float?> values =
+        [
+            healthCurrent,
+            healthMax,
+            healthPercent,
+            satietyCurrent,
+            satietyMax,
+            satietyPercent,
+            hungerRate,
+            playerTemporalStability,
+            playerLocationTemporalStability
+        ];
+
+        List<DetailRecord<float>> updatedDetails = new(affectedDetails.Length);
         for (int i = 0; i < affectedDetails.Length; i++)
         {
             var detail = affectedDetails[i];
             var value = values[i];
 
-            if (value is not null && detail.Update(value))
+            if (value is not null && detail.Update(value!.Value))
             {
                 updatedDetails.Add(detail);
             }

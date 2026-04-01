@@ -1,26 +1,36 @@
 ﻿using BitzArt.UI.Tweaks.Services;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
 
-// This ModSystem initializes the StatusHud functionality when the client starts,
-// and disposes of it when the ModSystem is unloaded.
 public class StatusHudModSystem : ClientModSystem
 {
     protected override string Name => $"{Constants.ModName}:StatusHUD";
 
     private GameStatusService? _gameStatusService;
 
-    private HealthbarTooltipLabel? _healthbarTooltip;
-    private SatietyTooltipLabel? _satietyTooltip;
+    private readonly List<HudTooltipLabel> _tooltipLabels = [];
 
     protected override void Start(ICoreClientAPI clientApi)
     {
         var config = clientApi.GetModConfig<UiTweaksModConfig>(Constants.ModConfigFileName).Hud;
         _gameStatusService = new(clientApi);
 
-        _healthbarTooltip = new(clientApi, _gameStatusService, config.HealthbarTooltip);
-        _satietyTooltip = new(clientApi, _gameStatusService, config.SatietyTooltip);
+        List<IHudTooltipConfiguration> tooltipConfigurations =
+        [
+            config.HealthbarTooltip,
+            config.TemporalStabilityTooltip,
+            config.SatietyTooltip,
+            config.HungerTooltip,
+
+            ..config.CustomTooltips
+        ];
+
+        foreach (var tooltipConfig in tooltipConfigurations)
+        {
+            _tooltipLabels.Add(new(clientApi, _gameStatusService, tooltipConfig));
+        }
     }
 
     public override void Dispose()
@@ -28,10 +38,10 @@ public class StatusHudModSystem : ClientModSystem
         _gameStatusService?.Dispose();
         _gameStatusService = null;
 
-        _healthbarTooltip?.Dispose();
-        _healthbarTooltip = null;
-
-        _satietyTooltip?.Dispose();
-        _satietyTooltip = null;
+        for (int i = _tooltipLabels.Count - 1; i >= 0; i--)
+        {
+            _tooltipLabels[i].Dispose();
+            _tooltipLabels.RemoveAt(i);
+        }
     }
 }

@@ -11,17 +11,6 @@ public partial class GameStatusService
 
         public override object? Value => _currentValue;
 
-        public bool Update(T value)
-        {
-            if (Equals(value, _currentValue))
-            {
-                return false;
-            }
-
-            _currentValue = value;
-            return true;
-        }
-
         public sealed override bool Update(object value)
         {
             if (value is null)
@@ -34,9 +23,20 @@ public partial class GameStatusService
                 throw new InvalidOperationException($"Expected value of type {typeof(T)}, but got {value.GetType()}.");
             }
 
-            typedValue = _onUpdate is not null ? _onUpdate.Invoke(typedValue) : typedValue;
-
             return Update(typedValue);
+        }
+
+        public bool Update(T value)
+        {
+            value = _onUpdate is not null ? _onUpdate.Invoke(value) : value;
+
+            if (Equals(value, _currentValue))
+            {
+                return false;
+            }
+
+            _currentValue = value;
+            return true;
         }
     }
 
