@@ -93,43 +93,35 @@
   background: rgba(128, 128, 128, 0.6);
 }
 
-/* ── Overview page carousel (carousel-s1 … carousel-s4) ── */
+/* ── Carousel (carousel-s1 … carousel-s7) ── */
 
 #carousel-s1:checked ~ .carousel-body .carousel-slide-1,
 #carousel-s2:checked ~ .carousel-body .carousel-slide-2,
 #carousel-s3:checked ~ .carousel-body .carousel-slide-3,
-#carousel-s4:checked ~ .carousel-body .carousel-slide-4 {
+#carousel-s4:checked ~ .carousel-body .carousel-slide-4,
+#carousel-s5:checked ~ .carousel-body .carousel-slide-5,
+#carousel-s6:checked ~ .carousel-body .carousel-slide-6,
+#carousel-s7:checked ~ .carousel-body .carousel-slide-7 {
   opacity: 1;
   visibility: visible;
 }
 #carousel-s1:checked ~ .carousel-body .ctrl-1,
 #carousel-s2:checked ~ .carousel-body .ctrl-2,
 #carousel-s3:checked ~ .carousel-body .ctrl-3,
-#carousel-s4:checked ~ .carousel-body .ctrl-4 {
+#carousel-s4:checked ~ .carousel-body .ctrl-4,
+#carousel-s5:checked ~ .carousel-body .ctrl-5,
+#carousel-s6:checked ~ .carousel-body .ctrl-6,
+#carousel-s7:checked ~ .carousel-body .ctrl-7 {
   pointer-events: auto;
   z-index: 3;
 }
 #carousel-s1:checked ~ .carousel-dots label[for="carousel-s1"],
 #carousel-s2:checked ~ .carousel-dots label[for="carousel-s2"],
 #carousel-s3:checked ~ .carousel-dots label[for="carousel-s3"],
-#carousel-s4:checked ~ .carousel-dots label[for="carousel-s4"] {
-  background: rgba(128, 128, 128, 0.8);
-}
-
-/* ── Features page carousel (tooltips-s1 … tooltips-s2) ── */
-
-#tooltips-s1:checked ~ .carousel-body .carousel-slide-1,
-#tooltips-s2:checked ~ .carousel-body .carousel-slide-2 {
-  opacity: 1;
-  visibility: visible;
-}
-#tooltips-s1:checked ~ .carousel-body .ctrl-1,
-#tooltips-s2:checked ~ .carousel-body .ctrl-2 {
-  pointer-events: auto;
-  z-index: 3;
-}
-#tooltips-s1:checked ~ .carousel-dots label[for="tooltips-s1"],
-#tooltips-s2:checked ~ .carousel-dots label[for="tooltips-s2"] {
+#carousel-s4:checked ~ .carousel-dots label[for="carousel-s4"],
+#carousel-s5:checked ~ .carousel-dots label[for="carousel-s5"],
+#carousel-s6:checked ~ .carousel-dots label[for="carousel-s6"],
+#carousel-s7:checked ~ .carousel-dots label[for="carousel-s7"] {
   background: rgba(128, 128, 128, 0.8);
 }
 
