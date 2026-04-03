@@ -1,4 +1,6 @@
-﻿using BitzArt.UI.Tweaks.Services;
+﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Services;
+using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 
@@ -29,7 +31,16 @@ public class StatusHudModSystem : ClientModSystem
 
         foreach (var tooltipConfig in tooltipConfigurations)
         {
-            _tooltipLabels.Add(new(clientApi, _gameStatusService, tooltipConfig));
+            try
+            {
+                _tooltipLabels.Add(new(clientApi, _gameStatusService, tooltipConfig));
+            }
+            catch (Exception ex)
+            {
+                clientApi.Logger.Error($"Failed to initialize tooltip '{tooltipConfig.ComponentName}'. It will not be added.");
+                clientApi.Logger.Error(ex);
+            }
+            
         }
     }
 

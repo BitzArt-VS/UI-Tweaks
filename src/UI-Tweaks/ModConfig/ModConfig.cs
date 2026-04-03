@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace BitzArt.UI.Tweaks;
+namespace BitzArt.UI.Tweaks.Config;
 
-internal partial class UiTweaksModConfig
+internal record UiTweaksModConfig
 {
     [JsonProperty("hud", Order = 1)]
     public HudConfig Hud { get; set; } = new();

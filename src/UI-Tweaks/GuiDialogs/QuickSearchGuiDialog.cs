@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BitzArt.UI.Tweaks.Config;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace BitzArt.UI.Tweaks;
 
 internal partial class QuickSearchGuiDialog : GuiDialog
 {
-    private readonly UiTweaksModConfig.QuickSearchConfig _config;
+    private readonly QuickSearchConfig _config;
 
     private readonly QuickSearchService _searchService;
     private readonly QuickSearchResultItem _calculatorResultItem = new();
