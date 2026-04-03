@@ -37,7 +37,7 @@ jobs:
 
       - name: Set version in modinfo.json
         run: |
-          jq --arg v "$VERSION" '.version = $v' mod/ui-tweaks/modinfo.json > tmp.json && mv tmp.json mod/ui-tweaks/modinfo.json
+          jq --arg v "$VERSION" '.version = $v' mod/uitweaks/modinfo.json > tmp.json && mv tmp.json mod/uitweaks/modinfo.json
 
       - name: Install Vintage Story
         run: |
@@ -63,7 +63,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          name: 🔧 UI-Tweaks v${{ env.VERSION }}
+          name: 👁️‍🗨️ UI-Tweaks v${{ env.VERSION }}
           generate_release_notes: true
           make_latest: true
           files: |

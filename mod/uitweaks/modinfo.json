@@ -1,15 +1,15 @@
 {
   "$schema": "https://moddbcdn.vintagestory.at/schema/modinfo.latest.json",
   "type": "Code",
-  "modid": "ui-tweaks",
+  "modid": "uitweaks",
   "name": "UI Tweaks",
   "authors": [
     "BitzArt"
   ],
-  "description": "Various UI tweaks by bitz",
+  "description": "Configurable HUD, quick item search, built-in calculator, and more...",
   "version": "Custom Build",
   "website": "https://github.com/BitzArt-VS/UI-Tweaks",
   "dependencies": {
-    "game": "*"
+    "game": "1.22.0"
   }
 }

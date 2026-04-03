@@ -7,14 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI-Tweaks", "src\UI-Tweaks\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{86D89413-5D57-4798-A1E1-A4909F3C7B22}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{CC1D1218-B8C5-4545-AA96-83F6E3C7F923}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{5470158F-AB64-46C8-9879-7BD859CD12E2}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\Release.yml = .github\workflows\Release.yml
-		.github\workflows\Tests.yml = .github\workflows\Tests.yml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{443C801B-6E87-4E03-A3A1-7B190DF692B2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI-Tweaks.Tests", "tests\UI-Tweaks.Tests\UI-Tweaks.Tests.csproj", "{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}"
@@ -24,23 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{D9C5F0C3-4E1
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-tweaks", "ui-tweaks", "{CC8914DF-092D-409E-957B-B5E55660B37D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E}"
-	ProjectSection(SolutionItems) = preProject
-		assets\ui-tweaks\lang\en.json = assets\ui-tweaks\lang\en.json
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mod", "mod", "{6A3CC29A-E852-43DF-A375-8B7F66F60345}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-tweaks", "ui-tweaks", "{DC7B1062-1AA0-4601-B6EB-1AD503C2A374}"
-	ProjectSection(SolutionItems) = preProject
-		mod\ui-tweaks\modicon.png = mod\ui-tweaks\modicon.png
-		mod\ui-tweaks\modinfo.json = mod\ui-tweaks\modinfo.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{3CD451C1-DDE4-4594-AE82-41DAC0BE75B3}"
@@ -57,6 +32,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A2469B22-50B
 		docs\src\05.configuration.md = docs\src\05.configuration.md
 		docs\src\06.contributing.md = docs\src\06.contributing.md
 		docs\src\SUMMARY.md = docs\src\SUMMARY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{AEC69437-433F-4707-B8D6-0B9C28F92439}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uitweaks", "uitweaks", "{EA92A5AB-76E4-47D7-8B56-455B2828736B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{BFFBEC8D-2F8E-4909-9CC8-7BEB32194342}"
+	ProjectSection(SolutionItems) = preProject
+		assets\uitweaks\lang\en.json = assets\uitweaks\lang\en.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mod", "mod", "{46C317E1-2806-40B5-8689-DBEF2C75B898}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uitweaks", "uitweaks", "{B31B726E-4571-48C8-916A-DB9C2B20851F}"
+	ProjectSection(SolutionItems) = preProject
+		mod\uitweaks\modicon.png = mod\uitweaks\modicon.png
+		mod\uitweaks\modinfo.json = mod\uitweaks\modinfo.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E072BA10-52AB-4858-B11A-E11EB7D034E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{D4AA5213-3696-4CDE-B035-B5563ECB7491}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\docs.yml = .github\workflows\docs.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+		.github\workflows\test.yml = .github\workflows\test.yml
 	EndProjectSection
 EndProject
 Global
@@ -79,12 +80,12 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CB2100BC-F653-402A-9FBA-EA463C2BD4FC} = {86D89413-5D57-4798-A1E1-A4909F3C7B22}
-		{5470158F-AB64-46C8-9879-7BD859CD12E2} = {CC1D1218-B8C5-4545-AA96-83F6E3C7F923}
 		{BD679ADB-3DEB-4651-83EE-3F4521A9C19B} = {443C801B-6E87-4E03-A3A1-7B190DF692B2}
-		{CC8914DF-092D-409E-957B-B5E55660B37D} = {ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}
-		{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E} = {CC8914DF-092D-409E-957B-B5E55660B37D}
-		{DC7B1062-1AA0-4601-B6EB-1AD503C2A374} = {6A3CC29A-E852-43DF-A375-8B7F66F60345}
 		{A2469B22-50BE-4BA6-BBF8-20C228328DF2} = {3CD451C1-DDE4-4594-AE82-41DAC0BE75B3}
+		{EA92A5AB-76E4-47D7-8B56-455B2828736B} = {AEC69437-433F-4707-B8D6-0B9C28F92439}
+		{BFFBEC8D-2F8E-4909-9CC8-7BEB32194342} = {EA92A5AB-76E4-47D7-8B56-455B2828736B}
+		{B31B726E-4571-48C8-916A-DB9C2B20851F} = {46C317E1-2806-40B5-8689-DBEF2C75B898}
+		{D4AA5213-3696-4CDE-B035-B5563ECB7491} = {E072BA10-52AB-4858-B11A-E11EB7D034E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B4A6136-C930-461B-A957-1875D0E1D80D}
