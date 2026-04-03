@@ -12,7 +12,7 @@ public record HungerRateTooltipOptions : PredefinedTooltipOptions
 
     public override ComponentOffset Offset { get; set; } = new()
     {
-        X = 360.0,
+        X = 356.0,
         Y = -88.0
     };
 

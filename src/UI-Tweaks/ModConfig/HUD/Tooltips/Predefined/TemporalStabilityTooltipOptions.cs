@@ -13,7 +13,7 @@ public record TemporalStabilityTooltipOptions : PredefinedTooltipOptions
     public override ComponentOffset Offset { get; set; } = new()
     {
         X = 0.0,
-        Y = -68.0
+        Y = -60.0
     };
 
     public override bool HasBackground { get; set; } = true;
