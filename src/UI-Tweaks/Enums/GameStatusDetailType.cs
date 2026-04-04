@@ -2,35 +2,66 @@
 
 public enum GameStatusDetailType
 {
-    // ======================= Player health =======================
+    // ====================================================
+    //               • 1xxx - Player status •
+    // ====================================================
 
-    PlayerCurrentHealth = 101,
-    PlayerMaxHealth = 102,
+    // --------------- 11xx - Player health ---------------
 
-    PlayerHealthPercentage = 111,
+    PlayerCurrentHealth = 1101,
+    PlayerMaxHealth = 1102,
 
-    // ====================== Player satiety ======================
+    PlayerHealthPercentage = 1111,
 
-    PlayerCurrentSatiety = 201,
-    PlayerMaxSatiety = 202,
+    // --------------- 12xx - Player satiety ---------------
 
-    PlayerSatietyPercentage = 211,
+    PlayerCurrentSatiety = 1201,
+    PlayerMaxSatiety = 1202,
 
-    PlayerSatietyHungerRate = 221,
+    PlayerSatietyPercentage = 1211,
 
-    // ================= Player temporal stability =================
+    PlayerSatietyHungerRate = 1221,
 
-    PlayerTemporalStability = 301,
+    // --------- 13xx - Player temporal stability ---------
 
-    // ========================= World time =========================
+    PlayerTemporalStability = 1301,
 
-    // TODO
+    // ====================================================
+    //              • 2xxx - Player location •
+    // ====================================================
 
-    // ================ Weather at player's location ================
+    // -------------- 21xx - Player location --------------
 
-    // TODO
+    PlayerLocationCoordinates = 2101,
 
-    // ============= Player location temporal stability =============
+    PlayerLocationCoordinatesX = 2111,
+    PlayerLocationCoordinatesY = 2112,
+    PlayerLocationCoordinatesZ = 2113,
 
-    PlayerLocationTemporalStability = 2201
+    // -------- 22xx - Player location temperature --------
+
+    PlayerLocationTemperatureCelsius = 2201,
+    PlayerLocationTemperatureFahrenheit = 2202,
+
+    // ---- 23xx - Player location average conditions ----
+
+    PlayerLocationAverageYearlyTemperatureCelsius = 2301,
+    PlayerLocationAverageYearlyTemperatureFahrenheit = 2302,
+
+    PlayerLocationAveragePrecipitation = 2311,
+
+    PlayerLocationAverageForestation = 2321,
+    PlayerLocationAverageShrubbery = 2322,
+
+    // ---- 24xx - Player location temporal stability ----
+
+    PlayerLocationTemporalStability = 2401,
+
+    // ====================================================
+    //               • 3xxx - World status •
+    // ====================================================
+
+    // ---------------- 31xx - World time ----------------
+
+    WorldDateTime = 3101,
 }

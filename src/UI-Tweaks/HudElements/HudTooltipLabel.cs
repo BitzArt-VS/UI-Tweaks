@@ -1,6 +1,7 @@
 ﻿using BitzArt.UI.Tweaks.Services;
 using Cairo;
 using System;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
@@ -9,7 +10,6 @@ public class HudTooltipLabel : HudElement
 {
     protected GameStatusService StatusService { get; private init; }
     protected CairoFont Font { get; private init; }
-    protected string Format { get; private set; }
 
     protected EnumDialogArea DialogArea;
     protected (double X, double Y) Offset;
@@ -21,7 +21,9 @@ public class HudTooltipLabel : HudElement
     protected double BackgroundOpacity;
     protected double BackgroundCornerRadius;
 
-    private const string _richtextElementName = "tooltip-value";
+    protected List<string> FormatStrings;
+
+    private const string _richtextElementName = "tooltip-text";
 
     public HudTooltipLabel(ICoreClientAPI clientApi, GameStatusService statusService, IHudTooltipConfiguration config)
         : base(clientApi)
@@ -29,7 +31,7 @@ public class HudTooltipLabel : HudElement
         StatusService = statusService;
 
         DialogArea = config.Area;
-        Offset = (config.X, config.Y);
+        Offset = (config.Offset.X, config.Offset.Y);
         Height = config.Height;
         Width = config.Width;
         CenterText = config.CenterText;
@@ -44,7 +46,8 @@ public class HudTooltipLabel : HudElement
             Fontname = GuiStyle.DecorativeFontName,
             UnscaledFontsize = config.FontSize
         };
-        Format = config.Format;
+
+        FormatStrings = [config.Format, .. config.ExtraElements ?? []];
 
         if (!config.Enable)
         {
@@ -52,34 +55,57 @@ public class HudTooltipLabel : HudElement
         }
 
         var componentBoundary = ElementBounds
-            .FixedPos(EnumDialogArea.CenterBottom, Offset.X, Offset.Y)
+            .FixedPos(DialogArea, Offset.X, Offset.Y)
             .WithFixedSize(Width, Height);
 
         var backgroundBoundary = ElementBounds.Fixed(0, 0, Width, Height);
-
-        var contentPadding = BackgroundCornerRadius * 0.75;
-
-        var contentBoundary = ElementBounds.Fixed(contentPadding, 0, Width - (contentPadding * 2), Height);
 
         SingleComposer = clientApi.Gui
             .CreateCompo(config.ComponentName, componentBoundary)
             .AddIf(HasBackground)
                 .AddTooltipBackground(backgroundBoundary, BackgroundOpacity)
-            .EndIf()
-            .AddRichtext(string.Empty, Font, contentBoundary, _richtextElementName)
-            .Compose();
+            .EndIf();
+
+        for (int i = 0; i < FormatStrings.Count; i++)
+        {
+            var contentBoundary = ElementBounds.Fixed(
+                config.Padding.Left,
+                config.Padding.Top,
+                Width - (config.Padding.Left + config.Padding.Right),
+                Height - (config.Padding.Top + config.Padding.Bottom));
+
+            SingleComposer = SingleComposer
+                .AddRichtext(string.Empty, Font, contentBoundary, $"{_richtextElementName}-{i + 1}");
+        }
+
+        SingleComposer = SingleComposer.Compose();
 
         TryOpen();
 
-        StatusService.Subscribe(Format, OnStatsUpdate, out var format);
-        Format = format;
+        for (int i = 0; i < FormatStrings.Count; i++)
+        {
+            var index = i; // Capture loop variable for closure
+            var format = FormatStrings[index];
+
+            if (!StatusService.Subscribe(format, (values) => OnStatsUpdate(values, index), out var runtimeFormat))
+            {
+                // No subscription created, likely no variable placeholders found in the format string.
+                // Still need to update the text once with the static format.
+                OnStatsUpdate(null, index);
+            }
+            else
+            {
+                FormatStrings[index] = runtimeFormat;
+            } 
+        }
     }
 
-    private void OnStatsUpdate(object[] values)
+    private void OnStatsUpdate(object[]? values, int index)
     {
-        var valueElement = SingleComposer.GetRichtext(_richtextElementName);
+        var valueElement = SingleComposer.GetRichtext($"{_richtextElementName}-{index + 1}");
+        var format = FormatStrings[index];
 
-        var text = string.Format(Format!, [.. values]);
+        var text = values is not null ? string.Format(format, [.. values]) : format;
 
         if (CenterText)
         {

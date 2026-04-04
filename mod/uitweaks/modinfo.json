@@ -7,7 +7,7 @@
     "BitzArt"
   ],
   "description": "Configurable HUD, quick item search, built-in calculator, and more...",
-  "version": "Custom Build",
+  "version": "CustomBuild",
   "website": "https://github.com/BitzArt-VS/UI-Tweaks",
   "dependencies": {
     "game": "1.22.0-rc.7"

@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using Vintagestory.API.Client;
+﻿using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Config;
 
-public record SatietyTooltipOptions : PredefinedTooltipOptions
+public record SatietyTooltipOptions : TooltipOptions
 {
     public override bool Enable { get; set; } = true;
 
@@ -12,7 +11,6 @@ public record SatietyTooltipOptions : PredefinedTooltipOptions
 
     public override string DialogArea { get; set; } = EnumDialogArea.CenterBottom.ToString();
     public override double Width { get; set; } = 144;
-    public override bool CenterText { get; set; } = false;
     public override ComponentOffset Offset { get; set; } = new()
     {
         X = 250.0,

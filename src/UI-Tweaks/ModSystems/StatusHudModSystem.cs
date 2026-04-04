@@ -21,10 +21,16 @@ public class StatusHudModSystem : ClientModSystem
 
         List<IHudTooltipConfiguration> tooltipConfigurations =
         [
+            config.EnvironmentWidget,
+
             config.HealthbarTooltip,
             config.TemporalStabilityTooltip,
             config.SatietyTooltip,
             config.HungerTooltip,
+
+            // Not enabling custom tooltip,
+            // it is provided for config demonstration purposes only.
+            // config.ExampleCustomTooltip
 
             ..config.CustomTooltips
         ];

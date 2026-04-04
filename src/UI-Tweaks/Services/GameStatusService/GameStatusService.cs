@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,46 +34,13 @@ public partial class GameStatusService : IDisposable
     private readonly SubscriptionCollection _subscriptions;
     private readonly DetailRecordCollection _detailRecords;
 
-    private readonly DetailRecord<float> _playerHealthCurrent;
-    private readonly DetailRecord<float> _playerHealthMax;
-    private readonly DetailRecord<float> _playerHealthPercentage;
-
-    private readonly DetailRecord<float> _playerSatietyCurrent;
-    private readonly DetailRecord<float> _playerSatietyMax;
-    private readonly DetailRecord<float> _playerSatietyPercent;
-    private readonly DetailRecord<float> _playerSatietyHungerRate;
-
-    private readonly DetailRecord<float> _playerTemporalStability;
-
-    private readonly DetailRecord<float> _playerLocationTemporalStability;
-
     public GameStatusService(ICoreClientAPI clientApi)
     {
         _clientApi = clientApi;
         _subscriptions = new();
         _detailRecords = new();
 
-        _playerHealthCurrent = new(GameStatusDetailType.PlayerCurrentHealth, "player-health-current", x => (float)Math.Round(x, 1));
-        _detailRecords.Add(_playerHealthCurrent);
-        _playerHealthMax = new(GameStatusDetailType.PlayerMaxHealth, "player-health-max", x => (float)Math.Round(x, 1));
-        _detailRecords.Add(_playerHealthMax);
-        _playerHealthPercentage = new(GameStatusDetailType.PlayerHealthPercentage, "player-health-percent", x => (float)Math.Round(x, 0));
-        _detailRecords.Add(_playerHealthPercentage);
-
-        _playerSatietyCurrent = new(GameStatusDetailType.PlayerCurrentSatiety, "player-satiety-current", x => (float)Math.Round(x, 0));
-        _detailRecords.Add(_playerSatietyCurrent);
-        _playerSatietyMax = new(GameStatusDetailType.PlayerMaxSatiety, "player-satiety-max", x => (float)Math.Round(x, 0));
-        _detailRecords.Add(_playerSatietyMax);
-        _playerSatietyPercent = new(GameStatusDetailType.PlayerSatietyPercentage, "player-satiety-percent", x => (float)Math.Round(x, 0));
-        _detailRecords.Add(_playerSatietyPercent);
-        _playerSatietyHungerRate = new(GameStatusDetailType.PlayerSatietyHungerRate, "player-satiety-hunger", x => (float)Math.Round(x * 100, 0));
-        _detailRecords.Add(_playerSatietyHungerRate);
-
-        _playerTemporalStability = new(GameStatusDetailType.PlayerTemporalStability, "player-temporal-stability", x => (float)Math.Round(x * 100, 0));
-        _detailRecords.Add(_playerTemporalStability);
-
-        _playerLocationTemporalStability = new(GameStatusDetailType.PlayerLocationTemporalStability, "player-location-temporal-stability", x => (float)Math.Round(x * 100, 0));
-        _detailRecords.Add(_playerLocationTemporalStability);
+        InitStats();
 
         _tickListenerId = _clientApi.Event.RegisterGameTickListener(_ =>
         {
@@ -109,6 +77,8 @@ public partial class GameStatusService : IDisposable
                     catch (Exception ex)
                     {
                         _clientApi.Logger.Error("Error updating game status details: " + ex);
+
+                        await Task.Delay(1000, _updateThreadCts.Token);
                     }
                 }
 
@@ -142,90 +112,39 @@ public partial class GameStatusService : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void UpdateStats()
-    {
-        if (_playerEntity?.WatchedAttributes is null)
-        {
-            throw new InvalidOperationException("Player entity or watched attributes not available.");
-        }
-
-        var healthAttribute = _playerEntity.WatchedAttributes.GetTreeAttribute("health");
-
-        var healthCurrent = healthAttribute?.TryGetFloat("currenthealth");
-        var healthMax = healthAttribute?.TryGetFloat("maxhealth");
-        float? healthPercent = healthCurrent.HasValue && healthMax.HasValue && healthMax.Value > 0
-            ? healthCurrent.Value / healthMax.Value * 100.0f
-            : null;
-
-        var hungerAttribute = _playerEntity.WatchedAttributes.GetTreeAttribute("hunger");
-
-        var satietyCurrent = hungerAttribute?.TryGetFloat("currentsaturation");
-        var satietyMax = hungerAttribute?.TryGetFloat("maxsaturation");
-        float? satietyPercent = satietyCurrent.HasValue && satietyMax.HasValue && satietyMax.Value > 0
-            ? satietyCurrent.Value / satietyMax.Value * 100.0f
-            : null;
-
-        var hungerRate = _playerEntity.Stats.GetBlended("hungerrate");
-
-        var playerTemporalStability = (float)_playerEntity.WatchedAttributes.GetDouble("temporalStability");
-
-        _temporalStabilitySystem ??= _clientApi.ModLoader.GetModSystem<SystemTemporalStability>();
-        var playerLocationTemporalStability = _temporalStabilitySystem!.GetTemporalStability(_playerEntity.Pos.AsBlockPos);
-
-        Span<DetailRecord<float>> affectedDetails =
-        [
-            _playerHealthCurrent,
-            _playerHealthMax,
-            _playerHealthPercentage,
-            _playerSatietyCurrent,
-            _playerSatietyMax,
-            _playerSatietyPercent,
-            _playerSatietyHungerRate,
-            _playerTemporalStability,
-            _playerLocationTemporalStability
-        ];
-
-        Span<float?> values =
-        [
-            healthCurrent,
-            healthMax,
-            healthPercent,
-            satietyCurrent,
-            satietyMax,
-            satietyPercent,
-            hungerRate,
-            playerTemporalStability,
-            playerLocationTemporalStability
-        ];
-
-        List<DetailRecord<float>> updatedDetails = new(affectedDetails.Length);
-        for (int i = 0; i < affectedDetails.Length; i++)
-        {
-            var detail = affectedDetails[i];
-            var value = values[i];
-
-            if (value is not null && detail.Update(value!.Value))
-            {
-                updatedDetails.Add(detail);
-            }
-        }
-
-        _subscriptions.OnUpdate(updatedDetails);
-    }
-
-    public void Subscribe(string format, Action<object[]> callback, out string resultingFormat)
+    public bool Subscribe(string format, Action<object[]> callback, out string resultingFormat)
     {
         var placeholderRegex = GetFormatPlaceholderRegex();
-        var matches = placeholderRegex.Matches(format).Select(m => m.Groups[1].Value).ToList();
-        Subscribe(matches, callback);
+        var matches = placeholderRegex.Matches(format);
 
-        // Replace placeholder with consecutive iterator numbers for string.Format compatibility
-        resultingFormat = format;
-        for (int i = 0; i < matches.Count; i++)
+        // No subscription is necessary if
+        // there are no variable placeholders in the format string.
+        if (matches.Count == 0)
         {
-            resultingFormat = resultingFormat.Replace($"{{{matches[i]}}}", $"{{{i}}}");
+            resultingFormat = format;
+            return false;
         }
+
+        // Extract just the variable names for your subscription logic
+        var variableNames = matches.Select(m => m.Groups["name"].Value).ToList();
+
+        Subscribe(variableNames, callback);
+
+        // Replace placeholders with consecutive iterator numbers, preserving formatting
+        int i = 0;
+        resultingFormat = placeholderRegex.Replace(format, match =>
+        {
+            // match.Groups["format"].Value will contain the alignment/format string (e.g. ":MMMM dd, yyyy")
+            // If there is no format string, it will be empty, cleanly resulting in just {0}, {1}, etc.
+            return $"{{{i++}{match.Groups["format"].Value}}}";
+        });
+
+        return true;
     }
+
+    // Captures the variable name in the "name" group, and any following alignment/formatting in the "format" group
+    [GeneratedRegex(@"\{(?<name>[a-zA-Z0-9\-]+)(?<format>[,:][^}]+)?\}")]
+    private static partial Regex GetFormatPlaceholderRegex();
 
     public void Subscribe(List<GameStatusDetailType> details, Action<object[]> callback)
         => _subscriptions.Subscribe([.. details.Select(_detailRecords.Get)], callback);
@@ -235,7 +154,4 @@ public partial class GameStatusService : IDisposable
 
     public void Unsubscribe(Action<object[]> callback)
         => _subscriptions.Unsubscribe(callback);
-
-    [GeneratedRegex(@"\{([a-zA-Z0-9\-]+)\}")]
-    private static partial Regex GetFormatPlaceholderRegex();
 }
