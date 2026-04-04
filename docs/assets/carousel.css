@@ -101,7 +101,8 @@
 #carousel-s4:checked ~ .carousel-body .carousel-slide-4,
 #carousel-s5:checked ~ .carousel-body .carousel-slide-5,
 #carousel-s6:checked ~ .carousel-body .carousel-slide-6,
-#carousel-s7:checked ~ .carousel-body .carousel-slide-7 {
+#carousel-s7:checked ~ .carousel-body .carousel-slide-7,
+#carousel-s8:checked ~ .carousel-body .carousel-slide-8 {
   opacity: 1;
   visibility: visible;
 }
@@ -111,7 +112,8 @@
 #carousel-s4:checked ~ .carousel-body .ctrl-4,
 #carousel-s5:checked ~ .carousel-body .ctrl-5,
 #carousel-s6:checked ~ .carousel-body .ctrl-6,
-#carousel-s7:checked ~ .carousel-body .ctrl-7 {
+#carousel-s7:checked ~ .carousel-body .ctrl-7,
+#carousel-s8:checked ~ .carousel-body .ctrl-8 {
   pointer-events: auto;
   z-index: 3;
 }
@@ -121,7 +123,8 @@
 #carousel-s4:checked ~ .carousel-dots label[for="carousel-s4"],
 #carousel-s5:checked ~ .carousel-dots label[for="carousel-s5"],
 #carousel-s6:checked ~ .carousel-dots label[for="carousel-s6"],
-#carousel-s7:checked ~ .carousel-dots label[for="carousel-s7"] {
+#carousel-s7:checked ~ .carousel-dots label[for="carousel-s7"],
+#carousel-s8:checked ~ .carousel-dots label[for="carousel-s8"] {
   background: rgba(128, 128, 128, 0.8);
 }
 
