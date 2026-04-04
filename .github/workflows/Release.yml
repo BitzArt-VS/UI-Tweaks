@@ -39,18 +39,8 @@ jobs:
         run: |
           jq --arg v "$VERSION" '.version = $v' mod/uitweaks/modinfo.json > tmp.json && mv tmp.json mod/uitweaks/modinfo.json
 
-      - name: Install Vintage Story
-        run: |
-          sudo apt update
-          sudo apt install -y flatpak
-          flatpak -y --user install https://flatpak.vintagestory.at/VintageStory.flatpakref
-          install_path=$(flatpak info --show-location at.vintagestory.VintageStory)
-          echo "VINTAGE_STORY=$install_path/files/extra/vintagestory" >> $GITHUB_ENV
-          echo "Vintage Story installed at: $VINTAGE_STORY"
-
       - name: Build
-        run: |
-          dotnet build UI-Tweaks.sln --configuration Release -p:Version="$VERSION" -p:VINTAGE_STORY="$VINTAGE_STORY"
+        run: dotnet build UI-Tweaks.sln --configuration Release -p:Version="$VERSION"
 
       - name: Test
         run: dotnet test --no-restore --verbosity normal
