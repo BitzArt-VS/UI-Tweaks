@@ -14,6 +14,10 @@ namespace BitzArt.UI.Tweaks;
 
 internal partial class QuickSearchGuiDialog : GuiDialog
 {
+    private const string SearchInputKey = "quick-search-input";
+    private const string ResultListKey = "resultList";
+    private const string ScrollbarKey = "scrollbar";
+
     private readonly QuickSearchConfig _config;
 
     private readonly QuickSearchService _searchService;
@@ -28,6 +32,77 @@ internal partial class QuickSearchGuiDialog : GuiDialog
     {
         _searchService = search;
         _config = modConfig.QuickSearch;
+
+        Compose();
+    }
+
+    public override void OnGuiOpened()
+    {
+        Compose();
+
+        _setSearchText!.Invoke(_input, true, true);
+        Search();
+
+        ClientApi.Logger.VerboseDebug($"QuickSearch is now: ON");
+    }
+
+    public override void OnGuiClosed()
+    {
+        ClientApi.Logger.VerboseDebug($"QuickSearch is now: OFF");
+    }
+
+    public void OnItemClicked(int index)
+    {
+        Task.Run(() =>
+        {
+            var resultList = SingleComposer.GetFlatList(ResultListKey);
+            var item = (QuickSearchResultItem)resultList.Elements.ElementAtOrDefault(index)!;
+
+            if (item is null)
+            {
+                return;
+            }
+
+            if (item.OnClicked(ClientApi))
+            {
+                ClientApi.Event.EnqueueMainThreadTask(() =>
+                {
+                    TryClose();
+                }, "quicksearch-close-on-item-clicked");
+            }
+        });
+    }
+
+    public override void OnMouseDown(MouseEvent args)
+    {
+        if (!IsInDialog(args))
+        {
+            TryClose();
+            args.Handled = true;
+        }
+
+        base.OnMouseDown(args);
+    }
+
+    protected void OnNewScrollbarValue(float value)
+    {
+        var resultList = SingleComposer.GetFlatList(ResultListKey);
+
+        resultList.insideBounds.fixedY = 3 - value;
+        resultList.insideBounds.CalcWorldBounds();
+    }
+
+    protected void Compose(bool enqueueOnMainThread)
+    {
+        if (enqueueOnMainThread)
+        {
+            ClientApi.Event.EnqueueMainThreadTask(() =>
+            {
+                Compose();
+            }, "quicksearch-compose");
+
+            return;
+        }
 
         Compose();
     }
@@ -49,25 +124,24 @@ internal partial class QuickSearchGuiDialog : GuiDialog
             .AddShadedDialogBG(bgBounds, true)
             .AddDialogTitleBar(Lang.Get($"{Constants.ModId}:quicksearch"), () => TryClose())
             .BeginChildElements(bgBounds)
-                .AddTextInput(searchFieldBounds, OnTextInputChanged, key: "quick-search-input")
+                .AddTextInput(searchFieldBounds, OnTextInputChanged, key: SearchInputKey)
                 .AddInset(resultListBounds)
                 .BeginClip(clipBounds)
-                    .AddFlatList(resultListBounds, OnItemClicked, key: "resultList")
+                    .AddFlatList(resultListBounds, OnItemClicked, key: ResultListKey)
                 .EndClip()
-                .AddVerticalScrollbar(OnNewScrollbarValue, scrollbarBounds, "scrollbar")
+                .AddVerticalScrollbar(OnNewScrollbarValue, scrollbarBounds, ScrollbarKey)
             .EndChildElements()
             .Compose();
 
-        var scrollbar = SingleComposer.GetScrollbar("scrollbar");
-        var flatList = SingleComposer.GetFlatList("resultList");
+        var scrollbar = SingleComposer.GetScrollbar(ScrollbarKey);
+        var flatList = SingleComposer.GetFlatList(ResultListKey);
 
         if (scrollbar is not null && flatList is not null)
         {
             scrollbar.SetHeights(_config.ResultListHeight, (float)flatList.insideBounds.fixedHeight);
         }
-        
 
-        var textInput = SingleComposer.GetTextInput("quick-search-input");
+        var textInput = SingleComposer.GetTextInput(SearchInputKey);
         var selectedTextStartField = typeof(GuiElementEditableTextBase).GetField("selectedTextStart", BindingFlags.NonPublic | BindingFlags.Instance)
             ?? throw new InvalidOperationException("Could not find 'selectedTextStart' field in GuiElementEditableTextBase");
 
@@ -84,44 +158,6 @@ internal partial class QuickSearchGuiDialog : GuiDialog
                 textInput.SetCaretPos(text.Length);
             }
         };
-    }
-
-    protected void OnNewScrollbarValue(float value)
-    {
-        var resultList = SingleComposer.GetFlatList("resultList");
-
-        resultList.insideBounds.fixedY = 3 - value;
-        resultList.insideBounds.CalcWorldBounds();
-    }
-
-    public override void OnGuiOpened()
-    {
-        Compose();
-
-        _setSearchText!.Invoke(_input, true, true);
-        Search();
-
-        ClientApi.Logger.VerboseDebug($"QuickSearch is now: ON");
-    }
-
-    public override void OnGuiClosed()
-    {
-        ClientApi.Logger.VerboseDebug($"QuickSearch is now: OFF");
-    }
-
-    protected void Compose(bool enqueueOnMainThread)
-    {
-        if (enqueueOnMainThread)
-        {
-            ClientApi.Event.EnqueueMainThreadTask(() =>
-            {
-                Compose();
-            }, "quicksearch-compose");
-
-            return;
-        }
-
-        Compose();
     }
 
     private void OnTextInputChanged(string newText)
@@ -165,7 +201,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
                 ClientApi.Event.EnqueueMainThreadTask(() =>
                 {
                     _calculatorResultItem.Text = $"={result}";
-                    var resultList = SingleComposer.GetFlatList("resultList");
+                    var resultList = SingleComposer.GetFlatList(ResultListKey);
                     resultList.Elements = [_calculatorResultItem];
                 }, $"{Constants.ModId}-quicksearch-set-calc-result");
 
@@ -185,49 +221,16 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
         ClientApi.Event.EnqueueMainThreadTask(() =>
         {
-            var resultList = SingleComposer.GetFlatList("resultList");
+            var resultList = SingleComposer.GetFlatList(ResultListKey);
             resultList.Elements = results;
 
             resultList.CalcTotalHeight();
 
-            var scrollbar = SingleComposer.GetScrollbar("scrollbar");
+            var scrollbar = SingleComposer.GetScrollbar(ScrollbarKey);
             scrollbar.SetHeights(_config.ResultListHeight, (float)resultList.insideBounds.fixedHeight);
         }, $"{Constants.ModId}-quicksearch-set-results");
 
         return;
-    }
-
-    public void OnItemClicked(int index)
-    {
-        Task.Run(() =>
-        {
-            var resultList = SingleComposer.GetFlatList("resultList");
-            var item = (QuickSearchResultItem)resultList.Elements.ElementAtOrDefault(index)!;
-
-            if (item is null)
-            {
-                return;
-            }
-
-            if (item.OnClicked(ClientApi))
-            {
-                ClientApi.Event.EnqueueMainThreadTask(() =>
-                {
-                    TryClose();
-                }, "quicksearch-close-on-item-clicked");
-            }
-        });
-    }
-
-    public override void OnMouseDown(MouseEvent args)
-    {
-        if (!IsInDialog(args))
-        {
-            TryClose();
-            args.Handled = true;
-        }
-
-        base.OnMouseDown(args);
     }
 
     private bool IsInDialog(MouseEvent args)

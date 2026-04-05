@@ -8,11 +8,24 @@ namespace BitzArt.UI.Tweaks;
 
 public class StatusHudModSystem : ClientModSystem
 {
-    protected override string Name => $"{Constants.ModName}:StatusHUD";
+    private readonly List<HudTooltipLabel> _tooltipLabels = [];
 
     private GameStatusService? _gameStatusService;
 
-    private readonly List<HudTooltipLabel> _tooltipLabels = [];
+    protected override string Name => $"{Constants.ModName}:StatusHUD";
+
+    public override void Dispose()
+    {
+        _gameStatusService?.Dispose();
+        _gameStatusService = null;
+
+        foreach (var label in _tooltipLabels)
+        {
+            label.Dispose();
+        }
+
+        _tooltipLabels.Clear();
+    }
 
     protected override void Start(ICoreClientAPI clientApi)
     {
@@ -47,18 +60,6 @@ public class StatusHudModSystem : ClientModSystem
                 clientApi.Logger.Error(ex);
             }
             
-        }
-    }
-
-    public override void Dispose()
-    {
-        _gameStatusService?.Dispose();
-        _gameStatusService = null;
-
-        for (int i = _tooltipLabels.Count - 1; i >= 0; i--)
-        {
-            _tooltipLabels[i].Dispose();
-            _tooltipLabels.RemoveAt(i);
         }
     }
 }

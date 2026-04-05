@@ -58,7 +58,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\README.md" Visible="false">
+		<None Include="..\..\mod-description.html" Visible="false">
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>
 	</ItemGroup>

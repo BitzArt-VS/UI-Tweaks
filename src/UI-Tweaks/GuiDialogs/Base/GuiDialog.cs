@@ -6,14 +6,9 @@ namespace BitzArt.UI.Tweaks;
 internal class GuiDialog(ICoreClientAPI clientApi) : Vintagestory.API.Client.GuiDialog(clientApi)
 {
     protected bool IsDisposed = false;
-    public override string? ToggleKeyCombinationCode => null;
-
     protected ICoreClientAPI ClientApi = clientApi;
 
-    protected void InvokeAsync(Action action)
-    {
-        ClientApi.Event.EnqueueMainThreadTask(action, string.Empty);
-    }
+    public override string? ToggleKeyCombinationCode => null;
 
     public override void Dispose()
     {
@@ -45,5 +40,10 @@ internal class GuiDialog(ICoreClientAPI clientApi) : Vintagestory.API.Client.Gui
         }
 
         return base.TryOpen();
+    }
+
+    protected void InvokeAsync(Action action)
+    {
+        ClientApi.Event.EnqueueMainThreadTask(action, string.Empty);
     }
 }

@@ -8,6 +8,16 @@ namespace BitzArt.UI.Tweaks;
 
 internal class QuickSearchResultItem : IFlatListItem
 {
+    private readonly ItemStack? _itemStack;
+
+    private readonly string? _pageCode;
+    private readonly LinkTextComponent? _pageLink;
+    private readonly InventoryBase? _unspoilableInventory;
+    private readonly DummySlot? _dummySlot;
+    private ElementBounds? _scissorBounds;
+
+    private LoadedTexture? _texture;
+
     bool IFlatListItem.Visible => true;
 
     public string? Text
@@ -21,16 +31,6 @@ internal class QuickSearchResultItem : IFlatListItem
         }
     }
 
-    private readonly ItemStack? _itemStack;
-
-    private readonly string? _pageCode;
-    private readonly LinkTextComponent? _pageLink;
-    private readonly InventoryBase? _unspoilableInventory;
-    private readonly DummySlot? _dummySlot;
-    private ElementBounds? _scissorBounds;
-
-    private LoadedTexture? _texture;
-    
     public QuickSearchResultItem(ItemStack itemStack, ICoreClientAPI clientApi) : this()
     {
         _itemStack = itemStack;
@@ -54,16 +54,6 @@ internal class QuickSearchResultItem : IFlatListItem
 
     public QuickSearchResultItem() { }
 
-    private void Recompose(ICoreClientAPI clientApi)
-    {
-        _texture?.Dispose();
-        using var font = _itemStack is null ? CairoFont.WhiteMediumText() : CairoFont.WhiteSmallText();
-        _texture = new TextTextureUtil(clientApi).GenTextTexture(Text, font);
-
-        _scissorBounds = ElementBounds.FixedSize(50, 50);
-        _scissorBounds.ParentBounds = clientApi.Gui.WindowBounds;
-    }
-
     void IFlatListItem.RenderListEntryTo(ICoreClientAPI clientApi, float dt, double x, double y, double cellWidth, double cellHeight)
     {
         if (_texture is null)
@@ -81,43 +71,6 @@ internal class QuickSearchResultItem : IFlatListItem
             RenderText(clientApi, x, y);
             return;
         }
-    }
-
-    private void RenderText(ICoreClientAPI clientApi, double x, double y)
-    {
-        clientApi.Render.Render2DTexturePremultipliedAlpha(
-            _texture!.TextureId,
-            x,
-            y - GuiElement.scaled(3),
-            _texture.Width,
-            _texture.Height,
-            50
-        );
-    }
-
-    private void RenderItemStack(ICoreClientAPI clientApi, double x, double y)
-    {
-        float size = (float)GuiElement.scaled(25);
-        float pad = (float)GuiElement.scaled(10);
-
-        _scissorBounds!.fixedX = (pad + x - size / 2) / RuntimeEnv.GUIScale;
-        _scissorBounds.fixedY = (y - size / 2) / RuntimeEnv.GUIScale;
-        _scissorBounds.CalcWorldBounds();
-
-        if (_scissorBounds.InnerWidth <= 0 || _scissorBounds.InnerHeight <= 0) return;
-
-        clientApi.Render.PushScissor(_scissorBounds, true);
-        clientApi.Render.RenderItemstackToGui(_dummySlot, x + pad + size / 2, y + size / 2, 100, size, ColorUtil.WhiteArgb, true, false, false);
-        clientApi.Render.PopScissor();
-
-        clientApi.Render.Render2DTexturePremultipliedAlpha(
-            _texture!.TextureId,
-            (x + size + GuiElement.scaled(25)),
-            y + size / 4 - GuiElement.scaled(3),
-            _texture.Width,
-            _texture.Height,
-            50
-        );
     }
 
     public bool OnClicked(ICoreClientAPI clientApi)
@@ -139,5 +92,55 @@ internal class QuickSearchResultItem : IFlatListItem
     {
         _texture?.Dispose();
         _texture = null;
+    }
+
+    private void Recompose(ICoreClientAPI clientApi)
+    {
+        _texture?.Dispose();
+        using var font = _itemStack is null ? CairoFont.WhiteMediumText() : CairoFont.WhiteSmallText();
+        _texture = new TextTextureUtil(clientApi).GenTextTexture(Text, font);
+
+        _scissorBounds = ElementBounds.FixedSize(50, 50);
+        _scissorBounds.ParentBounds = clientApi.Gui.WindowBounds;
+    }
+
+    private void RenderItemStack(ICoreClientAPI clientApi, double x, double y)
+    {
+        float size = (float)GuiElement.scaled(25);
+        float pad = (float)GuiElement.scaled(10);
+
+        _scissorBounds!.fixedX = (pad + x - size / 2) / RuntimeEnv.GUIScale;
+        _scissorBounds.fixedY = (y - size / 2) / RuntimeEnv.GUIScale;
+        _scissorBounds.CalcWorldBounds();
+
+        if (_scissorBounds.InnerWidth <= 0 || _scissorBounds.InnerHeight <= 0)
+        {
+            return;
+        }
+
+        clientApi.Render.PushScissor(_scissorBounds, true);
+        clientApi.Render.RenderItemstackToGui(_dummySlot, x + pad + size / 2, y + size / 2, 100, size, ColorUtil.WhiteArgb, true, false, false);
+        clientApi.Render.PopScissor();
+
+        clientApi.Render.Render2DTexturePremultipliedAlpha(
+            _texture!.TextureId,
+            (x + size + GuiElement.scaled(25)),
+            y + size / 4 - GuiElement.scaled(3),
+            _texture.Width,
+            _texture.Height,
+            50
+        );
+    }
+
+    private void RenderText(ICoreClientAPI clientApi, double x, double y)
+    {
+        clientApi.Render.Render2DTexturePremultipliedAlpha(
+            _texture!.TextureId,
+            x,
+            y - GuiElement.scaled(3),
+            _texture.Width,
+            _texture.Height,
+            50
+        );
     }
 }

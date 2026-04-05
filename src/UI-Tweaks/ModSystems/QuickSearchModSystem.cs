@@ -10,6 +10,12 @@ public class QuickSearchModSystem : ClientModSystem
 
     protected override string Name => $"{Constants.ModName}:QuickSearch";
 
+    public override void Dispose()
+    {
+        _quickSearchDialog?.Dispose();
+        _quickSearchDialog = null;
+    }
+
     protected override void Start(ICoreClientAPI clientApi)
     {
         var config = clientApi.GetModConfig<UiTweaksModConfig>(Constants.ModConfigFileName);
@@ -49,11 +55,5 @@ public class QuickSearchModSystem : ClientModSystem
         // TODO: Mod config dialog
 
         clientApi.ShowChatMessage("Mod configuration dialog is to be implemented.");
-    }
-
-    public override void Dispose()
-    {
-        _quickSearchDialog?.Dispose();
-        _quickSearchDialog = null;
     }
 }

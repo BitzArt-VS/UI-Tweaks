@@ -6,8 +6,8 @@ public partial class GameStatusService
 {
     private class DetailRecord<T>(GameStatusDetailType detail, string name, Func<T, T>? onUpdate = null) : DetailRecord(detail, name)
     {
-        private T? _currentValue;
         private readonly Func<T, T>? _onUpdate = onUpdate;
+        private T? _currentValue;
 
         public override object? Value => _currentValue;
 

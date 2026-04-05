@@ -8,8 +8,7 @@ namespace BitzArt.UI.Tweaks;
 
 public class HudTooltipLabel : HudElement
 {
-    protected GameStatusService StatusService { get; private init; }
-    protected CairoFont Font { get; private init; }
+    private const string RichtextElementName = "tooltip-text";
 
     protected EnumDialogArea DialogArea;
     protected (double X, double Y) Offset;
@@ -23,7 +22,8 @@ public class HudTooltipLabel : HudElement
 
     protected List<string> FormatStrings;
 
-    private const string _richtextElementName = "tooltip-text";
+    protected GameStatusService StatusService { get; private init; }
+    protected CairoFont Font { get; private init; }
 
     public HudTooltipLabel(ICoreClientAPI clientApi, GameStatusService statusService, IHudTooltipConfiguration config)
         : base(clientApi)
@@ -75,7 +75,7 @@ public class HudTooltipLabel : HudElement
                 Height - (config.Padding.Top + config.Padding.Bottom));
 
             SingleComposer = SingleComposer
-                .AddRichtext(string.Empty, Font, contentBoundary, $"{_richtextElementName}-{i + 1}");
+                .AddRichtext(string.Empty, Font, contentBoundary, $"{RichtextElementName}-{i + 1}");
         }
 
         SingleComposer = SingleComposer.Compose();
@@ -102,7 +102,7 @@ public class HudTooltipLabel : HudElement
 
     private void OnStatsUpdate(object[]? values, int index)
     {
-        var valueElement = SingleComposer.GetRichtext($"{_richtextElementName}-{index + 1}");
+        var valueElement = SingleComposer.GetRichtext($"{RichtextElementName}-{index + 1}");
         var format = FormatStrings[index];
 
         var text = values is not null ? string.Format(format, [.. values]) : format;

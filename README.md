@@ -1,5 +1,5 @@
 [![Tests](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml)
-[![ModDB Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.releases%5B0%5D.modversion&label=ModDB&color=997A42&prefix=v)](https://mods.vintagestory.at/uitweaks)
+[![ModDB Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.releases%5B0%5D.modversion&label=ModDB&color=007EC6&prefix=v)](https://mods.vintagestory.at/uitweaks)
 [![Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.downloads&label=Downloads&color=007EC6)](https://mods.vintagestory.at/uitweaks)
 [![Followers](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.follows&label=Followers&color=007EC6)](https://mods.vintagestory.at/uitweaks)
 
@@ -8,8 +8,6 @@
 # UI Tweaks
 
 UI Tweaks is a mod for Vintage Story that enhances the user interface by adding various quality-of-life features and visual improvements. The mod aims to provide a more intuitive and customizable UI experience for players, making it easier to navigate and interact with the game.
-
-<!-- TODO: Some screenshots and stuff here. -->
 
 ## Resources
 
