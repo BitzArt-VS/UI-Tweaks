@@ -1,6 +1,8 @@
-[![Discord](https://img.shields.io/discord/1480549455114797220?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/eZUFCVWWtK)
-
 [![Tests](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/BitzArt-VS/UI-Tweaks/actions/workflows/test.yml)
+[![ModDB Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.releases%5B0%5D.modversion&label=ModDB&color=997A42&prefix=v)](https://mods.vintagestory.at/uitweaks)
+[![Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmods.vintagestory.at%2Fapi%2Fmod%2Fuitweaks&query=%24.mod.downloads&label=Downloads&color=A06A33)](https://mods.vintagestory.at/uitweaks)
+
+[![Discord](https://img.shields.io/discord/1480549455114797220?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/eZUFCVWWtK)
 
 # UI Tweaks
 
