@@ -5,9 +5,6 @@
   width: 100%;
   margin: 1.5em 0;
 }
-.carousel input[type="radio"] {
-  display: none;
-}
 .carousel-body {
   display: grid;
   grid-template-columns: 2.5em 1fr 2.5em;
@@ -65,15 +62,6 @@
 }
 
 /* Invisible label overlays – only the correct one receives clicks */
-.carousel-arrow {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* Dot indicators */
 .carousel-dots {
   text-align: center;
@@ -93,38 +81,12 @@
   background: rgba(128, 128, 128, 0.6);
 }
 
-/* ── Carousel (carousel-s1 … carousel-s7) ── */
-
-#carousel-s1:checked ~ .carousel-body .carousel-slide-1,
-#carousel-s2:checked ~ .carousel-body .carousel-slide-2,
-#carousel-s3:checked ~ .carousel-body .carousel-slide-3,
-#carousel-s4:checked ~ .carousel-body .carousel-slide-4,
-#carousel-s5:checked ~ .carousel-body .carousel-slide-5,
-#carousel-s6:checked ~ .carousel-body .carousel-slide-6,
-#carousel-s7:checked ~ .carousel-body .carousel-slide-7,
-#carousel-s8:checked ~ .carousel-body .carousel-slide-8 {
+/* ── Active state (managed by carousel.js) ── */
+.carousel-slide.active {
   opacity: 1;
   visibility: visible;
 }
-#carousel-s1:checked ~ .carousel-body .ctrl-1,
-#carousel-s2:checked ~ .carousel-body .ctrl-2,
-#carousel-s3:checked ~ .carousel-body .ctrl-3,
-#carousel-s4:checked ~ .carousel-body .ctrl-4,
-#carousel-s5:checked ~ .carousel-body .ctrl-5,
-#carousel-s6:checked ~ .carousel-body .ctrl-6,
-#carousel-s7:checked ~ .carousel-body .ctrl-7,
-#carousel-s8:checked ~ .carousel-body .ctrl-8 {
-  pointer-events: auto;
-  z-index: 3;
-}
-#carousel-s1:checked ~ .carousel-dots label[for="carousel-s1"],
-#carousel-s2:checked ~ .carousel-dots label[for="carousel-s2"],
-#carousel-s3:checked ~ .carousel-dots label[for="carousel-s3"],
-#carousel-s4:checked ~ .carousel-dots label[for="carousel-s4"],
-#carousel-s5:checked ~ .carousel-dots label[for="carousel-s5"],
-#carousel-s6:checked ~ .carousel-dots label[for="carousel-s6"],
-#carousel-s7:checked ~ .carousel-dots label[for="carousel-s7"],
-#carousel-s8:checked ~ .carousel-dots label[for="carousel-s8"] {
+.carousel-dot.active {
   background: rgba(128, 128, 128, 0.8);
 }
 

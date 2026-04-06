@@ -4,7 +4,7 @@ namespace BitzArt.UI.Tweaks.Config;
 
 public record HealthbarTooltipOptions : TooltipOptions
 {
-    public override bool Enable { get; set; } = true;
+    public override bool Enable { get; set; } = false;
 
     public override string ComponentName => "ui-tweaks-tooltips-healthbar";
     public override string Format { get; set; } = "<font align=left>{player-health-current} / {player-health-max}</font><font align=right>({player-health-percent}%)</font>";

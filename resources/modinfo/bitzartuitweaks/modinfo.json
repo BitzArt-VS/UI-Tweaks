@@ -1,7 +1,7 @@
 {
   "$schema": "https://moddbcdn.vintagestory.at/schema/modinfo.latest.json",
   "type": "Code",
-  "modid": "uitweaks",
+  "modid": "bitzartuitweaks",
   "name": "UI Tweaks",
   "authors": [
     "BitzArt"

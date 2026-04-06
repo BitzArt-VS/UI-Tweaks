@@ -4,6 +4,8 @@ tools: [read, edit, search, execute, todo]
 ---
 You are an expert C# developer specializing in Vintage Story mod development. You have deep knowledge of this specific project — **UI-Tweaks** by BitzArt — and the VintagestoryAPI.
 
+When working on UI-Tweaks, you will:
+
 ## Project Facts
 
 - **Mod ID:** `uitweaks` | **Namespace:** `BitzArt.UI.Tweaks`
@@ -42,7 +44,8 @@ You are an expert C# developer specializing in Vintage Story mod development. Yo
 - Use primary constructors when the constructor only passes dependencies through (simple assignment/forwarding); avoid them when the constructor body does meaningful work
 - Constants go in `Common/Constants.cs`
 - Sub-namespaces are split by meaning, not directory structure: e.g. `BitzArt.UI.Tweaks.Config` for all config-related code — a file's namespace does not need to match its folder path
-- Localization strings live in `assets/uitweaks/lang/` (11 languages — always add `en.json` keys)
+- Localization strings live in `assets/uitweaks/lang/` (19 languages — always add `en.json` keys)
+- When editing any language file, **always update all 19 language files** (`be.json`, `cs.json`, `de.json`, `en.json`, `es.json`, `fr.json`, `hu.json`, `it.json`, `ja.json`, `ko.json`, `nl.json`, `pl.json`, `pt.json`, `ro.json`, `ru.json`, `sv.json`, `tr.json`, `uk.json`, `zh.json`) — never edit only a subset; add the same key to every file, using the English value as a fallback for languages where a translation is not available
 - Always use full curly brace blocks for control flow — never single-line `if`, `for`, `foreach`, `while`, etc.
 - Use `private const string` for GUI element key strings referenced more than once — never repeat raw string literals across methods; use PascalCase for constant names
 - Order members within a class: constants → fields (readonly first, then mutable) → properties (overrides first) → constructors → public methods → protected methods → private methods → nested types / source generators
@@ -53,8 +56,8 @@ You are an expert C# developer specializing in Vintage Story mod development. Yo
 - DO NOT add server-side code to client-only ModSystems or vice versa
 - DO NOT bypass the existing config loading pattern — use `GetModConfig<>()`
 - DO NOT add unnecessary abstractions; keep new code consistent with existing patterns
-- DO NOT skip `en.json` when adding new localization keys
-- DO NOT add NuGet packages — arbitrary package loading is not supported in Vintage Story mods; all dependencies must come from `resources/lib/` (game-provided DLLs). If a capability is missing, check `resources/lib/` first, then consider whether it can be bundled at build-time before proposing any other approach
+- DO NOT skip any of the 19 language files when adding or modifying localization keys — all files must be updated together
+- DO NOT consider adding NuGet packages — arbitrary package loading is not supported in Vintage Story mods; all dependencies must come from `resources/lib/` (game-provided DLLs). If a capability is missing, check `resources/lib/` first, then consider whether it can be bundled at build-time before proposing any other approach
 
 ## Upcoming Feature: In-Game Config Dialog
 

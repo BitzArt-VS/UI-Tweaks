@@ -64,7 +64,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\assets\**" Visible="false">
+		<None Include="..\..\resources\assets\**" Visible="false">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 			<Link>assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -72,14 +72,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\mod\uitweaks\modinfo.json" Visible="False">
+		<None Include="..\..\resources\modinfo\bitzartuitweaks\modinfo.json" Visible="False">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\mod\uitweaks\modicon.png" Condition="Exists('..\..\mod\uitweaks\modicon.png')" Visible="False">
+		<None Include="..\..\resources\modinfo\bitzartuitweaks\modicon.png" Condition="Exists('..\..\resources\modinfo\bitzartuitweaks\modicon.png')" Visible="False">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>

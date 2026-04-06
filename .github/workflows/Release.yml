@@ -20,7 +20,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
@@ -37,7 +37,7 @@ jobs:
 
       - name: Set version in modinfo.json
         run: |
-          jq --arg v "$VERSION" '.version = $v' mod/uitweaks/modinfo.json > tmp.json && mv tmp.json mod/uitweaks/modinfo.json
+          jq --arg v "$VERSION" '.version = $v' resources/modinfo/bitzartuitweaks/modinfo.json > tmp.json && mv tmp.json resources/modinfo/bitzartuitweaks/modinfo.json
 
       - name: Build
         run: dotnet build UI-Tweaks.sln --configuration Release -p:Version="$VERSION"

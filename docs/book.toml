@@ -5,3 +5,4 @@ title = "BitzArt's UI Tweaks"
 git-repository-url = "https://github.com/BitzArt-VS/UI-Tweaks"
 git-repository-icon = "fab-github"
 additional-css = ["assets/carousel.css"]
+additional-js  = ["assets/carousel.js"]

@@ -4,7 +4,7 @@ namespace BitzArt.UI.Tweaks.Config;
 
 public record SatietyTooltipOptions : TooltipOptions
 {
-    public override bool Enable { get; set; } = true;
+    public override bool Enable { get; set; } = false;
 
     public override string ComponentName => "ui-tweaks-tooltips-satiety";
     public override string Format { get; set; } = "<font align=left>{player-satiety-current} / {player-satiety-max}</font><font align=right>({player-satiety-percent}%)</font>";
