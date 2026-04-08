@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks.Services;
@@ -26,6 +28,8 @@ public partial class GameStatusService : IDisposable
     private readonly ICoreClientAPI _clientApi;
     private SystemTemporalStability? _temporalStabilitySystem;
 
+    private CultureInfo _formatCulture;
+
     private long? _tickListenerId;
     private CancellationTokenSource? _updateThreadCts;
     private Thread? _updateThread;
@@ -39,6 +43,14 @@ public partial class GameStatusService : IDisposable
         _clientApi = clientApi;
         _subscriptions = new();
         _detailRecords = new();
+
+        string[] months = [.. Enumerable.Range(1, 12).Select(i => Lang.Get("month-" + (EnumMonth)i)), string.Empty];
+
+        _formatCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+        _formatCulture.DateTimeFormat.MonthNames = months;
+        _formatCulture.DateTimeFormat.AbbreviatedMonthNames = [.. months.Select(m => m.Length > 3 ? m[..3] : m)];
+        _formatCulture.DateTimeFormat.MonthGenitiveNames = _formatCulture.DateTimeFormat.MonthNames;
+        _formatCulture.DateTimeFormat.AbbreviatedMonthGenitiveNames = _formatCulture.DateTimeFormat.AbbreviatedMonthNames;
 
         InitStats();
 
@@ -112,7 +124,7 @@ public partial class GameStatusService : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public bool Subscribe(string format, Action<object[]> callback, out string resultingFormat)
+    public bool Subscribe(string format, Action<string> callback)
     {
         var placeholderRegex = GetFormatPlaceholderRegex();
         var matches = placeholderRegex.Matches(format);
@@ -121,22 +133,24 @@ public partial class GameStatusService : IDisposable
         // there are no variable placeholders in the format string.
         if (matches.Count == 0)
         {
-            resultingFormat = format;
             return false;
         }
 
         // Extract just the variable names for your subscription logic
         var variableNames = matches.Select(m => m.Groups["name"].Value).ToList();
 
-        Subscribe(variableNames, callback);
-
         // Replace placeholders with consecutive iterator numbers, preserving formatting
         int i = 0;
-        resultingFormat = placeholderRegex.Replace(format, match =>
+        var resultingFormat = placeholderRegex.Replace(format, match =>
         {
             // match.Groups["format"].Value will contain the alignment/format string (e.g. ":MMMM dd, yyyy")
             // If there is no format string, it will be empty, cleanly resulting in just {0}, {1}, etc.
             return $"{{{i++}{match.Groups["format"].Value}}}";
+        });
+
+        Subscribe(variableNames, (values) =>
+        {
+            callback.Invoke(string.Format(_formatCulture, resultingFormat, [.. values]));
         });
 
         return true;

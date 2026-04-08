@@ -87,34 +87,28 @@ public class HudTooltipLabel : HudElement
             var index = i; // Capture loop variable for closure
             var format = FormatStrings[index];
 
-            if (!StatusService.Subscribe(format, (values) => OnStatsUpdate(values, index), out var runtimeFormat))
+            if (!StatusService.Subscribe(format, (value) => OnStatsUpdate(value, index)))
             {
                 // No subscription created, likely no variable placeholders found in the format string.
                 // Still need to update the text once with the static format.
-                OnStatsUpdate(null, index);
+                OnStatsUpdate(format, index);
             }
-            else
-            {
-                FormatStrings[index] = runtimeFormat;
-            } 
         }
     }
 
-    private void OnStatsUpdate(object[]? values, int index)
+    private void OnStatsUpdate(string? value, int index)
     {
         var valueElement = SingleComposer.GetRichtext($"{RichtextElementName}-{index + 1}");
         var format = FormatStrings[index];
 
-        var text = values is not null ? string.Format(format, [.. values]) : format;
-
         if (CenterText)
         {
-            text = $"<font align=center>{text}</font>";
+            value = $"<font align=center>{value}</font>";
         }
 
         ClientApi.Event.EnqueueMainThreadTask(() =>
         {
-            valueElement.SetNewText(text, Font);
+            valueElement.SetNewText(value, Font);
         }, "ui-tweaks-tooltip-value-update");
     }
 }
