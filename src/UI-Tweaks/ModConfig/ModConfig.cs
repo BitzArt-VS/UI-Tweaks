@@ -2,7 +2,7 @@
 
 namespace BitzArt.UI.Tweaks.Config;
 
-internal record UiTweaksModConfig
+public record UiTweaksModConfig
 {
     [JsonProperty("hud", Order = 1)]
     public HudConfig Hud { get; set; } = new();

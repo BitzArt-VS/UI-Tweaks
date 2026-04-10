@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BitzArt.UI.Tweaks.Config;
 
-internal record HudConfig
+public record HudConfig
 {
     [JsonProperty("environmentWidget", Order = 01)]
     public EnvironmentWidgetOptions EnvironmentWidget { get; set; } = new();

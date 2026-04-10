@@ -1,45 +1,38 @@
 ﻿using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Services;
-using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks;
 
-public class StatusHudModSystem : ClientModSystem
+public class GameStatusFeature(UiTweaksModSystem modSystem, UiTweaksModConfig config)
+    : ModSystemFeature<UiTweaksModSystem, UiTweaksModConfig>(modSystem, config)
 {
+    private GameStatusService? _gameStatusService;
     private readonly List<HudTooltipLabel> _tooltipLabels = [];
 
-    private GameStatusService? _gameStatusService;
-    private Harmony? _harmony;
+    public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
 
-    protected override string Name => $"{Constants.ModName}:StatusHUD";
-
-    protected override void Start(ICoreClientAPI clientApi)
+    public override void Start(ICoreClientAPI clientApi)
     {
-        var config = clientApi.GetModConfig<UiTweaksModConfig>(Constants.ModConfigFileName).Hud;
-
-        _harmony = new Harmony(Constants.ModId);
-        _harmony.PatchAll(typeof(StatusHudModSystem).Assembly);
-
         _gameStatusService = new(clientApi);
 
         List<IHudTooltipConfiguration> tooltipConfigurations =
         [
-            config.EnvironmentWidget,
+            Config.Hud.EnvironmentWidget,
 
-            config.HealthbarTooltip,
-            config.TemporalStabilityTooltip,
-            config.SatietyTooltip,
-            config.HungerTooltip,
+            Config.Hud.HealthbarTooltip,
+            Config.Hud.TemporalStabilityTooltip,
+            Config.Hud.SatietyTooltip,
+            Config.Hud.HungerTooltip,
 
             // Not enabling custom tooltip,
             // it is provided for config demonstration purposes only.
             // config.ExampleCustomTooltip
 
-            ..config.CustomTooltips
+            ..Config.Hud.CustomTooltips
         ];
 
         foreach (var tooltipConfig in tooltipConfigurations)
@@ -53,15 +46,12 @@ public class StatusHudModSystem : ClientModSystem
                 clientApi.Logger.Error($"Failed to initialize tooltip '{tooltipConfig.ComponentName}'. It will not be added.");
                 clientApi.Logger.Error(ex);
             }
-            
+
         }
     }
 
     public override void Dispose()
     {
-        _harmony?.UnpatchAll(_harmony.Id);
-        _harmony = null;
-
         _gameStatusService?.Dispose();
         _gameStatusService = null;
 
@@ -71,5 +61,7 @@ public class StatusHudModSystem : ClientModSystem
         }
 
         _tooltipLabels.Clear();
+
+        GC.SuppressFinalize(this);
     }
 }

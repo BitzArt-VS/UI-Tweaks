@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -44,12 +46,33 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
     private string GetStartErrorMessage(string side)
         => $"An error occurred while starting the mod system '{Name}' ({side}). The system will not start.";
 
+    protected List<ModSystemFeature> Features { get; set; } = [];
+
     public sealed override void StartClientSide(ICoreClientAPI clientApi)
     {
         base.StartClientSide(clientApi);
         try
         {
             Start(clientApi);
+
+            var clientSideFeatures = Features
+                .Where(feature => feature.ShouldLoad(EnumAppSide.Client))
+                .ToList();
+
+            foreach (var feature in clientSideFeatures)
+            {
+                try
+                {
+                    feature.Start(clientApi);
+                }
+                catch (Exception ex)
+                {
+                    clientApi.Logger.Error(ex);
+                    clientApi.Logger.Error($"An error occurred while starting the feature '{feature.Name}' for mod system '{Name}' (client-side). The feature will remain disabled.");
+                    
+                    feature.Dispose();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -67,6 +90,26 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
         try
         {
             Start(serverApi);
+
+            var serverSideFeatures = Features
+                .Where(feature => feature.ShouldLoad(EnumAppSide.Server))
+                .ToList();
+
+            foreach (var feature in serverSideFeatures)
+            {
+                try
+                {
+                    feature.Start(serverApi);
+
+                }
+                catch (Exception ex)
+                {
+                    serverApi.Logger.Error(ex);
+                    serverApi.Logger.Error($"An error occurred while starting the feature '{feature.Name}' for mod system '{Name}' (server-side). The feature will remain disabled.");
+
+                    feature.Dispose();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -78,11 +121,31 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
         }
     }
 
+    public sealed override void Dispose()
+    {
+        foreach (var feature in Features)
+        {
+            try
+            {
+                feature.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // Just log the error and continue disposing other features,
+                // as we want to dispose as much as possible even if some features fail during disposal.
+                Console.Error.WriteLine($"An error occurred while disposing the feature '{feature.Name}' for mod system '{Name}'.");
+                Console.Error.WriteLine(ex);
+            }
+        }
+
+        OnDispose();
+    }
+
     /// <summary>
     /// Starts the mod system client-side.
     /// </summary>
     /// <param name="clientApi">API for interacting with game engine client-side.</param>
-    protected abstract void Start(ICoreClientAPI clientApi);
+    protected virtual void Start(ICoreClientAPI clientApi) { }
 
     /// <summary>
     /// A method invoked when an exception is thrown during attempting to start the mod system client-side.
@@ -95,7 +158,7 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
     /// Starts the mod system server-side.
     /// </summary>
     /// <param name="serverApi">API for interacting with game engine server-side.</param>
-    protected abstract void Start(ICoreServerAPI serverApi);
+    protected virtual void Start(ICoreServerAPI serverApi) { }
 
     /// <summary>
     /// A method invoked when an exception is thrown during attempting to start the mod system server-side.
@@ -103,6 +166,11 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
     /// <param name="serverApi">API for interacting with game engine server-side.</param>
     /// <param name="ex">The exception thrown during attempting to start the mod system.</param>
     protected virtual void OnStartFailed(ICoreServerAPI serverApi, Exception ex) { }
+
+    /// <summary>
+    /// Called at the end of the <see cref="Dispose"/> method, after all features have been disposed.
+    /// </summary>
+    protected virtual void OnDispose() { }
 
     [GeneratedRegex("(ModSystem|System)$")]
     private static partial Regex GetModSystemNamePartRegex();

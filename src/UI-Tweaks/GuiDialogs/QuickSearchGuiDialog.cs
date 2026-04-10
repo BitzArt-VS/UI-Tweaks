@@ -28,10 +28,10 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
     public override double DrawOrder => 0.3;
 
-    public QuickSearchGuiDialog(ICoreClientAPI clientApi, QuickSearchService search, UiTweaksModConfig modConfig) : base(clientApi)
+    public QuickSearchGuiDialog(ICoreClientAPI clientApi, QuickSearchService search, QuickSearchConfig config) : base(clientApi)
     {
         _searchService = search;
-        _config = modConfig.QuickSearch;
+        _config = config;
 
         Compose();
     }
@@ -68,7 +68,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
                 ClientApi.Event.EnqueueMainThreadTask(() =>
                 {
                     TryClose();
-                }, "quicksearch-close-on-item-clicked");
+                }, "quicksearch-close");
             }
         });
     }
@@ -77,8 +77,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
     {
         if (!IsInDialog(args))
         {
-            TryClose();
-            args.Handled = true;
+            args.Handled = TryClose();
         }
 
         base.OnMouseDown(args);
