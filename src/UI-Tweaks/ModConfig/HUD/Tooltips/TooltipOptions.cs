@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Config;
 
-public abstract record TooltipOptions : IHudTooltipConfiguration
+public abstract record TooltipOptions : IHudTooltipConfiguration, INotifyPropertyChanged
 {
     [JsonIgnore]
     public abstract string ComponentName { get; }
@@ -38,7 +39,7 @@ public abstract record TooltipOptions : IHudTooltipConfiguration
     public virtual double BackgroundOpacity { get; set; } = 0.5;
 
     [JsonProperty("backgroundCornerRadius", Order = 33)]
-    public virtual double BackgroundCornerRadius { get; set; } = 12.0;
+    public virtual double BackgroundCornerRadius { get; set; } = 16.0;
 
     [JsonProperty("format", Order = 41)]
     public virtual string Format { get; set; } = string.Empty;
@@ -52,4 +53,11 @@ public abstract record TooltipOptions : IHudTooltipConfiguration
     IComponentOffset IHudTooltipConfiguration.Offset => Offset;
     IComponentPadding IHudTooltipConfiguration.Padding => Padding;
     EnumDialogArea IHudTooltipConfiguration.Area => Enum.Parse<EnumDialogArea>(DialogArea, ignoreCase: true);
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public virtual void NotifyPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
 
-public interface IHudTooltipConfiguration
+public interface IHudTooltipConfiguration : INotifyPropertyChanged
 {
     public string ComponentName { get; }
 

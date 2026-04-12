@@ -10,122 +10,117 @@ public class HudTooltipLabel : HudElement
 {
     private const string RichtextElementName = "tooltip-text";
 
-    protected EnumDialogArea DialogArea;
-    protected (double X, double Y) Offset;
-    protected double Width;
-    protected double Height;
-    protected bool CenterText;
+    private readonly GameStatusService _statusService;
+    private readonly IHudTooltipConfiguration _config;
 
-    protected bool HasBackground;
-    protected double BackgroundOpacity;
-    protected double BackgroundCornerRadius;
-
-    protected List<string> FormatStrings;
-
-    protected GameStatusService StatusService { get; private init; }
-    protected CairoFont Font { get; private init; }
+    private CairoFont? _font;
+    private List<string>? _formatStrings;
 
     public HudTooltipLabel(ICoreClientAPI clientApi, GameStatusService statusService, IHudTooltipConfiguration config)
         : base(clientApi)
     {
-        StatusService = statusService;
+        _statusService = statusService;
+        _config = config;
 
-        DialogArea = config.Area;
-        Offset = (config.Offset.X, config.Offset.Y);
-        Height = config.Height;
-        Width = config.Width;
-        CenterText = config.CenterText;
+        if (_config.Enable)
+        {
+            Compose();
+        }
 
-        HasBackground = config.HasBackground;
-        BackgroundOpacity = config.BackgroundOpacity;
-        BackgroundCornerRadius = config.BackgroundCornerRadius;
+        _config.PropertyChanged += (_, _) => Compose();
+    }
 
-        Font = new CairoFont
+    private void Compose()
+    {
+        _font?.Dispose();
+
+        _font = new CairoFont
         {
             Color = (double[])GuiStyle.DialogDefaultTextColor.Clone(),
             Fontname = GuiStyle.DecorativeFontName,
-            UnscaledFontsize = config.FontSize
+            UnscaledFontsize = _config.FontSize
         };
 
-        FormatStrings = [config.Format, .. config.ExtraElements ?? []];
+        _formatStrings = [_config.Format, .. _config.ExtraElements ?? []];
 
-        if (!config.Enable)
+        if (!_config.Enable)
         {
             return;
         }
 
         var componentBoundary = ElementBounds
-            .FixedPos(DialogArea, Offset.X, Offset.Y)
-            .WithFixedSize(Width, Height);
+            .FixedPos(_config.Area, _config.Offset.X, _config.Offset.Y)
+            .WithFixedSize(_config.Width, _config.Height);
 
-        var backgroundBoundary = ElementBounds.Fixed(0, 0, Width, Height);
+        var backgroundBoundary = ElementBounds.Fixed(0, 0, _config.Width, _config.Height);
 
-        SingleComposer = clientApi.Gui
-            .CreateCompo(config.ComponentName, componentBoundary)
-            .AddIf(HasBackground)
-                .AddTooltipBackground(backgroundBoundary, BackgroundOpacity)
+        SingleComposer = ClientApi.Gui
+            .CreateCompo(_config.ComponentName, componentBoundary)
+            .AddIf(_config.HasBackground)
+                .AddTooltipBackground(backgroundBoundary, _config.BackgroundOpacity, _config.BackgroundCornerRadius)
             .EndIf();
 
-        for (int i = 0; i < FormatStrings.Count; i++)
+        for (int i = 0; i < _formatStrings.Count; i++)
         {
             var contentBoundary = ElementBounds.Fixed(
-                config.Padding.Left,
-                config.Padding.Top,
-                Width - (config.Padding.Left + config.Padding.Right),
-                Height - (config.Padding.Top + config.Padding.Bottom));
+                _config.Padding.Left,
+                _config.Padding.Top,
+                _config.Width - (_config.Padding.Left + _config.Padding.Right),
+                _config.Height - (_config.Padding.Top + _config.Padding.Bottom));
 
             SingleComposer = SingleComposer
-                .AddRichtext(string.Empty, Font, contentBoundary, $"{RichtextElementName}-{i + 1}");
+                .AddRichtext(string.Empty, _font, contentBoundary, $"{RichtextElementName}-{i + 1}");
         }
 
         SingleComposer = SingleComposer.Compose();
 
-        TryOpen();
-
-        for (int i = 0; i < FormatStrings.Count; i++)
+        for (int i = 0; i < _formatStrings.Count; i++)
         {
             var index = i; // Capture loop variable for closure
-            var format = FormatStrings[index];
+            var format = _formatStrings[index];
 
-            if (!StatusService.Subscribe(format, (value) => OnStatsUpdate(value, index)))
+            if (!_statusService.Subscribe(format, (value) => OnStatsUpdate(value, index)))
             {
                 // No subscription created, likely no variable placeholders found in the format string.
                 // Still need to update the text once with the static format.
                 OnStatsUpdate(format, index);
             }
         }
+
+        switch(_config.Enable)
+        {
+            case true:
+                TryOpen();
+                break;
+            case false:
+                TryClose();
+                break;
+        }
     }
 
     private void OnStatsUpdate(string? value, int index)
     {
         var valueElement = SingleComposer.GetRichtext($"{RichtextElementName}-{index + 1}");
-        var format = FormatStrings[index];
+        var format = _formatStrings![index];
 
-        if (CenterText)
+        if (_config.CenterText)
         {
             value = $"<font align=center>{value}</font>";
         }
 
         ClientApi.Event.EnqueueMainThreadTask(() =>
         {
-            valueElement.SetNewText(value, Font);
+            valueElement.SetNewText(value, _font);
         }, "ui-tweaks-tooltip-value-update");
     }
 }
 
-file static class BackgroundExtensions
+file static class TooltipBackgroundExtensions
 {
-    public static GuiComposer AddTooltipBackground(this GuiComposer composer, ElementBounds bounds, double backgroundOpacity)
-    {
-        if (!composer.Composed)
-        {
-            composer.AddStaticElement(new TooltipBackgroundElement(composer.Api, bounds, backgroundOpacity));
-        }
+    public static GuiComposer AddTooltipBackground(this GuiComposer composer, ElementBounds bounds, double backgroundOpacity, double cornerRadius)
+        => composer.AddStaticElement(new TooltipBackgroundElement(composer.Api, bounds, backgroundOpacity, cornerRadius));
 
-        return composer;
-    }
-
-    private class TooltipBackgroundElement(ICoreClientAPI capi, ElementBounds bounds, double opacity)
+    private class TooltipBackgroundElement(ICoreClientAPI capi, ElementBounds bounds, double opacity, double cornerRadius)
         : GuiElement(capi, bounds)
     {
         public override void ComposeElements(Context ctx, ImageSurface surface)
@@ -148,7 +143,7 @@ file static class BackgroundExtensions
             w -= (inset * 2) + 1.0;
             h -= (inset * 2) + 1.0;
 
-            double r = 16.0;
+            double r = cornerRadius;
             r = Math.Min(r, Math.Min(w / 2, h / 2));
 
             // ... (The rest of your drawing code stays exactly the same)
