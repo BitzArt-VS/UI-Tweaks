@@ -21,18 +21,18 @@ public class GameStatusFeature(UiTweaksModSystem modSystem, UiTweaksModConfig co
 
         List<IHudTooltipConfiguration> tooltipConfigurations =
         [
-            Config.Hud.EnvironmentWidget,
+            Config.Hud.Tooltips.EnvironmentWidget,
 
-            Config.Hud.HealthbarTooltip,
-            Config.Hud.TemporalStabilityTooltip,
-            Config.Hud.SatietyTooltip,
-            Config.Hud.HungerTooltip,
+            Config.Hud.Tooltips.HealthbarTooltip,
+            Config.Hud.Tooltips.TemporalStabilityTooltip,
+            Config.Hud.Tooltips.SatietyTooltip,
+            Config.Hud.Tooltips.HungerTooltip,
 
             // Not enabling custom tooltip,
             // it is provided for config demonstration purposes only.
-            // config.ExampleCustomTooltip
+            // config.Hud.Tooltips.ExampleCustomTooltip
 
-            ..Config.Hud.CustomTooltips
+            ..Config.Hud.Tooltips.CustomTooltips
         ];
 
         foreach (var tooltipConfig in tooltipConfigurations)
