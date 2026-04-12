@@ -145,7 +145,7 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
     /// Starts the mod system client-side.
     /// </summary>
     /// <param name="clientApi">API for interacting with game engine client-side.</param>
-    protected virtual void Start(ICoreClientAPI clientApi) { }
+    protected abstract void Start(ICoreClientAPI clientApi);
 
     /// <summary>
     /// A method invoked when an exception is thrown during attempting to start the mod system client-side.
@@ -158,7 +158,7 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
     /// Starts the mod system server-side.
     /// </summary>
     /// <param name="serverApi">API for interacting with game engine server-side.</param>
-    protected virtual void Start(ICoreServerAPI serverApi) { }
+    protected abstract void Start(ICoreServerAPI serverApi);
 
     /// <summary>
     /// A method invoked when an exception is thrown during attempting to start the mod system server-side.
