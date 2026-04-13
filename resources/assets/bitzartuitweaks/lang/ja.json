@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks の設定",
-  "quicksearch": "クイック検索"
+  "quicksearch": "クイック検索",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "クイック検索",
+  "config-quicksearch-enable": "クイック検索を有効にする",
+  "config-quicksearch-result-list-height": "結果リストの高さ"
 }

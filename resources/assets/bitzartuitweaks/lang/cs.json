@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "Konfigurace UI Tweaks",
-  "quicksearch": "Rychlé vyhledávání"
+  "quicksearch": "Rychlé vyhledávání",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "Rychlé vyhledávání",
+  "config-quicksearch-enable": "Povolit rychlé vyhledávání",
+  "config-quicksearch-result-list-height": "Výška seznamu výsledků"
 }

@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks-konfiguration",
-  "quicksearch": "Snabbsökning"
+  "quicksearch": "Snabbsökning",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "Snabbsökning",
+  "config-quicksearch-enable": "Aktivera snabbsökning",
+  "config-quicksearch-result-list-height": "Höjd på resultatlistan"
 }

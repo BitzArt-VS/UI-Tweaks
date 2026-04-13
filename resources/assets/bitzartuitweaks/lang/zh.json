@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks 配置",
-  "quicksearch": "快速搜索"
+  "quicksearch": "快速搜索",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "快速搜索",
+  "config-quicksearch-enable": "启用快速搜索",
+  "config-quicksearch-result-list-height": "结果列表高度"
 }

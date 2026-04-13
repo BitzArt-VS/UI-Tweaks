@@ -83,14 +83,14 @@ public partial class GameStatusService : IDisposable
                     try
                     {
                         UpdateStats();
-                        await Task.Delay(50, _updateThreadCts.Token);
+                        await Task.Delay(50, token);
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
                     {
                         _clientApi.Logger.Error("Error updating game status details: " + ex);
 
-                        await Task.Delay(1000, _updateThreadCts.Token);
+                        await Task.Delay(1000, token);
                     }
                 }
 
@@ -117,6 +117,7 @@ public partial class GameStatusService : IDisposable
         }
 
         _updateThreadCts?.Cancel();
+        _updateThreadCts?.Dispose();
         _updateThreadCts = null;
 
         _updateThread = null;

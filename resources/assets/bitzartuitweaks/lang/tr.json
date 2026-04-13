@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks yapılandırması",
-  "quicksearch": "Hızlı arama"
+  "quicksearch": "Hızlı arama",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "Hızlı arama",
+  "config-quicksearch-enable": "Hızlı aramayı etkinleştir",
+  "config-quicksearch-result-list-height": "Sonuç listesi yüksekliği"
 }

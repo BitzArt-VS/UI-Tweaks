@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "Канфігурацыя UI Tweaks",
-  "quicksearch": "Хуткі пошук"
+  "quicksearch": "Хуткі пошук",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "Хуткі пошук",
+  "config-quicksearch-enable": "Уключыць хуткі пошук",
+  "config-quicksearch-result-list-height": "Вышыня спісу вынікаў"
 }

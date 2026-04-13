@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks 설정",
-  "quicksearch": "빠른 검색"
+  "quicksearch": "빠른 검색",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "빠른 검색",
+  "config-quicksearch-enable": "빠른 검색 활성화",
+  "config-quicksearch-result-list-height": "결과 목록 높이"
 }

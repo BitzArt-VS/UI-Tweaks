@@ -1,4 +1,8 @@
 {
   "ui-tweaks-config": "UI Tweaks konfiguráció",
-  "quicksearch": "Gyorskeresés"
+  "quicksearch": "Gyorskeresés",
+  "config-page-hud": "HUD",
+  "config-page-quicksearch": "Gyorskeresés",
+  "config-quicksearch-enable": "Gyorskeresés engedélyezése",
+  "config-quicksearch-result-list-height": "Találati lista magassága"
 }
