@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks 설정",
-  "quicksearch": "빠른 검색"
+  "quicksearch": "빠른 검색",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "툴팁",
+  "config-page-env-widget": "환경 위삯",
+  "config-page-healthbar": "체력 바",
+  "config-page-satiety": "포만도",
+  "config-page-hunger-rate": "배고펙 속도",
+  "config-page-temporal-stability": "시간적 안정성",
+  "config-page-quicksearch": "빠른 검색",
+  "config-quicksearch-enable": "빠른 검색 활성화",
+  "config-quicksearch-result-list-height": "결과 목록 높이",
+  "config-requires-restart": "* 게임 재시작이 필요합니다.",
+  "config-quicksearch-enable-tooltip": "빠른 검색 기능을 활성화하거나 비활성화합니다.",
+  "config-quicksearch-result-list-height-tooltip": "검색 결과 목록의 높이를 픽셀 단위로 설정합니다.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

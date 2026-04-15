@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "Конфігурація UI Tweaks",
-  "quicksearch": "Швидкий пошук"
+  "quicksearch": "Швидкий пошук",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "Тултіпи",
+  "config-page-env-widget": "Віджет оточення",
+  "config-page-healthbar": "Шкала здоров’я",
+  "config-page-satiety": "Насичення",
+  "config-page-hunger-rate": "Швидкість голоду",
+  "config-page-temporal-stability": "Темпоральна стабільність",
+  "config-page-quicksearch": "Швидкий пошук",
+  "config-quicksearch-enable": "Увімкнути швидкий пошук",
+  "config-quicksearch-result-list-height": "Висота списку результатів",
+  "config-requires-restart": "* потребує перезапуску гри.",
+  "config-quicksearch-enable-tooltip": "Вмикає або вимикає функцію швидкого пошуку.",
+  "config-quicksearch-result-list-height-tooltip": "Задає висоту списку результатів пошуку в пікселях.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

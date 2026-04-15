@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks-konfiguration",
-  "quicksearch": "Snabbsökning"
+  "quicksearch": "Snabbsökning",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "Verktygstips",
+  "config-page-env-widget": "Miljöwidget",
+  "config-page-healthbar": "Hälsobar",
+  "config-page-satiety": "Mättnad",
+  "config-page-hunger-rate": "Hungertakt",
+  "config-page-temporal-stability": "Temporal stabilitet",
+  "config-page-quicksearch": "Snabbsökning",
+  "config-quicksearch-enable": "Aktivera snabbsökning",
+  "config-quicksearch-result-list-height": "Höjd på resultatlistan",
+  "config-requires-restart": "* kräver en omstart av spelet.",
+  "config-quicksearch-enable-tooltip": "Aktiverar eller inaktiverar snabbsökningsfunktionen.",
+  "config-quicksearch-result-list-height-tooltip": "Ställer in höjden på sökresultatlistan i pixlar.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

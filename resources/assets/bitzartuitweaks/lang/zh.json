@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks 配置",
-  "quicksearch": "快速搜索"
+  "quicksearch": "快速搜索",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "提示框",
+  "config-page-env-widget": "环境小部件",
+  "config-page-healthbar": "血量条",
+  "config-page-satiety": "饱食度",
+  "config-page-hunger-rate": "饥饿速率",
+  "config-page-temporal-stability": "时间稳定性",
+  "config-page-quicksearch": "快速搜索",
+  "config-quicksearch-enable": "启用快速搜索",
+  "config-quicksearch-result-list-height": "结果列表高度",
+  "config-requires-restart": "* 需要重新启动游戏。",
+  "config-quicksearch-enable-tooltip": "启用或禁用快速搜索功能。",
+  "config-quicksearch-result-list-height-tooltip": "以像素为单位设置搜索结果列表的高度。",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

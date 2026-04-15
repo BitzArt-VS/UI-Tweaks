@@ -8,18 +8,39 @@ namespace BitzArt.UI.Tweaks;
 public class ModConfigFeature(UiTweaksModSystem modSystem, UiTweaksModConfig config)
     : ModSystemFeature<UiTweaksModSystem, UiTweaksModConfig>(modSystem, config)
 {
+    private ModConfigGuiDialog? _dialog;
+
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
 
     public override void Start(ICoreClientAPI clientApi)
     {
-        clientApi.Input.AddHotKey(ModHotKeys.ModConfiguration, (keys) => ToggleDialog(clientApi));
+        _dialog = new(clientApi, Config);
+
+        clientApi.Input.AddHotKey(ModHotKeys.ModConfiguration, (keys) => ToggleDialog());
     }
 
-    private static bool ToggleDialog(ICoreClientAPI clientApi)
+    public override void Dispose()
     {
-        // TODO: Mod config dialog
+        _dialog?.Dispose();
+        _dialog = null;
 
-        clientApi.ShowChatMessage("Mod configuration dialog is to be implemented.");
+        GC.SuppressFinalize(this);
+    }
+
+    private bool ToggleDialog()
+    {
+        if (_dialog is null)
+        {
+            throw new NullReferenceException("ModConfig dialog is not initialized.");
+        }
+
+        if (_dialog.IsOpened())
+        {
+            _dialog.TryClose();
+            return true;
+        }
+
+        _dialog.TryOpenOnKeyPress();
 
         return true;
     }

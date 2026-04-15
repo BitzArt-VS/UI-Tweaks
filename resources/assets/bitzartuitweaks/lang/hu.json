@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks konfiguráció",
-  "quicksearch": "Gyorskeresés"
+  "quicksearch": "Gyorskeresés",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "Elemleírások",
+  "config-page-env-widget": "Környezeti widget",
+  "config-page-healthbar": "Életerő-sáv",
+  "config-page-satiety": "Jóllakottság",
+  "config-page-hunger-rate": "Éhezési ütem",
+  "config-page-temporal-stability": "Temporális stabilitás",
+  "config-page-quicksearch": "Gyorskeresés",
+  "config-quicksearch-enable": "Gyorskeresés engedélyezése",
+  "config-quicksearch-result-list-height": "Találati lista magassága",
+  "config-requires-restart": "* a játék újraindítását igényli.",
+  "config-quicksearch-enable-tooltip": "Engedélyezi vagy letiltja a gyorskeresés funkciót.",
+  "config-quicksearch-result-list-height-tooltip": "Beállítja a keresési találati lista magasságát pixelben.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

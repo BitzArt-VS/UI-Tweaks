@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks の設定",
-  "quicksearch": "クイック検索"
+  "quicksearch": "クイック検索",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "ツールチップ",
+  "config-page-env-widget": "環境ウィジェット",
+  "config-page-healthbar": "体力バー",
+  "config-page-satiety": "満腹度",
+  "config-page-hunger-rate": "空腹速度",
+  "config-page-temporal-stability": "時間的安定性",
+  "config-page-quicksearch": "クイック検索",
+  "config-quicksearch-enable": "クイック検索を有効にする",
+  "config-quicksearch-result-list-height": "結果リストの高さ",
+  "config-requires-restart": "* ゲームの再起動が必要です。",
+  "config-quicksearch-enable-tooltip": "クイック検索機能を有効または無効にします。",
+  "config-quicksearch-result-list-height-tooltip": "検索結果リストの高さをピクセル単位で設定します。",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

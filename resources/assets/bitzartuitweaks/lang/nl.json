@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "UI Tweaks-configuratie",
-  "quicksearch": "Snel zoeken"
+  "quicksearch": "Snel zoeken",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "Tooltips",
+  "config-page-env-widget": "Omgevingswidget",
+  "config-page-healthbar": "Gezondheidsbalk",
+  "config-page-satiety": "Verzadiging",
+  "config-page-hunger-rate": "Hongersnelheid",
+  "config-page-temporal-stability": "Temporele stabiliteit",
+  "config-page-quicksearch": "Snel zoeken",
+  "config-quicksearch-enable": "Snel zoeken inschakelen",
+  "config-quicksearch-result-list-height": "Hoogte van de resultatenlijst",
+  "config-requires-restart": "* vereist een herstart van het spel.",
+  "config-quicksearch-enable-tooltip": "Schakelt de snelzoekfunctie in of uit.",
+  "config-quicksearch-result-list-height-tooltip": "Stelt de hoogte van de zoekresultatenlijst in pixels in.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }

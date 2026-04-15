@@ -34,6 +34,8 @@ internal partial class QuickSearchGuiDialog : GuiDialog
         _config = config;
 
         Compose();
+
+        _config.PropertyChanged += (_, _) => Compose(true);
     }
 
     public override void OnGuiOpened()
@@ -77,7 +79,7 @@ internal partial class QuickSearchGuiDialog : GuiDialog
     {
         if (!IsInDialog(args))
         {
-            args.Handled = TryClose();
+            TryClose();
         }
 
         base.OnMouseDown(args);

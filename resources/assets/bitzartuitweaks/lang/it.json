@@ -1,4 +1,19 @@
 {
   "ui-tweaks-config": "Configurazione UI Tweaks",
-  "quicksearch": "Ricerca rapida"
+  "quicksearch": "Ricerca rapida",
+  "config-page-hud": "HUD",
+  "config-page-tooltips": "Tooltip",
+  "config-page-env-widget": "Widget ambiente",
+  "config-page-healthbar": "Barra della salute",
+  "config-page-satiety": "Sazieta",
+  "config-page-hunger-rate": "Tasso di fame",
+  "config-page-temporal-stability": "Stabilita temporale",
+  "config-page-quicksearch": "Ricerca rapida",
+  "config-quicksearch-enable": "Abilita ricerca rapida",
+  "config-quicksearch-result-list-height": "Altezza dell'elenco dei risultati",
+  "config-requires-restart": "* richiede il riavvio del gioco.",
+  "config-quicksearch-enable-tooltip": "Abilita o disabilita la funzione di ricerca rapida.",
+  "config-quicksearch-result-list-height-tooltip": "Imposta l'altezza dell'elenco dei risultati di ricerca in pixel.",
+  "config-tooltip-enable": "Enable",
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
 }
