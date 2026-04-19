@@ -5,7 +5,7 @@ namespace BitzArt.UI.Tweaks.Config;
 
 public record EnvironmentWidgetOptions : TooltipOptions
 {
-    public override bool Enable { get; set; } = true;
+    public override bool Enable { get; set; } = false;
 
     public override string ComponentName => "ui-tweaks-env-widget";
     public override string Format { get; set; } = "<font align=left>{world-date-time:HH:mm}</font><font align=right>{player-location-temperature-celsius}°C</font><br>X: {player-location-coordinates-x}   Y: {player-location-coordinates-y}   Z: {player-location-coordinates-z}";
