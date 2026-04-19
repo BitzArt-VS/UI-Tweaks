@@ -90,7 +90,7 @@ public partial class GameStatusService : IDisposable
                     {
                         _clientApi.Logger.Error("Error updating game status details: " + ex);
 
-                        await Task.Delay(1000, token);
+                        await Task.Delay(1000, CancellationToken.None);
                     }
                 }
 
