@@ -14,6 +14,8 @@ public class HudTooltipLabel : HudElement
     private readonly GameStatusService _statusService;
     private readonly IHudTooltipConfiguration _config;
 
+    public override double DrawOrder => 0.105;
+
     private CairoFont? _font;
     private List<string>? _formatStrings;
     private string?[]? _resultStrings;
