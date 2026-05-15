@@ -1,4 +1,4 @@
-﻿using BitzArt.UI.Tweaks.GameStatus;
+using BitzArt.UI.Tweaks.GameStatus;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

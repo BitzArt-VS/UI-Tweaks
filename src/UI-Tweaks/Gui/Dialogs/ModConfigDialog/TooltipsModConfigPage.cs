@@ -9,8 +9,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
 {
     public static string PageName => Lang.Get($"{Constants.ModId}:config-page-tooltips");
 
-    private const double ListItemSpacing = 6;
-    private const double ListColumnWidth = 320;
+    private const double ListItemHeight = 44;
 
     private readonly record struct TooltipEntry(string LangKey, Func<TooltipsConfig, TooltipOptions> Resolve);
 
@@ -26,9 +25,9 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
     private ModConfigContext? _context;
     private ModConfigPageNavigator? _navigator;
 
-    protected override void SetDefaultLayoutParameters()
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
-        LayoutParameters.Padding = new(8);
+        builder.ConfigureLayout(layout => layout.Padding = new(0));
     }
 
     public override void OnParametersSet()
@@ -40,19 +39,20 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
         builder.AddContainer(0,
-            width: ListColumnWidth,
-            horizontalAlignment: GuiHorizontalAlignment.Center,
+            widthMode: GuiSizeMode.Fill,
             content: column =>
             {
                 for (int i = 0; i < PredefinedTooltips.Length; i++)
                 {
-                    int idx = i;
-                    column.AddButton(idx, Lang.Get(PredefinedTooltips[idx].LangKey),
-                        onClick: () => OpenTooltip(idx),
-                        widthMode: GuiSizeMode.Fill,
-                        margin: new GuiThickness(
-                            Top: idx == 0 ? 0 : ListItemSpacing,
-                            Right: 0, Bottom: 0, Left: 0));
+                    int index = i;
+                    column.Add<ConfigListRow>(index,
+                        height: ListItemHeight,
+                        widthMode: GuiSizeMode.Fill)
+                        .Configure(row =>
+                        {
+                            row.Text = Lang.Get(PredefinedTooltips[index].LangKey);
+                            row.OnClick = (Action)(() => OpenTooltip(index));
+                        });
                 }
             });
     }

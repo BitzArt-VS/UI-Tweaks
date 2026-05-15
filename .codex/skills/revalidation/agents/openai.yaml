@@ -1,0 +1,6 @@
+interface:
+  display_name: "Revalidation"
+  short_description: "Check Codex config against the codebase"
+  default_prompt: "Use $revalidation to verify Codex project instructions and skills against the current codebase."
+policy:
+  allow_implicit_invocation: true

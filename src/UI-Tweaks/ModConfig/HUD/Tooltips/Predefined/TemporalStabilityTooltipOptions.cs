@@ -1,4 +1,4 @@
-﻿using Vintagestory.API.Client;
+using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Config;
 

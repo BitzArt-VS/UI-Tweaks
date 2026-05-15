@@ -24,6 +24,7 @@ internal sealed class ModConfigPageNavigator
     }
 
     public string CurrentPageName => _stack[^1].Name;
+    public string RootPageName => _stack[0].Name;
     public string[]? BreadcrumbPreviousItems => _cachedPreviousNames;
     public GuiRenderFragment CurrentContent => _stack[^1].Content;
 

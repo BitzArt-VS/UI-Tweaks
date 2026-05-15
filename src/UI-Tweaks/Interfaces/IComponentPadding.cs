@@ -1,4 +1,4 @@
-﻿namespace BitzArt.UI.Tweaks;
+namespace BitzArt.UI.Tweaks;
 
 public interface IComponentPadding
 {

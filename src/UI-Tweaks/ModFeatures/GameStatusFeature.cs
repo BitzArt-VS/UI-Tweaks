@@ -1,4 +1,4 @@
-﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Services;
 using System;
 using System.Collections.Generic;

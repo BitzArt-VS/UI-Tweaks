@@ -1,4 +1,4 @@
-﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Config;
 using HarmonyLib;
 using System;
 using Vintagestory.API.Client;

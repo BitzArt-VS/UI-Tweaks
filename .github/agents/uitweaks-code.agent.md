@@ -1,6 +1,6 @@
 ---
 description: "Use when writing, editing, or debugging UI-Tweaks."
-tools: [read, edit, search, execute, web, todo]
+tools: [read, edit, search, execute, web, todo, vscode/askQuestions, vscode/memory]
 handoffs:
   - label: Update Docs
     agent: uitweaks-docs
@@ -12,7 +12,7 @@ You are an expert C# developer specializing in Vintage Story mod development. Yo
 ## Project Facts
 
 - **Mod ID:** `bitzartuitweaks` | **Namespace:** `BitzArt.UI.Tweaks`
-- **Stack:** C# 13, .NET 10, VintagestoryAPI, Harmony, Newtonsoft.Json, cairo-sharp, xUnit v3
+- **Stack:** C# 14, .NET 10, VintagestoryAPI, Harmony, Newtonsoft.Json, cairo-sharp, xUnit v3
 - **Target:** Vintage Story v1.22.0+
 - **Game internals reference:** `../Vintagestory` (sibling of workspace root) — search here when investigating internal behaviors or looking for examples of how to use game APIs. Always prefer this over `VSAPI` when applicable.
 - **VS API source:** `../VSAPI` (sibling of workspace root) — full public VintagestoryAPI source — contains public-facing interfaces and types, but not actual implementation details
@@ -45,20 +45,17 @@ Writing good, readable code is a difficult and complex task — and it is a hard
 
 ## Architecture
 
-- **`ModSystems/`** — game entrypoints (Vintage Story `ModSystem` subclasses). Use the custom base classes in `ModSystems/Base/`: `ClientModSystem` (client-side only) and `ServerModSystem` (server-side only) instead of extending `ModSystem` directly. Add new entrypoints here.
+- **`ModSystems/`** — game entrypoints (Vintage Story `ModSystem` subclasses). Use the custom base classes in `ModSystems/Base/`: `ClientModSystem` (client-side only), `ServerModSystem` (server-side only), or the base `ModSystem` (when both client and server sides are needed). Prefer these over extending `Vintagestory.API.Common.ModSystem` directly. Add new entrypoints here.
 - **`ModFeatures/`** — feature logic subdivided out of ModSystems. Extend `ModSystemFeature`, `ModSystemFeature<TModSystem>`, or `ModSystemFeature<TModSystem, TConfig>` from `ModFeatures/Base/`. New game features belong here, not directly in a ModSystem.
-- **`Services/`** — stateful services that features depend on (e.g. `QuickSearchService`).
+- **`Services/`** — stateful services that features depend on (e.g. `QuickSearchService`). Larger services may have their own subdirectory (e.g. `GameStatusService/`).
+- **`Interfaces/`** — shared contracts used across features and frameworks (e.g. `IHudTooltipConfiguration`, `IComponentOffset`).
+- **`Models/`** — data types and domain models (e.g. `GameStatusDetail`, `QuickSearchResultItem`).
 - **`ModConfig/`** — user-facing configuration models, organized by feature subdirectory (e.g. `ModConfig/QuickSearch/QuickSearchConfig.cs`). Config classes use the `BitzArt.UI.Tweaks.Config` sub-namespace.
 - **`HarmonyPatches/`** — Harmony transpilers/prefixes/postfixes for patching game internals.
 - **`HudElements/`** — custom HUD elements rendered outside the dialog system.
-
-## Skills
-
-| Trigger | Skill |
-|---------|-------|
-| Request involves any GUI work | Load `uitweaks-gui` — contains design principles, architecture reference docs, and framework-specific code quality rules. Invoke whenever the request involves any GUI work, such as working on the GUI framework, GUI components, rendering pipelines, dialog event dispatching, or implementing dialogs using the framework, except for dialogs that extend `VanillaGuiDialog` (legacy `GuiComposer` path) |
-| Adding or changing localization keys | Load `uitweaks-localization` — use it to update all lang files; do not edit lang files without it |
-| User requests "agent revalidation" | Load `revalidation` |
+- **`Gui/`** — custom Cairo-based GUI framework and dialogs. `Gui/Framework/` is split into `Internal/` (framework implementation details) and `Public/` (components, interfaces, and types available for use). `Gui/Dialogs/` contains dialog implementations (e.g. `ModConfigDialog`, `QuickSearchGuiDialog`). Read the `uitweaks-gui` skill before making GUI framework changes.
+- **`Extensions/`** — extension methods for game APIs and project types (e.g. `GetModConfigExtension`).
+- **`Utility/`** — reusable standalone utilities (e.g. `Debouncer`).
 
 ## Agent Config Self-Maintenance
 

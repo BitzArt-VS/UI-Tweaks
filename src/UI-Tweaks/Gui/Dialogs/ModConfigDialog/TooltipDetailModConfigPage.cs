@@ -23,6 +23,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
     private const double SectionRuleGap = 4;
 
     private static readonly CultureInfo InvCulture = CultureInfo.InvariantCulture;
+    private static readonly GuiColor SectionSeparatorColor = GuiColor.FromRgba(0.78, 0.69, 0.58, 0.11);
 
     private static readonly string[] HorizontalAlignmentItems = ["Left", "Center", "Right"];
     private static readonly string[] VerticalAlignmentItems = ["Top", "Middle", "Bottom"];
@@ -32,9 +33,9 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
     private ModConfigContext? _context;
     private TooltipOptions? _options;
 
-    protected override void SetDefaultLayoutParameters()
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
-        LayoutParameters.Padding = new(8);
+        builder.ConfigureLayout(layout => layout.Padding = new(8));
     }
 
     public override void OnParametersSet()
@@ -329,7 +330,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
         builder.AddLabel(key, text,
             font: GuiFontStyle.MediumBold,
             margin: new(isFirst ? 0 : SectionSpacing, 0, SectionRuleGap, 0));
-        builder.AddSeparator(key + 1, margin: new(0, 0, RowSpacing, 0));
+        builder.AddRectangle(key + 1,
+            color: SectionSeparatorColor,
+            height: 1,
+            widthMode: GuiSizeMode.Fill,
+            margin: new(0, 0, RowSpacing, 0));
     }
 
     private static void BuildSettingRow(

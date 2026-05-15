@@ -1,4 +1,4 @@
-﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
 using System;
 using Vintagestory.API.Client;
@@ -9,16 +9,20 @@ namespace BitzArt.UI.Tweaks;
 public class ModConfigDialog : Gui.GuiDialog
 {
     private const int SaveDebounceMs = 10000;
+    private static readonly GuiSize SidebarWidth = GuiSize.Fraction(0.2, minimum: 200);
+    private const double SidebarSeparatorWidth = 1;
+    private const double NavigationRowHeight = 44;
 
-    private abstract record NavItem;
-    private sealed record NavSection(string Label) : NavItem;
-    private sealed record NavPage(string Label, GuiRenderFragment Content) : NavItem;
+    private static readonly GuiColor SidebarPanelFillColor = GuiColor.FromRgba(0.08, 0.06, 0.04, 0.32);
+    private static readonly GuiColor ContentPanelFillColor = GuiColor.FromRgba(0.15, 0.11, 0.08, 0.20);
+    private static readonly GuiColor SidebarSeparatorColor = GuiColor.FromRgba(0, 0, 0, 0.34);
+    private static readonly GuiColor BreadcrumbSeparatorColor = GuiColor.FromRgba(0.78, 0.69, 0.58, 0.10);
 
-    private static readonly NavItem[] NavItems =
+    private sealed record NavPage(string Label, GuiRenderFragment Content);
+
+    private static readonly NavPage[] NavItems =
     [
-        new NavSection(Lang.Get($"{Constants.ModId}:config-page-general")),
         CreateNavPage<QuickSearchModConfigPage>(),
-        new NavSection(Lang.Get($"{Constants.ModId}:config-page-hud")),
         CreateNavPage<TooltipsModConfigPage>(),
     ];
 
@@ -41,15 +45,15 @@ public class ModConfigDialog : Gui.GuiDialog
         _context = new ModConfigContext(_config, _saveDebouncer.Trigger);
 
         var initialPage = CreateNavPage<QuickSearchModConfigPage>();
-        _navigator = new ModConfigPageNavigator(() => StateHasChanged(), initialPage.Label, initialPage.Content);
+        _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
 
-        LayoutParameters.Width = 600;
-        LayoutParameters.Height = 600;
+        LayoutParameters.Width = 650;
+        LayoutParameters.Height = 520;
         LayoutParameters.Padding = new GuiThickness(0);
 
         IsResizable = true;
         MinWidth = 600;
-        MinHeight = 300;
+        MinHeight = 360;
     }
 
     public override void Dispose()
@@ -58,17 +62,27 @@ public class ModConfigDialog : Gui.GuiDialog
         base.Dispose();
     }
 
+    protected override void OnResizeUpdated(bool sizeChanged)
+    {
+        RequestArrange();
+    }
+
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
         builder.AddCascadingValue(_context, builder =>
         builder.AddCascadingValue(_navigator, builder =>
         {
-            builder
-                .AddDialogTitleBar(0, Lang.Get($"{Constants.ModId}:ui-tweaks-config"),
-                    onDrag: Move, onClose: Close)
-                .AddDialogBackground(1, fill: true,
-                    padding: new(GuiVanillaStyle.ElementToDialogPadding),
-                    content: BuildBody);
+            builder.AddContainer(0, fill: true,
+                content: builder =>
+                {
+                    builder
+                        .AddDialogTitleBar(0, Lang.Get($"{Constants.ModId}:ui-tweaks-config"),
+                            onDrag: Move, onClose: Close);
+
+                    builder
+                        .AddDialogBackground(1, fill: true,
+                            content: BuildBody);
+                });
         }));
     }
 
@@ -77,53 +91,66 @@ public class ModConfigDialog : Gui.GuiDialog
         builder.AddContainer(0, fill: true, direction: GuiDirection.Horizontal,
             content: builder =>
             {
-                // Nav column — narrow, fixed width.
                 builder.AddContainer(0,
-                    width: Math.Max(150, (int)LayoutParameters.Width!.Value / 4),
+                    width: SidebarWidth,
                     heightMode: GuiSizeMode.Fill,
+                    background: SidebarPanelFillColor,
                     content: builder =>
                     {
                         for (int i = 0; i < NavItems.Length; i++)
                         {
-                            int idx = i;
-                            switch (NavItems[idx])
-                            {
-                                case NavSection section:
-                                    builder.AddLabel(idx, section.Label,
-                                        font: GuiFontStyle.MediumBold,
-                                        horizontalAlignment: GuiHorizontalAlignment.Center,
-                                        margin: new GuiThickness(
-                                            Top: idx == 0 ? 0 : GuiVanillaStyle.HalfPadding,
-                                            Right: 0,
-                                            Bottom: GuiVanillaStyle.HalfPadding,
-                                            Left: 0));
-                                    break;
-
-                                case NavPage page:
-                                    builder.AddButton(idx, page.Label,
-                                        onClick: () => SelectPage(page),
-                                        widthMode: GuiSizeMode.Fill,
-                                        margin: new(0, 0, GuiVanillaStyle.HalfPadding, 0));
-                                    break;
-                            }
+                            int index = i;
+                            var page = NavItems[index];
+                            builder.Add<ConfigNavigationRow>(index,
+                                height: NavigationRowHeight,
+                                widthMode: GuiSizeMode.Fill)
+                                .Configure(row =>
+                                {
+                                    row.Text = page.Label;
+                                    row.IsSelected = _navigator.RootPageName == page.Label;
+                                    row.OnClick = (Action)(() => SelectPage(page));
+                                });
                         }
                     });
 
-                // Page column — breadcrumbs above the scrollable inset content area.
-                builder.AddContainer(1, fill: true, margin: new(0, 0, 0, 16),
+                builder.AddRectangle(1,
+                    color: SidebarSeparatorColor,
+                    width: SidebarSeparatorWidth,
+                    heightMode: GuiSizeMode.Fill);
+
+                builder.AddContainer(2,
+                    fill: true,
+                    background: ContentPanelFillColor,
                     content: builder =>
                     {
-                        builder.Add<GuiBreadcrumbs>(0, widthMode: GuiSizeMode.Fill)
-                            .Configure(c =>
+                        builder.AddContainer(0,
+                            fill: true,
+                            content: builder =>
                             {
-                                c.CurrentItem = _navigator.CurrentPageName;
-                                c.PreviousItems = _navigator.BreadcrumbPreviousItems;
-                                c.OnItemClicked = name => _navigator.PopToName(name);
-                            });
+                                builder.AddContainer(0,
+                                    widthMode: GuiSizeMode.Fill,
+                                    padding: new GuiThickness(Top: 14, Right: 10, Bottom: 8, Left: 10),
+                                    content: builder =>
+                                    {
+                                        builder.Add<GuiBreadcrumbs>(0, widthMode: GuiSizeMode.Fill)
+                                            .Configure(c =>
+                                            {
+                                                c.CurrentItem = _navigator.CurrentPageName;
+                                                c.PreviousItems = _navigator.BreadcrumbPreviousItems;
+                                                c.OnItemClicked = name => _navigator.PopToName(name);
+                                            });
 
-                        builder.AddContainer(1, fill: true, scroll: GuiScroll.Vertical,
-                            withInset: true,
-                            content: _navigator.CurrentContent);
+                                        builder.AddRectangle(1,
+                                            color: BreadcrumbSeparatorColor,
+                                            height: 2,
+                                            widthMode: GuiSizeMode.Fill);
+                                    });
+
+                                builder.AddContainer<ConfigScrollPanel>(1,
+                                    fill: true,
+                                    margin: new GuiThickness(0, 8, 8, 8),
+                                    content: _navigator.CurrentContent);
+                            });
                     });
             });
     }

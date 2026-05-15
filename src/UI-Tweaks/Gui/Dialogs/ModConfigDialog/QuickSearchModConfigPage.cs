@@ -33,9 +33,9 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
 
     private ModConfigContext? _context;
 
-    protected override void SetDefaultLayoutParameters()
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
-        LayoutParameters.Padding = new(8);
+        builder.ConfigureLayout(layout => layout.Padding = new(8));
     }
 
     public override void OnParametersSet()

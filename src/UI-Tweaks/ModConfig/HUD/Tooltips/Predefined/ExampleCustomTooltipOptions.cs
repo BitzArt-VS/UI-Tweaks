@@ -1,4 +1,4 @@
-﻿namespace BitzArt.UI.Tweaks.Config;
+namespace BitzArt.UI.Tweaks.Config;
 
 public record ExampleCustomTooltipOptions : CustomTooltipOptions
 {
