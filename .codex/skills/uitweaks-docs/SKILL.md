@@ -62,6 +62,7 @@ Keep docs accurate to the source:
 - Custom Tooltips: user-defined additional tooltip overlays via config.
 - Quick Search: in-game item/block search UI.
 - Calculator: arithmetic expression evaluation built into Quick Search.
+- Zoom: disabled-by-default hold-to-zoom camera hotkey, default `Z` when enabled. Enabling requires a game restart.
 - Minor Tweaks: small quality-of-life corrections to vanilla behavior, such as Calendar Year starting at 1 instead of 0.
 - In-Game Config Dialog: GUI dialog for configuring mod settings without editing JSON.
 
