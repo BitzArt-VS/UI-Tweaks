@@ -16,7 +16,7 @@ namespace BitzArt.UI.Tweaks;
 /// </summary>
 internal sealed class TooltipDetailModConfigPage : GuiComponent
 {
-    private const double LabelColumnWidth = 220;
+    private const double LabelColumnWidth = 224;
     private const double RowHeight = 28;
     private const double RowSpacing = 8;
     private const double SectionSpacing = 16;

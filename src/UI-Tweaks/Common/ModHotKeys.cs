@@ -11,6 +11,9 @@ public static class ModHotKeys
 
     public static ModHotKey ModConfiguration { get; }
         = ModHotKey.FromLang(Constants.ModId, "config", HotkeyType.HelpAndOverlays, "ui-tweaks-config", GlKeys.N, shift: true);
+
+    public static ModHotKey Zoom { get; }
+        = ModHotKey.FromLang(Constants.ModId, "zoom", HotkeyType.CharacterControls, "zoom", GlKeys.Z);
 }
 
 public record ModHotKey(

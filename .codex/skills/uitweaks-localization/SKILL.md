@@ -45,17 +45,19 @@ Tooltip descriptions use `<base-key>-tooltip`, such as `config-quicksearch-enabl
 ## Workflow
 
 1. Read `resources/assets/bitzartuitweaks/lang/en.json` first to confirm the existing key set and choose the final English keys and values.
-2. Determine translations for every target language. Use concise, idiomatic, game-UI phrasing.
-3. Update all 19 files in one pass. Preserve flat JSON objects and existing two-space indentation.
-4. Verify that every new key exists in every language file.
-5. Verify that no non-English language file received English fallback text.
+2. For each target language individually, think through what the string needs to communicate in that language and context. Consider multiple possible phrasings when useful, compare clarity, length, tone, and game-UI naturalness, then choose the best option.
+3. Determine translations for every target language. Use concise, idiomatic, game-UI phrasing.
+4. Update all 19 files directly in one pass. Preserve flat JSON objects and existing two-space indentation.
+5. Verify that every new key exists in every language file.
+6. Verify that no non-English language file received English fallback text.
 
-Use structured JSON parsing for validation when practical. Use `apply_patch` for focused manual edits; for large mechanical JSON changes, use an appropriate formatter or script and inspect the diff.
+Use `apply_patch` to edit language files directly. Do not create helper scripts just to update localization files. Use structured JSON parsing for validation when practical.
 
 ## Translation Quality
 
 - Never copy English into a non-English file as fallback.
 - Prefer idiomatic phrasing over literal translation.
+- Treat each language as its own localization problem. Do not translate from a single intermediate phrasing mechanically across all files.
 - Keep UI labels concise.
 - Use formal register where customary, unless the language's gaming convention differs.
 - Respect Vintage Story terminology for healthbar, satiety, temporal stability, and similar concepts.

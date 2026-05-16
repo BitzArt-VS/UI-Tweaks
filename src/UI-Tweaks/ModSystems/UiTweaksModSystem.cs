@@ -16,7 +16,8 @@ public class UiTweaksModSystem : ClientModSystem
             new ModConfigFeature(this, config),
             new GameTweaksFeature(this, config),
             new GameStatusFeature(this, config),
-            new QuickSearchFeature(this, config.QuickSearch)
+            new QuickSearchFeature(this, config.QuickSearch),
+            new ZoomFeature(this, config.Zoom)
         ];
     }
 }

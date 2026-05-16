@@ -9,4 +9,7 @@ public record UiTweaksModConfig
 
     [JsonProperty("quickSearch", Order = 2)]
     public QuickSearchConfig QuickSearch { get; set; } = new();
+
+    [JsonProperty("zoom", Order = 3)]
+    public ZoomConfig Zoom { get; set; } = new();
 }

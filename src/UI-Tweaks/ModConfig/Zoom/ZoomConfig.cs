@@ -3,13 +3,19 @@ using System.ComponentModel;
 
 namespace BitzArt.UI.Tweaks.Config;
 
-public record QuickSearchConfig : INotifyPropertyChanged
+public record ZoomConfig : INotifyPropertyChanged
 {
     [JsonProperty("enable", Order = 1)]
     public bool Enable { get; set; } = false;
 
-    [JsonProperty("resultListHeight", Order = 2)]
-    public int ResultListHeight { get; set; } = 200;
+    [JsonProperty("strength", Order = 2)]
+    public int Strength { get; set; } = 5;
+
+    [JsonProperty("speed", Order = 3)]
+    public int Speed { get; set; } = 5;
+
+    [JsonProperty("vignetteStrength", Order = 4)]
+    public int VignetteStrength { get; set; } = 5;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -18,4 +24,3 @@ public record QuickSearchConfig : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-

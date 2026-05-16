@@ -23,6 +23,7 @@ public class ModConfigDialog : Gui.GuiDialog
     private static readonly NavPage[] NavItems =
     [
         CreateNavPage<QuickSearchModConfigPage>(),
+        CreateNavPage<ZoomModConfigPage>(),
         CreateNavPage<TooltipsModConfigPage>(),
     ];
 
