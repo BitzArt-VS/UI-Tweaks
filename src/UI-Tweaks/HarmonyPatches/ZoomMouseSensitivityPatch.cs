@@ -3,10 +3,18 @@ using Vintagestory.Client.NoObf;
 
 namespace BitzArt.UI.Tweaks;
 
-[HarmonyPatch(typeof(ClientMain), nameof(ClientMain.OnMouseMove))]
 internal static class ZoomMouseSensitivityPatch
 {
     private readonly record struct MouseDeltaState(double MouseDeltaX, double MouseDeltaY);
+
+    public static void Patch(Harmony harmony)
+    {
+        var original = AccessTools.Method(typeof(ClientMain), nameof(ClientMain.OnMouseMove));
+        var prefix = AccessTools.Method(typeof(ZoomMouseSensitivityPatch), nameof(Prefix));
+        var postfix = AccessTools.Method(typeof(ZoomMouseSensitivityPatch), nameof(Postfix));
+
+        harmony.Patch(original, prefix: new HarmonyMethod(prefix), postfix: new HarmonyMethod(postfix));
+    }
 
     private static void Prefix(ClientMain __instance, out MouseDeltaState __state)
     {

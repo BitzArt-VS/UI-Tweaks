@@ -22,7 +22,7 @@ public class ModConfigDialog : Gui.GuiDialog
 
     private static readonly NavPage[] NavItems =
     [
-        CreateNavPage<QuickSearchModConfigPage>(),
+        CreateNavPage<GeneralModConfigPage>(),
         CreateNavPage<ZoomModConfigPage>(),
         CreateNavPage<TooltipsModConfigPage>(),
     ];
@@ -45,7 +45,7 @@ public class ModConfigDialog : Gui.GuiDialog
             () => _clientApi.StoreModConfig(_config, Constants.ModConfigFileName));
         _context = new ModConfigContext(_config, _saveDebouncer.Trigger);
 
-        var initialPage = CreateNavPage<QuickSearchModConfigPage>();
+        var initialPage = CreateNavPage<GeneralModConfigPage>();
         _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
 
         LayoutParameters.Width = 650;

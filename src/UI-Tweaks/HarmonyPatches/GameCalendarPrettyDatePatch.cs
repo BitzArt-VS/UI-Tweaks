@@ -1,16 +1,30 @@
 using HarmonyLib;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using Vintagestory.Common;
 
 namespace BitzArt.UI.Tweaks;
 
-/// <summary>
-/// A patch to adjust the year displayed by GameCalendar.PrettyDate by adding 1 to it.
-/// </summary>
-[HarmonyPatch(typeof(GameCalendar), nameof(GameCalendar.PrettyDate))]
 internal static class GameCalendarPrettyDatePatch
 {
+    private static readonly MethodInfo AdjustCalendarYearMethod = AccessTools.Method(typeof(GameCalendarPrettyDatePatch), nameof(AdjustCalendarYear));
+
+    public static void Patch(Harmony harmony)
+    {
+        var original = AccessTools.Method(typeof(GameCalendar), nameof(GameCalendar.PrettyDate));
+        var transpiler = AccessTools.Method(typeof(GameCalendarPrettyDatePatch), nameof(Transpiler));
+
+        harmony.Patch(original, transpiler: new HarmonyMethod(transpiler));
+    }
+
+    public static void Unpatch(Harmony harmony)
+    {
+        var original = AccessTools.Method(typeof(GameCalendar), nameof(GameCalendar.PrettyDate));
+
+        harmony.Unpatch(original, HarmonyPatchType.Transpiler, harmony.Id);
+    }
+
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var getYear = AccessTools.PropertyGetter(typeof(GameCalendar), nameof(GameCalendar.Year));
@@ -21,9 +35,13 @@ internal static class GameCalendarPrettyDatePatch
 
             if (instruction.Calls(getYear))
             {
-                yield return new CodeInstruction(OpCodes.Ldc_I4_1);
-                yield return new CodeInstruction(OpCodes.Add);
+                yield return new CodeInstruction(OpCodes.Call, AdjustCalendarYearMethod);
             }
         }
+    }
+
+    private static int AdjustCalendarYear(int calendarYear)
+    {
+        return calendarYear + 1;
     }
 }

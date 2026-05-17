@@ -4,10 +4,17 @@ using Vintagestory.Client.NoObf;
 
 namespace BitzArt.UI.Tweaks;
 
-[HarmonyPatch(typeof(ClientMain), nameof(ClientMain.Set3DProjection), [typeof(float), typeof(float)])]
 internal static class ZoomProjectionPatch
 {
     private const float RadiansToDegrees = 180 / MathF.PI;
+
+    public static void Patch(Harmony harmony)
+    {
+        var original = AccessTools.Method(typeof(ClientMain), nameof(ClientMain.Set3DProjection), [typeof(float), typeof(float)]);
+        var prefix = AccessTools.Method(typeof(ZoomProjectionPatch), nameof(Prefix));
+
+        harmony.Patch(original, prefix: new HarmonyMethod(prefix));
+    }
 
     private static void Prefix(ClientMain __instance, ref float fov)
     {

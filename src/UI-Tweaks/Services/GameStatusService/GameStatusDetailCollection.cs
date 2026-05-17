@@ -1,3 +1,4 @@
+using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.GameStatus;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,13 @@ internal sealed class GameStatusDetailCollection
     private readonly List<GameStatusDetail> _details = [];
     private readonly Dictionary<string, GameStatusDetail> _lookup;
     private readonly Lock _lock = new();
+    private readonly GameTweaksConfig _gameTweaksConfig;
 
     public IEnumerable<GameStatusDetail> Details => GetValues();
 
-    public GameStatusDetailCollection()
+    public GameStatusDetailCollection(GameTweaksConfig gameTweaksConfig)
     {
+        _gameTweaksConfig = gameTweaksConfig;
         _lookup = [];
 
         Add<float?>("player-health-current", (clientApi, oldValue) =>
@@ -457,7 +460,7 @@ internal sealed class GameStatusDetailCollection
             return new(Math.Abs(value.Value - oldValue.Value) >= hysteresis, value);
         });
 
-        Add<DateTime?>("world-date-time", (clientApi, oldValue) =>
+        Add<WorldDateTime?>("world-date-time", (clientApi, oldValue) =>
         {
             var calendar = clientApi.World?.Calendar;
 
@@ -466,15 +469,11 @@ internal sealed class GameStatusDetailCollection
                 return new(oldValue != null, null);
             }
 
-            var year = calendar.Year + 1;
+            var year = GetCalendarYear(calendar.Year);
             var month = calendar.Month;
             var dayOfMonth = calendar.DayOfYear - ((month - 1) * calendar.DaysPerMonth) + 1;
-
-            var date = new DateOnly(year, month, dayOfMonth);
             var elapsedSeconds = (int)(calendar.ElapsedSeconds - ((long)calendar.ElapsedHours * 60 * 60));
-            var time = new TimeOnly((int)calendar.HourOfDay, elapsedSeconds / 60);
-
-            var worldDateTime = new DateTime(date, time);
+            var worldDateTime = new WorldDateTime(year, month, dayOfMonth, (int)calendar.HourOfDay, elapsedSeconds / 60);
 
             return new(oldValue != worldDateTime, worldDateTime);
         });
@@ -483,6 +482,13 @@ internal sealed class GameStatusDetailCollection
     private record struct PlayerCoordinates(float X, float Y, float Z);
 
     private static float ToFahrenheit(float celsius) => celsius * 9 / 5 + 32;
+
+    private int GetCalendarYear(int calendarYear)
+    {
+        return _gameTweaksConfig.CorrectCalendarYear
+            ? calendarYear + 1
+            : calendarYear;
+    }
 
     private List<GameStatusDetail> GetValues()
     {

@@ -1,4 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
+using HarmonyLib;
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -15,9 +16,11 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
     private const float MinimumMouseSensitivityReductionStrength = 0.35f;
     private const float MaximumMouseSensitivityReductionStrength = 1f;
     private const float VignetteStrengthBoost = 0f;
+    private const string HarmonyId = $"{Constants.ModId}.zoom";
 
     private ICoreClientAPI? _clientApi;
     private ClientMain? _clientMain;
+    private Harmony? _harmony;
     private ZoomOverlayRenderer? _overlayRenderer;
     private long? _zoomUpdateListenerId;
     private int? _activeZoomKeyCode;
@@ -36,7 +39,11 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
 
         _clientApi = clientApi;
         _clientMain = clientMain;
+        _harmony = new Harmony(HarmonyId);
         _overlayRenderer = new(clientApi);
+
+        ZoomProjectionPatch.Patch(_harmony);
+        ZoomMouseSensitivityPatch.Patch(_harmony);
 
         clientApi.Input.AddHotKey(ModHotKeys.Zoom, _ => StartZooming());
     }
@@ -52,6 +59,9 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
 
         _overlayRenderer?.Dispose();
         _overlayRenderer = null;
+
+        _harmony?.UnpatchAll(_harmony.Id);
+        _harmony = null;
 
         ZoomRuntimeState.FieldOfViewFactor = 1;
         ZoomRuntimeState.MouseSensitivityFactor = 1;

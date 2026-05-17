@@ -5,9 +5,9 @@ using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks;
 
-internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
+internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
 {
-    public static string PageName => Lang.Get($"{Constants.ModId}:config-page-quicksearch");
+    public static string PageName => Lang.Get($"{Constants.ModId}:config-page-general");
 
     // Row geometry — the label column is fixed-width so labels align across rows; the
     // control column fills whatever horizontal space is left, so controls stretch /
@@ -16,12 +16,15 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
     private const double LabelColumnWidth = 220;
     private const double RowHeight = 28;
     private const double RowSpacing = 8;
+    private const double SectionRuleGap = 4;
 
     // Quick-search slider range — matches the legacy QuickSearchConfigPage so existing
     // user values stay valid after the migration.
     private const int QsMinResultListHeight = 50;
     private const int QsMaxResultListHeight = 600;
     private const int QsResultListHeightStep = 10;
+
+    private static readonly GuiColor SectionSeparatorColor = GuiColor.FromRgba(0.78, 0.69, 0.58, 0.11);
 
     // Italic-leaning font reused for the trailing "* requires a game restart." footnote
     // inside tooltip bodies. We render this as a separate label rather than embedding
@@ -46,9 +49,14 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
         var quickSearch = _context?.Config.QuickSearch;
-        if (quickSearch is null) return;
+        var gameTweaks = _context?.Config.GameTweaks;
+        if (quickSearch is null || gameTweaks is null)
+        {
+            return;
+        }
 
-        // Enable toggle.
+        BuildSectionLabel(builder, key: 100, Lang.Get($"{Constants.ModId}:config-page-quicksearch"));
+
         BuildSettingRow(builder, key: 1,
             label: Lang.Get($"{Constants.ModId}:config-quicksearch-enable"),
             tooltip: builder =>
@@ -68,7 +76,6 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
                     _context!.SaveConfig();
                 }));
 
-        // Result list height slider.
         BuildSettingRow(builder, key: 2,
             label: Lang.Get($"{Constants.ModId}:config-quicksearch-result-list-height"),
             tooltip: builder => builder.AddLabel(0,
@@ -87,6 +94,33 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
                     quickSearch.NotifyPropertyChanged(nameof(QuickSearchConfig.ResultListHeight));
                     _context!.SaveConfig();
                 }));
+
+        BuildSectionLabel(builder, key: 200, Lang.Get($"{Constants.ModId}:config-tweaks-section"));
+
+        BuildSettingRow(builder, key: 3,
+            label: Lang.Get($"{Constants.ModId}:config-tweaks-calendar-year"),
+            tooltip: builder => builder.AddLabel(0,
+                Lang.Get($"{Constants.ModId}:config-tweaks-calendar-year-tooltip")),
+            control: builder => builder.AddCheckbox(0,
+                checked_: gameTweaks.CorrectCalendarYear,
+                onCheckedChanged: value =>
+                {
+                    gameTweaks.CorrectCalendarYear = value;
+                    gameTweaks.NotifyPropertyChanged(nameof(GameTweaksConfig.CorrectCalendarYear));
+                    _context!.SaveConfig();
+                }));
+    }
+
+    private static void BuildSectionLabel(IGuiRenderTreeBuilder builder, int key, string text)
+    {
+        builder.AddLabel(key, text,
+            font: GuiFontStyle.MediumBold,
+            margin: new(0, 0, SectionRuleGap, 0));
+        builder.AddRectangle(key + 1,
+            color: SectionSeparatorColor,
+            height: 1,
+            widthMode: GuiSizeMode.Fill,
+            margin: new(0, 0, RowSpacing, 0));
     }
 
     /// <summary>

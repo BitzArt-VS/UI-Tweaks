@@ -14,7 +14,7 @@ public class UiTweaksModSystem : ClientModSystem
         Features =
         [
             new ModConfigFeature(this, config),
-            new GameTweaksFeature(this, config),
+            new GameTweaksFeature(this, config.GameTweaks),
             new GameStatusFeature(this, config),
             new QuickSearchFeature(this, config.QuickSearch),
             new ZoomFeature(this, config.Zoom)

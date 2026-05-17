@@ -1,4 +1,5 @@
 using BitzArt.UI.Tweaks.GameStatus;
+using BitzArt.UI.Tweaks.Config;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -33,10 +34,10 @@ public sealed partial class GameStatusService : IDisposable
 
     private readonly GameStatusDetailCollection _details;
 
-    public GameStatusService(ICoreClientAPI clientApi)
+    public GameStatusService(ICoreClientAPI clientApi, GameTweaksConfig gameTweaksConfig)
     {
         _clientApi = clientApi;
-        _details = new();
+        _details = new(gameTweaksConfig);
 
         string[] months = [.. Enumerable.Range(1, 12).Select(i => Lang.Get("month-" + (EnumMonth)i)), string.Empty];
 

@@ -17,7 +17,7 @@ public class GameStatusFeature(UiTweaksModSystem modSystem, UiTweaksModConfig co
 
     public override void Start(ICoreClientAPI clientApi)
     {
-        _gameStatusService = new(clientApi);
+        _gameStatusService = new(clientApi, Config.GameTweaks);
 
         List<IHudTooltipConfiguration> tooltipConfigurations =
         [
