@@ -6,19 +6,23 @@ namespace BitzArt.UI.Tweaks.Tests;
 public class GuiComponentMeasurementTests
 {
     [Fact]
-    public void DefaultMeasureCollapsesWhenComponentHasNoChildren()
+    public void Measure_ComponentWithoutChildren_ShouldCollapse()
     {
+        // Arrange
         var component = new TestContainer();
         Mount(component);
 
+        // Act
         var measured = component.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(0, 0), measured);
     }
 
     [Fact]
-    public void DefaultMeasureStacksRelativeChildrenVertically()
+    public void Measure_VerticalRelativeChildren_ShouldStack()
     {
+        // Arrange
         var root = new TestContainer();
         var first = new FixedMeasureComponent(10, 5);
         var second = new FixedMeasureComponent(7, 11);
@@ -29,14 +33,17 @@ public class GuiComponentMeasurementTests
             Slot(first),
             Slot(second));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(16, 22), measured);
     }
 
     [Fact]
-    public void DefaultMeasureStacksRelativeChildrenHorizontally()
+    public void Measure_HorizontalRelativeChildren_ShouldStack()
     {
+        // Arrange
         var root = new TestContainer();
         root.LayoutParameters.Direction = GuiDirection.Horizontal;
 
@@ -44,42 +51,51 @@ public class GuiComponentMeasurementTests
             Slot(new FixedMeasureComponent(10, 5)),
             Slot(new FixedMeasureComponent(7, 11)));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(17, 11), measured);
     }
 
     [Fact]
-    public void DefaultMeasureInlinesTransparentNodes()
+    public void Measure_TransparentNode_ShouldInlineChildren()
     {
+        // Arrange
         var root = new TestContainer();
 
         Mount(root,
             Slot(new TransparentNode(),
                 Slot(new FixedMeasureComponent(10, 5))));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(10, 5), measured);
     }
 
     [Fact]
-    public void DefaultMeasureSkipsAbsoluteChildren()
+    public void Measure_AbsoluteChild_ShouldSkipChild()
     {
+        // Arrange
         var root = new TestContainer();
         var absolute = new FixedMeasureComponent(10, 5);
         absolute.LayoutParameters.Positioning = GuiComponentPositioning.Absolute;
 
         Mount(root, Slot(absolute));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(0, 0), measured);
     }
 
     [Fact]
-    public void BoundedFillChildDoesNotCallMeasure()
+    public void Measure_BoundedFillChild_ShouldNotMeasureChild()
     {
+        // Arrange
         var root = new TestContainer();
         var child = new ThrowingMeasureComponent();
         child.LayoutParameters.WidthMode = GuiSizeMode.Fill;
@@ -87,14 +103,17 @@ public class GuiComponentMeasurementTests
 
         Mount(root, Slot(child));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 50));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(100, 50), measured);
     }
 
     [Fact]
-    public void UnboundedFillChildFallsBackToContentMeasurement()
+    public void Measure_UnboundedFillChild_ShouldUseContentMeasurement()
     {
+        // Arrange
         var root = new TestContainer();
         var child = new TestContainer();
         child.LayoutParameters.WidthMode = GuiSizeMode.Fill;
@@ -104,26 +123,32 @@ public class GuiComponentMeasurementTests
             Slot(child,
                 Slot(new FixedMeasureComponent(12, 6))));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(double.PositiveInfinity, double.PositiveInfinity));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(12, 6), measured);
     }
 
     [Fact]
-    public void OverrideCanCombineIntrinsicAndDefaultChildMeasurement()
+    public void Measure_IntrinsicSizeOverride_ShouldCombineChildMeasurement()
     {
+        // Arrange
         var component = new IntrinsicAndChildrenComponent(10, 4);
         Mount(component,
             Slot(new FixedMeasureComponent(25, 6)));
 
+        // Act
         var measured = component.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(25, 6), measured);
     }
 
     [Fact]
-    public void PublicMeasureContentMatchesDefaultGuiComponentMeasurement()
+    public void MeasureContent_DefaultComponentMeasurement_ShouldMatch()
     {
+        // Arrange
         var root = new TestContainer();
         root.LayoutParameters.Direction = GuiDirection.Horizontal;
 
@@ -140,25 +165,33 @@ public class GuiComponentMeasurementTests
             Slot(transparent,
                 Slot(childB)));
 
+        var available = new GuiLayoutSize(100, 100);
+
+        // Act
         var measured = GuiComponentLayout.MeasureContent(
             root.RenderSlot.Children,
-            new GuiLayoutSize(100, 100),
+            available,
             root.LayoutParameters.Direction);
+        var defaultMeasured = root.Measure(available);
 
-        Assert.Equal(root.Measure(new GuiLayoutSize(100, 100)), measured);
+        // Assert
+        Assert.Equal(defaultMeasured, measured);
     }
 
     [Fact]
-    public void DirectImplementorCanReusePublicMeasurementHelpers()
+    public void Measure_DirectInterfaceImplementation_ShouldReusePublicHelpers()
     {
+        // Arrange
         var root = new ExternalBaseComponent();
 
         Mount(root,
             Slot(new FixedMeasureComponent(12, 6)),
             Slot(new FixedMeasureComponent(8, 4)));
 
+        // Act
         var measured = root.Measure(new GuiLayoutSize(100, 100));
 
+        // Assert
         Assert.Equal(new GuiLayoutSize(12, 10), measured);
     }
 
