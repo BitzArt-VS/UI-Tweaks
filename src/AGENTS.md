@@ -3,6 +3,7 @@
 - `UI-Tweaks/ModSystems/`: Vintage Story `ModSystem` entry points. Use `ClientModSystem` or `ServerModSystem` from `UI-Tweaks/ModSystems/Base/ModSystem.cs` rather than extending Vintage Story's `ModSystem` directly.
 - `UI-Tweaks/ModFeatures/`: feature logic outside mod systems. Extend `ModSystemFeature`, `ModSystemFeature<TModSystem>`, or `ModSystemFeature<TModSystem, TConfig>` from `UI-Tweaks/ModFeatures/Base/`.
 - `UI-Tweaks/Services/`: stateful services used by features.
+- `UI-Tweaks/Gui/`: custom dialogs and the Cairo-backed component framework. Read `.codex/reference/4.gui.md` and the focused references it links before changing framework behavior.
 - `UI-Tweaks/ModConfig/`: user-facing configuration models, grouped by feature. Config classes use the `BitzArt.UI.Tweaks.Config` namespace.
 - `UI-Tweaks/HarmonyPatches/`: Harmony transpilers, prefixes, and postfixes for game internals.
 - `UI-Tweaks/HudElements/`: custom HUD elements rendered outside the dialog system.

@@ -1,0 +1,26 @@
+prefix_rule(
+    pattern = ["dotnet", "restore"],
+    decision = "allow",
+    justification = "Standard project restore command.",
+    match = [
+        "dotnet restore",
+    ],
+)
+
+prefix_rule(
+    pattern = ["dotnet", "build"],
+    decision = "allow",
+    justification = "Standard project build command.",
+    match = [
+        "dotnet build",
+    ],
+)
+
+prefix_rule(
+    pattern = ["dotnet", "test"],
+    decision = "allow",
+    justification = "Standard project test command.",
+    match = [
+        "dotnet test",
+    ],
+)

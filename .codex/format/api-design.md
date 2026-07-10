@@ -1,21 +1,30 @@
-## {short API name/description, 1-3 words} design {iteration number, e.g. `1`, `2`, etc.}
+## {short API name, 1-3 words} design {iteration number}
 
-### Design
+<!-- Include this section only after the first iteration. Repeat the update block for each change. -->
+### Changes since last iteration
 
-{API design snippets showcasing the design in full, no explanation comments here, just the code snippets}
+- **Update:** {description of the change, 1-3 sentences}
+  - **BEFORE:**
 
-{for every change:
+    ```csharp
+    {previous API snippet}
+    ```
 
-#### Change {iterator within current proposal}
+  - **AFTER:**
 
-- **File[s]:** {markdown link to the relevant files, e.g. [file.md](file.md)}
+    ```csharp
+    {updated API snippet}
+    ```
 
-**{Add/Remove/Change}:**
-{code snippet, showcase before/after in distinct blocks for changing existing code. Only attach code relevant to the change, not the whole file.}
+### API design
 
-{brief description, 1-3 sentences, of the change and the reasoning behind it. When removing or replacing code, make sure it explains how this code is gone and what is to take its place after}
-}
+<!-- Show the complete proposed API on every iteration. Repeat this file block for each affected file. -->
+- **File:** [{file-name}]({file-path})
+
+  ```csharp
+  {complete proposed API for this file}
+  ```
 
 ### Description
 
-{detailed description of the API design as a whole, including code snippets and explanations as needed, unless already explained above}
+{Explain the proposed API, its behavior, and the important design decisions. Add examples only when they improve clarity.}
