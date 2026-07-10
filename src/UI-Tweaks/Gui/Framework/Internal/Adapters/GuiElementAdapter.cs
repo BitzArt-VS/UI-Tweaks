@@ -10,6 +10,7 @@ internal sealed class GuiElementAdapter(ICoreClientAPI clientApi, DialogRenderer
     private bool _isDisposed;
 
     public override string? ToggleKeyCombinationCode => null;
+    public override double DrawOrder => 0.2;
 
     public override void OnGuiOpened() { }
 
