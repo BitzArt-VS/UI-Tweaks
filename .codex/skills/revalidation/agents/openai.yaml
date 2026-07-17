@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Revalidation"
-  short_description: "Revalidate Codex configuration and project instructions"
-  default_prompt: "Use $revalidation to comprehensively revalidate this project's Codex configuration, supporting files, and AGENTS.md instructions against the current codebase, then apply approved updates."
+  short_description: "Revalidate agent and skill instructions against the current codebase"
+  default_prompt: "Use $revalidation to comprehensively revalidate this project's agent, skill, and instruction files against the current codebase, then update approved discrepancies."

@@ -1,6 +1,6 @@
 ---
 name: revalidation
-description: "Comprehensively revalidate Codex configuration, supporting files, and project instructions against the current codebase, including structural checks and logical analysis. Apply approved updates for discrepancies and workflow gaps."
+description: "Perform a comprehensive revalidation of an agent's instructions files against the current codebase, including structural checks and logical analysis of coherence, alignment with tools, and coverage of responsibilities. Update the instructions file to reflect any discrepancies or improvements found."
 ---
 
 # Agent Revalidation
