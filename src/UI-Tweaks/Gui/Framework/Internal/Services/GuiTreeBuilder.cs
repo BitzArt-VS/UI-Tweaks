@@ -4,15 +4,15 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Executes <see cref="GuiRenderFragment"/>s, reconciles the resulting
-/// <see cref="RenderTreeFrame"/> instructions against previously-known state,
+/// <see cref="TreeFrame"/> instructions against previously-known state,
 /// and manages the lifetimes of child <see cref="IGuiNode"/> instances.
 /// </summary>
-internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
+internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 {
     private readonly GuiSurfaceRenderer _renderer;
 
     // Frame buffer: filled during the blueprint phase, cleared at the start of each Run().
-    private readonly List<RenderTreeFrame> _frames = [];
+    private readonly List<TreeFrame> _frames = [];
 
     // Persistent storage for keyed slots. Key is a value-type struct — no frame allocation
     // needed just for identity.
@@ -21,7 +21,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     // Ordered list of active slots, rebuilt each Run() to match the current frame order.
     // Used by arrange and paint walks to iterate children in declaration order.
     private readonly List<ComponentSlot> _renderOrder = [];
-    private readonly IReadOnlyList<IGuiComponentSlot> _componentSlots;
+    private readonly IReadOnlyList<IGuiNodeSlot> _nodeSlots;
 
     // Reused scratch buffers — avoid allocating inside the hot path.
     private readonly HashSet<ComponentSlotKey> _seenKeys = [];
@@ -36,12 +36,12 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     // temporarily during this builder's blueprint phase for descendants declared inside the scope.
     internal CascadingValueChain? CascadeChain;
 
-    internal IReadOnlyList<IGuiComponentSlot> ComponentSlots => _componentSlots;
+    internal IReadOnlyList<IGuiNodeSlot> NodeSlots => _nodeSlots;
 
-    internal GuiRenderTreeBuilder(GuiSurfaceRenderer renderer)
+    internal GuiTreeBuilder(GuiSurfaceRenderer renderer)
     {
         _renderer = renderer;
-        _componentSlots = _renderOrder.AsReadOnly();
+        _nodeSlots = _renderOrder.AsReadOnly();
     }
 
     public IGuiComponentBuilder<T> AddComponent<T>(int key)
@@ -58,12 +58,12 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 $"Duplicate component key {key} for {typeof(T).Name} within the same render tree level. Each (Type, key) pair must be unique among siblings.");
         }
 
-        RenderTreeFrame<T> frame;
+        TreeFrame<T> frame;
 
         if (_keyedSlots.TryGetValue(slotKey, out var existingSlot))
         {
             // Reuse the frame that lives inside the persistent slot — zero allocation in steady state.
-            frame = (RenderTreeFrame<T>)existingSlot.Frame;
+            frame = (TreeFrame<T>)existingSlot.Frame;
             // Discard any actions accumulated on the previous pass. Actions are re-registered
             // each pass by the user's BuildRenderTree, so per-pass values (e.g. inline
             // `width: x` arguments) take effect immediately on the next pass.
@@ -71,7 +71,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
         else
         {
-            frame = new RenderTreeFrame<T>(this, key);
+            frame = new TreeFrame<T>(this, key);
         }
 
         _frames.Add(frame);
@@ -167,28 +167,28 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     {
         // Children first — the parent instance may rely on its subtree still existing
         // during its own Dispose (e.g. unsubscribing from child events).
-        slot.ChildBuilder.Dispose();
+        slot.ChildTreeBuilder.Dispose();
         (slot.Instance as IDisposable)?.Dispose();
     }
 
 
-    private ComponentSlot CreateSlot(RenderTreeFrame frame)
+    private ComponentSlot CreateSlot(TreeFrame frame)
     {
-        var childBuilder = new GuiRenderTreeBuilder(_renderer);
+        var childBuilder = new GuiTreeBuilder(_renderer);
         var instance = frame.CreateInstance();
         var slot = new ComponentSlot(_renderer, instance, childBuilder, frame);
-        instance.Attach(slot, _renderer.ClientApi);
+        instance.Attach(slot);
         return slot;
     }
 
-    private void ReconcileSlot(ComponentSlot slot, RenderTreeFrame frame, bool isNew)
+    private void ReconcileSlot(ComponentSlot slot, TreeFrame frame, bool isNew)
     {
         // Propagate the declaration-site cascade chain before any component callbacks run.
         // Configure/OnInitialized/OnParametersSet may all read cascading values from the
         // render handle, and descendants declared by this slot consume the same chain as
         // their inherited parent scope during their own blueprint phase.
-        slot.ChildBuilder.InheritedCascadeChain = frame.CascadeChain;
-        slot.ChildBuilder.CascadeChain = frame.CascadeChain;
+        slot.ChildTreeBuilder.InheritedCascadeChain = frame.CascadeChain;
+        slot.ChildTreeBuilder.CascadeChain = frame.CascadeChain;
 
         if (slot.Instance is IGuiComponent component)
         {
@@ -210,7 +210,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // Cancel any separately scheduled rebuild for this child's fragment — we are
         // about to rebuild its subtree right now, making the pending entry redundant.
         _renderer.Cancel(slot.Instance.RenderFragment);
-        slot.ChildBuilder.Run(slot.Instance.RenderFragment);
+        slot.ChildTreeBuilder.Run(slot.Instance.RenderFragment);
     }
 
     /// <summary>
@@ -270,7 +270,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 double startX = cursorX;
                 double startY = cursorY;
 
-                GuiComponentBounds? childExtent = slot.ChildBuilder.RenderInto(context, contentBounds, direction, ref cursorX, ref cursorY);
+                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, direction, ref cursorX, ref cursorY);
 
                 GuiComponentBounds wrapperBounds = childExtent ?? (direction == GuiDirection.Vertical
                     ? new GuiComponentBounds(contentBounds.X, startY, contentBounds.Width, cursorY - startY)
@@ -375,7 +375,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             // them like any other background.
             (slot.Instance as GuiContainer)?.DrawInsetBackground(context, allocated);
 
-            slot.ChildBuilder.Render(context, childContent, lp.Direction);
+            slot.ChildTreeBuilder.Render(context, childContent, lp.Direction);
             layoutComponent.RenderOverlay(context, allocated);
         }
 
@@ -393,7 +393,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
             if (slot.Instance is not IGuiComponent layoutComponent)
             {
-                slot.ChildBuilder.PaintInto(context);
+                slot.ChildTreeBuilder.PaintInto(context);
                 slot.Instance.Render(context, slot.Bounds);
                 slot.Instance.RenderOverlay(context, slot.Bounds);
                 continue;
@@ -411,7 +411,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                     slot.ScrollClipBounds.Width,
                     slot.ScrollClipBounds.Height);
                 context.Clip();
-                slot.ChildBuilder.PaintInto(context);
+                slot.ChildTreeBuilder.PaintInto(context);
                 context.Restore();
                 scrollContainer.RenderScrollbars(context);
                 layoutComponent.RenderOverlay(context, slot.Bounds);
@@ -419,7 +419,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             }
 
             (slot.Instance as GuiContainer)?.DrawInsetBackground(context, slot.Bounds);
-            slot.ChildBuilder.PaintInto(context);
+            slot.ChildTreeBuilder.PaintInto(context);
             layoutComponent.RenderOverlay(context, slot.Bounds);
         }
     }
@@ -568,7 +568,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             slot.ScrollClipBounds.Height);
         context.Clip();
 
-        slot.ChildBuilder.Render(context, scrolledChildBounds, lp.Direction);
+        slot.ChildTreeBuilder.Render(context, scrolledChildBounds, lp.Direction);
 
         context.Restore();
 
@@ -795,10 +795,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
     }
 
-    private sealed class RenderTreeFrame<T> : RenderTreeFrame, IGuiComponentBuilder<T>
+    private sealed class TreeFrame<T> : TreeFrame, IGuiComponentBuilder<T>
         where T : IGuiNode, new()
     {
-        private readonly GuiRenderTreeBuilder _renderTreeBuilder;
+        private readonly GuiTreeBuilder _treeBuilder;
 
         public override Type ComponentType => typeof(T);
 
@@ -806,9 +806,9 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         private SlotCallbacks _ownCallbacks;
         private SlotCallbacks _externalCallbacks;
 
-        public RenderTreeFrame(GuiRenderTreeBuilder renderTreeBuilder, int key)
+        public TreeFrame(GuiTreeBuilder treeBuilder, int key)
         {
-            _renderTreeBuilder = renderTreeBuilder;
+            _treeBuilder = treeBuilder;
             Key = key;
         }
 
@@ -886,12 +886,12 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
 
         IGuiComponentBuilder<TNewComponent> IGuiRenderTreeBuilder.AddComponent<TNewComponent>(int key)
-            => _renderTreeBuilder.AddComponent<TNewComponent>(key);
+            => _treeBuilder.AddComponent<TNewComponent>(key);
 
         void IGuiRenderTreeBuilder.PushCascadeScope<TValue>(TValue value, string? name, GuiRenderFragment content)
-            => _renderTreeBuilder.PushCascadeScope(value, name, content);
+            => _treeBuilder.PushCascadeScope(value, name, content);
 
-        private sealed class SlotBuilder(RenderTreeFrame<T> frame, IGuiNode instance) : IGuiSlotBuilder
+        private sealed class SlotBuilder(TreeFrame<T> frame, IGuiNode instance) : IGuiSlotBuilder
         {
             IGuiSlotBuilder IGuiSlotBuilder.AddLayoutConfiguration(Action<GuiComponentLayoutParameters> configure)
             {
@@ -925,7 +925,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
     }
 
-    internal abstract class RenderTreeFrame
+    internal abstract class TreeFrame
     {
         public abstract Type ComponentType { get; }
         public int Key { get; protected init; }

@@ -5,19 +5,19 @@ namespace BitzArt.UI.Tweaks.Gui;
 internal sealed class ComponentSlot(
     GuiSurfaceRenderer renderer,
     IGuiNode instance,
-    GuiRenderTreeBuilder childBuilder,
-    GuiRenderTreeBuilder.RenderTreeFrame frame)
-    : IGuiComponentSlot, IGuiRenderHandle
+    GuiTreeBuilder childTreeBuilder,
+    GuiTreeBuilder.TreeFrame frame)
+    : IGuiNodeSlot
 {
     private readonly GuiSurfaceRenderer _renderer = renderer;
 
     public readonly IGuiNode Instance = instance;
-    public readonly GuiRenderTreeBuilder ChildBuilder = childBuilder;
+    public readonly GuiTreeBuilder ChildTreeBuilder = childTreeBuilder;
 
     // The frame is stored here so AddComponent<T> can retrieve and reset it on subsequent
-    // rebuilds rather than allocating a new instance. Safe to cast back to RenderTreeFrame<T>
+    // rebuilds rather than allocating a new instance. Safe to cast back to TreeFrame<T>
     // since the slot key includes the type — the frame type always matches.
-    public readonly GuiRenderTreeBuilder.RenderTreeFrame Frame = frame;
+    public readonly GuiTreeBuilder.TreeFrame Frame = frame;
 
     public bool HasArrangedBounds;
     public bool IsScrollable;
@@ -37,9 +37,8 @@ internal sealed class ComponentSlot(
     public GuiCallback<bool> OnFocusChanged;
 
     public ICoreClientAPI ClientApi => _renderer.ClientApi;
-    public IGuiComponentSlot Slot => this;
     public IGuiNode Node => Instance;
-    public IReadOnlyList<IGuiComponentSlot> Children => ChildBuilder.ComponentSlots;
+    public IReadOnlyList<IGuiNodeSlot> Children => ChildTreeBuilder.NodeSlots;
 
     public bool HasMouseHandlers =>
         OnMouseDown.HasHandler || OnMouseUp.HasHandler
@@ -49,24 +48,21 @@ internal sealed class ComponentSlot(
     public bool HasKeyboardRegionHandlers =>
         OnKeyDown.HasHandler || OnKeyUp.HasHandler || OnKeyPress.HasHandler || OnFocusChanged.HasHandler;
 
-    public void RequestReconcile(GuiRenderFragment renderFragment)
-        => _renderer.Schedule(renderFragment, ChildBuilder);
+    public void RequestReconcile()
+        => _renderer.Schedule(Instance.RenderFragment, ChildTreeBuilder);
 
-    public void RequestArrange()
-        => _renderer.RequestArrange();
-
-    public void RequestPaint()
-        => _renderer.RequestPaint();
+    public void RequestLayout()
+        => _renderer.RequestLayout();
 
     public void RequestRender()
-        => RequestPaint();
+        => _renderer.RequestRender();
 
     public bool TryGetCascadingValue<T>(out T value)
         => TryGetCascadingValue(name: null, out value);
 
     public bool TryGetCascadingValue<T>(string? name, out T value)
     {
-        var chain = ChildBuilder.InheritedCascadeChain;
+        var chain = ChildTreeBuilder.InheritedCascadeChain;
         if (chain is null)
         {
             value = default!;

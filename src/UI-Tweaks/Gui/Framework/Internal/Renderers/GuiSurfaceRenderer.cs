@@ -14,41 +14,39 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     private int _physicalHeight;
     protected float _currentScale;
     protected bool _reconcileRequested;
-    protected bool _arrangeRequested;
-    protected bool _paintRequested;
+    protected bool _layoutRequested;
+    protected bool _renderRequested;
 
     public ICoreClientAPI ClientApi => _clientApi;
 
     protected int PhysicalWidth => _physicalWidth;
     protected int PhysicalHeight => _physicalHeight;
-    protected GuiRenderTreeBuilder Builder { get; }
-    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _arrangeRequested || _paintRequested;
+    protected GuiTreeBuilder TreeBuilder { get; }
+    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _layoutRequested || _renderRequested;
 
     protected GuiSurfaceRenderer(ICoreClientAPI clientApi)
     {
         _clientApi = clientApi;
         _texture = new LoadedTexture(clientApi);
         _currentScale = RuntimeEnv.GUIScale;
-        Builder = new GuiRenderTreeBuilder(this);
+        TreeBuilder = new GuiTreeBuilder(this);
     }
 
     protected void RequestReconcile()
     {
         _reconcileRequested = true;
-        RequestArrange();
+        RequestLayout();
     }
 
-    public void RequestArrange()
+    public void RequestLayout()
     {
-        _arrangeRequested = true;
-        RequestPaint();
+        _layoutRequested = true;
+        RequestRender();
     }
 
-    public void RequestPaint() => _paintRequested = true;
+    public void RequestRender() => _renderRequested = true;
 
-    public void RequestRender() => RequestPaint();
-
-    public virtual void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder) => RequestReconcile();
+    public virtual void Schedule(GuiRenderFragment fragment, GuiTreeBuilder builder) => RequestReconcile();
     public virtual void Cancel(GuiRenderFragment fragment) { }
 
     public virtual void AddInteractiveRegion(in InteractiveRegion region) { }
@@ -57,7 +55,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     public virtual bool ContainsScreenPoint(int x, int y) => false;
 
-    internal void SetCascadeChain(CascadingValueChain? chain) => Builder.CascadeChain = chain;
+    internal void SetCascadeChain(CascadingValueChain? chain) => TreeBuilder.CascadeChain = chain;
 
     protected void EnsureSurfaceSize(int physW, int physH)
     {
@@ -80,11 +78,11 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         {
             if (arrange)
             {
-                Builder.Render(context, bounds, direction);
+                TreeBuilder.Render(context, bounds, direction);
             }
             else
             {
-                Builder.Paint(context);
+                TreeBuilder.Paint(context);
             }
         });
     }
@@ -109,9 +107,9 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         if (arranged)
         {
             _reconcileRequested = false;
-            _arrangeRequested = false;
+            _layoutRequested = false;
         }
-        _paintRequested = false;
+        _renderRequested = false;
     }
 
     protected void BlitAt(double posX, double posY)
@@ -127,7 +125,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     public virtual void Dispose()
     {
-        Builder.Dispose();
+        TreeBuilder.Dispose();
         _texture.Dispose();
         _context?.Dispose();
         _surface?.Dispose();

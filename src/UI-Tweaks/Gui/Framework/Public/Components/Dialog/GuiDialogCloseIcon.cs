@@ -60,12 +60,12 @@ public class GuiDialogCloseIcon : GuiComponent
 
     public override void Render(Context ctx, GuiComponentBounds b)
     {
-        if (RenderHandle is null)
+        if (Slot is null)
         {
             return;
         }
 
-        var icons = RenderHandle.ClientApi.Gui.Icons;
+        var icons = Slot.ClientApi.Gui.Icons;
 
         // CTM is logical pixels here; vanilla's IconUtil.DrawCross expects raw line-width
         // and cross-size values, so we pass them through unchanged.
@@ -102,13 +102,13 @@ public class GuiDialogCloseIcon : GuiComponent
     private void HandleMouseEnter(GuiMouseEventArgs e)
     {
         _isHovered = true;
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs e)
     {
         _isHovered = false;
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e) => OnClick.Invoke();

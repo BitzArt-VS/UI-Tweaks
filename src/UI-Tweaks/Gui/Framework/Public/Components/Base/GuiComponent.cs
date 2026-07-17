@@ -20,7 +20,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     /// <inheritdoc/>
     public virtual GuiLayoutSize Measure(GuiLayoutSize available)
     {
-        if (RenderHandle is null)
+        if (Slot is null)
         {
             return default;
         }
@@ -32,34 +32,22 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     }
 
     /// <summary>
-    /// Requests a fresh arrange pass for the existing component tree. Arrange cascades into paint.
+    /// Requests a fresh layout pass for the existing component tree. Layout cascades into rendering.
     /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a render handle.</exception>
-    protected void RequestArrange()
+    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a slot.</exception>
+    protected void RequestLayout()
     {
-        GetAttachedRenderHandle(nameof(RequestArrange)).RequestArrange();
+        GetAttachedSlot(nameof(RequestLayout)).RequestLayout();
     }
 
     /// <summary>
-    /// Requests a repaint of the latest arranged component tree.
-    /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a render handle.</exception>
-    protected void RequestPaint()
-    {
-        GetAttachedRenderHandle(nameof(RequestPaint)).RequestPaint();
-    }
-
-    /// <summary>
-    /// Requests a redraw of the existing component tree without scheduling this component's
+    /// Requests rendering of the existing component tree without scheduling this component's
     /// render fragment for reconciliation.
     /// </summary>
-    /// <remarks>
-    /// Compatibility alias for <see cref="RequestPaint"/>.
-    /// </remarks>
-    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a render handle.</exception>
+    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a slot.</exception>
     protected void RequestRender()
     {
-        RequestPaint();
+        GetAttachedSlot(nameof(RequestRender)).RequestRender();
     }
 
 }

@@ -206,25 +206,25 @@ public class GuiComponentMeasurementTests
 
     private sealed class TestContainer : GuiComponent
     {
-        public IGuiComponentSlot RenderSlot => GetAttachedRenderHandle(nameof(RenderSlot)).Slot;
+        public IGuiNodeSlot RenderSlot => GetAttachedSlot(nameof(RenderSlot));
     }
 
     private sealed class TransparentNode : GuiNode;
 
     private sealed class ExternalBaseComponent : IGuiComponent
     {
-        private IGuiRenderHandle? _renderHandle;
+        private IGuiNodeSlot? _slot;
 
         public GuiComponentLayoutParameters LayoutParameters { get; } = new();
         public GuiRenderFragment RenderFragment { get; } = _ => { };
-        public IGuiComponentSlot RenderSlot => _renderHandle!.Slot;
+        public IGuiNodeSlot RenderSlot => _slot!;
 
-        public void Attach(IGuiRenderHandle renderHandle, ICoreClientAPI clientApi)
-            => _renderHandle = renderHandle;
+        public void Attach(IGuiNodeSlot slot)
+            => _slot = slot;
 
         public GuiLayoutSize Measure(GuiLayoutSize available)
             => GuiComponentLayout.MeasureContent(
-                _renderHandle!.Slot.Children,
+                _slot!.Children,
                 available,
                 LayoutParameters.Direction);
     }
@@ -252,32 +252,26 @@ public class GuiComponentMeasurementTests
         }
     }
 
-    private sealed class TestSlot(IGuiNode node, IReadOnlyList<TestSlot> children) : IGuiComponentSlot
+    private sealed class TestSlot(IGuiNode node, IReadOnlyList<TestSlot> children) : IGuiNodeSlot
     {
-        private readonly IReadOnlyList<IGuiComponentSlot> _children = children;
+        private readonly IReadOnlyList<IGuiNodeSlot> _children = children;
 
         public IGuiNode Node { get; } = node;
-        public IReadOnlyList<IGuiComponentSlot> Children => _children;
+        public ICoreClientAPI ClientApi => null!;
+        public IReadOnlyList<IGuiNodeSlot> Children => _children;
 
         public void AttachRecursive()
         {
-            Node.Attach(new TestRenderHandle(this), clientApi: null!);
+            Node.Attach(this);
 
             for (int i = 0; i < children.Count; i++)
             {
                 children[i].AttachRecursive();
             }
         }
-    }
 
-    private sealed class TestRenderHandle(IGuiComponentSlot slot) : IGuiRenderHandle
-    {
-        public ICoreClientAPI ClientApi => null!;
-        public IGuiComponentSlot Slot { get; } = slot;
-
-        public void RequestReconcile(GuiRenderFragment renderFragment) { }
-        public void RequestArrange() { }
-        public void RequestPaint() { }
+        public void RequestReconcile() { }
+        public void RequestLayout() { }
         public void RequestRender() { }
 
         public bool TryGetCascadingValue<T>(out T value)

@@ -1,5 +1,4 @@
 using Cairo;
-using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -7,7 +6,7 @@ public interface IGuiNode
 {
     public GuiRenderFragment RenderFragment { get; }
 
-    public void Attach(IGuiRenderHandle renderHandle, ICoreClientAPI clientApi);
+    public void Attach(IGuiNodeSlot slot);
 
     public void OnInitialized() { }
 

@@ -99,7 +99,7 @@ public sealed class GuiSlider : GuiInputBase
 
         Value = snapped;
         OnValueChanged.Invoke(Value);
-        RequestPaint();
+        RequestRender();
     }
 
     /// <inheritdoc/>
@@ -130,7 +130,7 @@ public sealed class GuiSlider : GuiInputBase
             {
                 Value = next;
                 OnValueChanged.Invoke(Value);
-                RequestPaint();
+                RequestRender();
             }
             args.Handled = true;
             return;
@@ -209,7 +209,7 @@ public sealed class GuiSlider : GuiInputBase
             OnValueChanged.Invoke(Value);
         }
 
-        RequestPaint();
+        RequestRender();
     }
 
     /// <summary>Snap <paramref name="value"/> to the nearest allowed step inside

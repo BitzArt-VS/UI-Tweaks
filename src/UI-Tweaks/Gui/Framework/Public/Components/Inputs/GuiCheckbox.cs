@@ -61,7 +61,7 @@ public sealed class GuiCheckbox : GuiInputBase
         Checked = !Checked;
         OnCheckedChanged.Invoke(Checked);
         ClientApi?.Gui.PlaySound("toggleswitch");
-        RequestPaint();
+        RequestRender();
     }
 
     protected override void OnInputClick(GuiMouseEventArgs e) => Toggle();

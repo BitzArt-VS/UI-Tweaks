@@ -87,9 +87,9 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _guiElementAdapter.AttachInput(_inputRouter);
         _focusManager = new FocusManager(_inputRouter);
 
-        Builder.CascadeChain = BuildRootCascadeChain();
-        _tooltipLayer.SetCascadeChain(Builder.CascadeChain);
-        _overlayLayer.SetCascadeChain(Builder.CascadeChain);
+        TreeBuilder.CascadeChain = BuildRootCascadeChain();
+        _tooltipLayer.SetCascadeChain(TreeBuilder.CascadeChain);
+        _overlayLayer.SetCascadeChain(TreeBuilder.CascadeChain);
 
         ReconcileDialogSlot(configure);
         var dialog = (TDialog)_dialog;
@@ -110,7 +110,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     protected void ReconcileDialogSlot<TDialog>(Action<TDialog>? configure)
         where TDialog : class, IGuiDialog, new()
     {
-        Builder.Run(builder =>
+        TreeBuilder.Run(builder =>
         {
             builder.Add<TDialog>(0)
                 .Configure(dialog =>
@@ -125,7 +125,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
                 });
         });
         ValidateRootSize();
-        RequestArrange();
+        RequestLayout();
     }
 
     private void ValidateRootSize()
@@ -155,16 +155,16 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _inputRouter.FocusedNode?.OnFrame(deltaTime);
         if (_rebuildQueue.Drain())
         {
-            RequestArrange();
+            RequestLayout();
         }
         RequestSurfaceUpdateForScaleOrSizeChanges();
-        if (_arrangeRequested)
+        if (_layoutRequested)
         {
-            ExecuteArrangeWalk();
+            ExecuteLayoutWalk();
         }
-        else if (_paintRequested)
+        else if (_renderRequested)
         {
-            ExecutePaintWalk();
+            ExecuteRenderWalk();
         }
 
         var (posX, posY) = GetScreenOrigin();
@@ -194,10 +194,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             (int)Math.Round(logicalWidth * scale),
             (int)Math.Round(logicalHeight * scale));
 
-        RequestPaint();
+        RequestRender();
     }
 
-    private void ExecuteArrangeWalk()
+    private void ExecuteLayoutWalk()
     {
         _inputRouter.ClearArrangedRegions();
         _tooltipHost.ResetFrame();
@@ -218,7 +218,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
-    private void ExecutePaintWalk()
+    private void ExecuteRenderWalk()
     {
         _tooltipHost.ResetFrame();
 
@@ -228,7 +228,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
-    public override void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder)
+    public override void Schedule(GuiRenderFragment fragment, GuiTreeBuilder builder)
     {
         if (_isDisposed)
         {

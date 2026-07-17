@@ -13,7 +13,7 @@ public static class GuiComponentLayout
     /// wrappers inline their inner children.
     /// </summary>
     public static GuiLayoutSize MeasureContent(
-        IReadOnlyList<IGuiComponentSlot> slots,
+        IReadOnlyList<IGuiNodeSlot> slots,
         GuiLayoutSize available,
         GuiDirection direction)
     {
@@ -58,7 +58,7 @@ public static class GuiComponentLayout
     }
 
     private static void AccumulateContent(
-        IReadOnlyList<IGuiComponentSlot> slots,
+        IReadOnlyList<IGuiNodeSlot> slots,
         GuiLayoutSize available,
         GuiDirection direction,
         ref double totalWidth,

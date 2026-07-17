@@ -88,7 +88,7 @@ public abstract class GuiInputBase : GuiComponent
         IsPressed = true;
         FocusManager?.RequestFocus(this);
         OnInputMouseDown(args);
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs args)
@@ -104,7 +104,7 @@ public abstract class GuiInputBase : GuiComponent
 
         if (wasPressed || IsHovered)
         {
-            RequestPaint();
+            RequestRender();
         }
     }
 
@@ -136,22 +136,22 @@ public abstract class GuiInputBase : GuiComponent
         }
 
         OnInputMouseMove(args);
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleMouseEnter(GuiMouseEventArgs args)
     {
         IsHovered = true;
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs args)
     {
         IsHovered = false;
-        RequestPaint();
+        RequestRender();
     }
 
-    private void HandleFocusChanged(bool focused) => RequestPaint();
+    private void HandleFocusChanged(bool focused) => RequestRender();
 
     /// <summary>Hook invoked on left-button mouse-down inside the input. Default: no-op.</summary>
     protected virtual void OnInputMouseDown(GuiMouseEventArgs e) { }

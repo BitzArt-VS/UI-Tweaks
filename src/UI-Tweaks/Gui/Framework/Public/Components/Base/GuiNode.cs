@@ -4,7 +4,7 @@ using Vintagestory.API.Client;
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// Default base-class implementation of <see cref="IGuiNode"/>. Wires up the render handle,
+/// Default base-class implementation of <see cref="IGuiNode"/>. Wires up the mounted slot,
 /// render fragment, lifecycle hooks, cascading-value resolution, and an empty
 /// <see cref="BuildRenderTree"/> hook for declaring children.
 /// <para>
@@ -18,29 +18,27 @@ public abstract class GuiNode : IGuiNode
 {
     public GuiRenderFragment RenderFragment { get; }
 
-    protected IGuiRenderHandle? RenderHandle { get; private set; }
-    protected IGuiComponentSlot Slot => GetAttachedRenderHandle(nameof(Slot)).Slot;
-    protected ICoreClientAPI? ClientApi { get; private set; }
+    protected IGuiNodeSlot? Slot { get; private set; }
+    protected ICoreClientAPI? ClientApi => Slot?.ClientApi;
 
     protected GuiNode()
     {
         RenderFragment = builder => BuildRenderTree(builder);
     }
 
-    public void Attach(IGuiRenderHandle renderHandle, ICoreClientAPI clientApi)
+    public void Attach(IGuiNodeSlot slot)
     {
-        RenderHandle = renderHandle;
-        ClientApi = clientApi;
+        Slot = slot;
     }
 
     /// <summary>
     /// Requests reconciliation of this node's render fragment. Reconciliation cascades into
-    /// arrange and paint.
+    /// layout and rendering.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the node is not attached to a render handle.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the node is not attached to a slot.</exception>
     protected void RequestReconcile()
     {
-        GetAttachedRenderHandle(nameof(RequestReconcile)).RequestReconcile(RenderFragment);
+        GetAttachedSlot(nameof(RequestReconcile)).RequestReconcile();
     }
 
     /// <summary>
@@ -55,7 +53,7 @@ public abstract class GuiNode : IGuiNode
     /// prefer to read the latest value directly each frame.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if the node is not yet attached to a render handle (i.e. before
+    /// Thrown if the node is not yet attached to a slot (i.e. before
     /// <see cref="Attach"/> has run).
     /// </exception>
     protected T? GetCascadingValue<T>()
@@ -68,12 +66,12 @@ public abstract class GuiNode : IGuiNode
     /// </param>
     protected T? GetCascadingValue<T>(string? name)
     {
-        if (RenderHandle is null)
+        if (Slot is null)
         {
-            throw new InvalidOperationException("Cannot resolve a cascading value before the node is attached to a render handle.");
+            throw new InvalidOperationException("Cannot resolve a cascading value before the node is attached to a slot.");
         }
 
-        return RenderHandle.TryGetCascadingValue<T>(name, out var value) ? value : default;
+        return Slot.TryGetCascadingValue<T>(name, out var value) ? value : default;
     }
 
     /// <summary>
@@ -89,12 +87,12 @@ public abstract class GuiNode : IGuiNode
     /// <param name="name">Discriminator matching <see cref="CascadingValue{T}.Name"/>.</param>
     protected bool TryGetCascadingValue<T>(string? name, out T value)
     {
-        if (RenderHandle is null)
+        if (Slot is null)
         {
-            throw new InvalidOperationException("Cannot resolve a cascading value before the node is attached to a render handle.");
+            throw new InvalidOperationException("Cannot resolve a cascading value before the node is attached to a slot.");
         }
 
-        return RenderHandle.TryGetCascadingValue(name, out value);
+        return Slot.TryGetCascadingValue(name, out value);
     }
 
     /// <inheritdoc/>
@@ -132,13 +130,13 @@ public abstract class GuiNode : IGuiNode
     /// <param name="bounds">Node bounds defining the area available for rendering.</param>
     public virtual void RenderOverlay(Context context, GuiComponentBounds bounds) { }
 
-    protected IGuiRenderHandle GetAttachedRenderHandle(string methodName)
+    protected IGuiNodeSlot GetAttachedSlot(string memberName)
     {
-        if (RenderHandle is null)
+        if (Slot is null)
         {
-            throw new InvalidOperationException($"Cannot call {methodName} on a node that is not attached to a render handle.");
+            throw new InvalidOperationException($"Cannot access {memberName} on a node that is not attached to a slot.");
         }
 
-        return RenderHandle;
+        return Slot;
     }
 }

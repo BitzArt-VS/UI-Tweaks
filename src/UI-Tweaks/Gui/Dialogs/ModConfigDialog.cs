@@ -78,7 +78,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
 
     protected override void OnResizeUpdated(bool sizeChanged)
     {
-        RequestArrange();
+        RequestLayout();
     }
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)

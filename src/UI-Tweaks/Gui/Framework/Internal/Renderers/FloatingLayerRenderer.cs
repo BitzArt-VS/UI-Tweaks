@@ -23,7 +23,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         ActiveFragment = content;
         _activePlacement = placement;
         _refreshedThisFrame = true;
-        RequestArrange();
+        RequestLayout();
     }
 
     public void Hide(object token)
@@ -56,7 +56,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         // even an unchanged layer must re-walk so its regions get re-registered.
         if (ActiveFragment is not null)
         {
-            RequestArrange();
+            RequestLayout();
         }
         Update();
     }
@@ -112,7 +112,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void ReconcileAndMeasure()
     {
-        Builder.Run(BuildRootFragment);
+        TreeBuilder.Run(BuildRootFragment);
         _measuredSize = ResolveLogicalSize();
     }
 
@@ -206,7 +206,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             ? _activePlacement.MaxLogicalHeight
             : double.PositiveInfinity;
 
-        if (Builder.ComponentSlots.Count == 0 || Builder.ComponentSlots[0].Node is not IGuiComponent rootComponent)
+        if (TreeBuilder.NodeSlots.Count == 0 || TreeBuilder.NodeSlots[0].Node is not IGuiComponent rootComponent)
         {
             return default;
         }

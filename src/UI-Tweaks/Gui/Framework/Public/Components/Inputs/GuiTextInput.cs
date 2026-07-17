@@ -129,7 +129,7 @@ public sealed class GuiTextInput : GuiInputBase
         Text = text;
         _caret = Math.Min(_caret, Text.Length);
         OnTextChanged.Invoke(Text);
-        RequestPaint();
+        RequestRender();
         return true;
     }
 
@@ -213,7 +213,7 @@ public sealed class GuiTextInput : GuiInputBase
             _spinnerDownHovered = hovered;
         }
 
-        RequestPaint();
+        RequestRender();
     }
 
     private void SetSpinnerPressed(bool up, bool pressed)
@@ -237,7 +237,7 @@ public sealed class GuiTextInput : GuiInputBase
             _spinnerDownPressed = pressed;
         }
 
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleSpinnerMouseDown(GuiMouseEventArgs e, int direction)
@@ -309,7 +309,7 @@ public sealed class GuiTextInput : GuiInputBase
         Text = nextText;
         _caret = Text.Length;
         OnTextChanged.Invoke(Text);
-        RequestPaint();
+        RequestRender();
     }
 
     protected override void OnInputMouseDown(GuiMouseEventArgs e)
@@ -406,7 +406,7 @@ public sealed class GuiTextInput : GuiInputBase
         // vanilla GuiElementEditableTextBase.OnKeyDownInternal which marks args.Handled
         // for everything except Tab / Enter / Escape.
         args.Handled = true;
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleKeyPress(GuiKeyEventArgs args)
@@ -432,7 +432,7 @@ public sealed class GuiTextInput : GuiInputBase
         _caret++;
         OnTextChanged.Invoke(Text);
         ResetCaretBlink();
-        RequestPaint();
+        RequestRender();
         args.Handled = true;
     }
 
@@ -452,7 +452,7 @@ public sealed class GuiTextInput : GuiInputBase
 
         _blinkAccumulator -= BlinkPeriodSeconds;
         _caretBlinkOn = !_caretBlinkOn;
-        RequestPaint();
+        RequestRender();
     }
 
     private void HandleFocusChanged(bool focused) => ResetCaretBlink();
