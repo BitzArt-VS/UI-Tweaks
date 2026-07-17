@@ -2,7 +2,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Slot-level mouse-event registration extensions. Attach a handler to any component slot
-/// during <c>BuildRenderTree</c>. Handlers receive a <see cref="GuiMouseEventArgs"/> in
+/// during <c>BuildComponentTree</c>. Handlers receive a <see cref="GuiMouseEventArgs"/> in
 /// dialog-local logical coordinates and are wired to the slot's allocated bounds — there is
 /// no need to scan child trees or forward events manually.
 /// <para>

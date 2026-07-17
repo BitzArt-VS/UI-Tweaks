@@ -1,13 +1,13 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
-public interface IGuiRenderTreeBuilder
+public interface IGuiTreeBuilder
 {
     /// <summary>
     /// Declares a node at the next position. The <paramref name="key"/> uniquely identifies
     /// this slot within its parent's subtree; the builder tracks the instance across rebuilds
     /// under <c>(Type, key)</c>.
     /// </summary>
-    internal IGuiComponentBuilder<T> AddComponent<T>(int key)
+    internal IGuiTreeBuilder<T> AddComponent<T>(int key)
         where T : IGuiNode, new();
 
     /// <summary>
@@ -15,5 +15,11 @@ public interface IGuiRenderTreeBuilder
     /// depth. Purely logical — no component is created, no slot is allocated, and the layout
     /// tree is unaffected. Inner scopes shadow outer scopes with the same <c>(Type, Name)</c> key.
     /// </summary>
-    internal void PushCascadeScope<T>(T value, string? name, GuiRenderFragment content);
+    internal void PushCascadeScope<T>(T value, string? name, GuiTreeFragment content);
+}
+
+public interface IGuiTreeBuilder<T> : IGuiTreeBuilder, IGuiSlotBuilder
+    where T : IGuiNode
+{
+    internal IGuiTreeBuilder<T> AddConfigurationAction(Action<T> action);
 }

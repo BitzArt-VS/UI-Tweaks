@@ -43,7 +43,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
         _options = Options;
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         if (_context is null || _options is null)
         {
@@ -372,7 +372,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
 
     private static string CombineDialogArea(string horizontal, string vertical) => horizontal + vertical;
 
-    private static void BuildSectionLabel(IGuiRenderTreeBuilder builder, int key, string text, bool isFirst = false)
+    private static void BuildSectionLabel(IGuiTreeBuilder builder, int key, string text, bool isFirst = false)
     {
         builder.AddLabel(key, text,
             font: GuiFontStyle.MediumBold,
@@ -385,11 +385,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
     }
 
     private static void BuildSettingRow(
-        IGuiRenderTreeBuilder builder,
+        IGuiTreeBuilder builder,
         int key,
         string label,
-        GuiRenderFragment tooltip,
-        GuiRenderFragment control)
+        GuiTreeFragment tooltip,
+        GuiTreeFragment control)
     {
         builder.AddContainer(key,
             widthMode: GuiSizeMode.Fill,

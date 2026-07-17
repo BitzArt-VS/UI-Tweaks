@@ -52,7 +52,7 @@ public class GuiBreadcrumbs : GuiBreadcrumbs<string>
         }
     }
 
-    private void BuildStringItem(IGuiRenderTreeBuilder builder, string text)
+    private void BuildStringItem(IGuiTreeBuilder builder, string text)
     {
         int capturedIndex = RenderingItemIndex;
         bool isHovered = _hoveredItemIndex == capturedIndex;
@@ -83,7 +83,7 @@ public class GuiBreadcrumbs : GuiBreadcrumbs<string>
         RequestReconcile();
     }
 
-    private void BuildCurrentStringItem(IGuiRenderTreeBuilder builder, string text)
+    private void BuildCurrentStringItem(IGuiTreeBuilder builder, string text)
     {
         builder.AddLabel(0, text, font: GuiFontStyle.LargeBold);
     }
@@ -130,13 +130,13 @@ public class GuiBreadcrumbs<T> : GuiComponent
     /// inside this template — chain <c>.OnMouseClick</c>, <c>.OnMouseEnter</c>, and
     /// <c>.OnMouseLeave</c> on any declared slot. <see cref="RenderingItemIndex"/> is set
     /// to the item's index before each call.</summary>
-    public GuiRenderFragment<T>? ItemTemplate { get; set; }
+    public GuiTreeFragment<T>? ItemTemplate { get; set; }
 
     /// <summary>Renders the current (rightmost) crumb.</summary>
-    public GuiRenderFragment<T>? CurrentTemplate { get; set; }
+    public GuiTreeFragment<T>? CurrentTemplate { get; set; }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         var bottomMargin = new GuiThickness(0, 0, SectionSpacing, 0);
 
@@ -153,7 +153,7 @@ public class GuiBreadcrumbs<T> : GuiComponent
             content: BuildRow);
     }
 
-    private void BuildRow(IGuiRenderTreeBuilder row)
+    private void BuildRow(IGuiTreeBuilder row)
     {
         int slotKey = 0;
 
@@ -175,7 +175,7 @@ public class GuiBreadcrumbs<T> : GuiComponent
         BuildCurrentItemSlot(row, slotKey, margin: null);
     }
 
-    private void BuildCurrentItemSlot(IGuiRenderTreeBuilder builder, int key, GuiThickness? margin)
+    private void BuildCurrentItemSlot(IGuiTreeBuilder builder, int key, GuiThickness? margin)
     {
         if (CurrentItem is null || CurrentTemplate is null)
         {

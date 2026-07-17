@@ -46,8 +46,8 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     public void RequestRender() => _renderRequested = true;
 
-    public virtual void Schedule(GuiRenderFragment fragment, GuiTreeBuilder builder) => RequestReconcile();
-    public virtual void Cancel(GuiRenderFragment fragment) { }
+    public virtual void Schedule(GuiTreeFragment fragment, GuiTreeBuilder builder) => RequestReconcile();
+    public virtual void Cancel(GuiTreeFragment fragment) { }
 
     public virtual void AddInteractiveRegion(in InteractiveRegion region) { }
     public virtual void AddResizeRegion(in ResizeRegion region) { }

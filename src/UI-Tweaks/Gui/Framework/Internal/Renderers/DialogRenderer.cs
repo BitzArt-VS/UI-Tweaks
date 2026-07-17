@@ -228,7 +228,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
-    public override void Schedule(GuiRenderFragment fragment, GuiTreeBuilder builder)
+    public override void Schedule(GuiTreeFragment fragment, GuiTreeBuilder builder)
     {
         if (_isDisposed)
         {
@@ -239,7 +239,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         RequestReconcile();
     }
 
-    public override void Cancel(GuiRenderFragment fragment) => _rebuildQueue.Cancel(fragment);
+    public override void Cancel(GuiTreeFragment fragment) => _rebuildQueue.Cancel(fragment);
 
     public override void AddInteractiveRegion(in InteractiveRegion region) => _inputRouter.AddInteractiveRegion(region);
     public override void AddResizeRegion(in ResizeRegion region) => _inputRouter.AddResizeRegion(region);

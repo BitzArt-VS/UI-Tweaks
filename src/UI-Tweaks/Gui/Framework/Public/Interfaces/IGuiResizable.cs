@@ -1,6 +1,6 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
-public interface IGuiResizable : IGuiMeasurable
+public interface IGuiResizable : IGuiComponent
 {
     /// <summary>
     /// The resize edges this object currently accepts. Return <see cref="GuiResizeEdge.None"/>

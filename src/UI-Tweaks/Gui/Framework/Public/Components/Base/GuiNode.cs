@@ -5,8 +5,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Default base-class implementation of <see cref="IGuiNode"/>. Wires up the mounted slot,
-/// render fragment, lifecycle hooks, cascading-value resolution, and an empty
-/// <see cref="BuildRenderTree"/> hook for declaring children.
+/// tree fragment, lifecycle hooks, cascading-value resolution, and an empty
+/// <see cref="BuildComponentTree"/> hook for declaring children.
 /// <para>
 /// Layout-participating components inherit from <see cref="GuiComponent"/> (which extends
 /// this base with <see cref="GuiComponent.LayoutParameters"/> and
@@ -16,14 +16,14 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </summary>
 public abstract class GuiNode : IGuiNode
 {
-    public GuiRenderFragment RenderFragment { get; }
+    public GuiTreeFragment TreeFragment { get; }
 
     protected IGuiNodeSlot? Slot { get; private set; }
     protected ICoreClientAPI? ClientApi => Slot?.ClientApi;
 
     protected GuiNode()
     {
-        RenderFragment = builder => BuildRenderTree(builder);
+        TreeFragment = builder => BuildComponentTree(builder);
     }
 
     public void Attach(IGuiNodeSlot slot)
@@ -32,7 +32,7 @@ public abstract class GuiNode : IGuiNode
     }
 
     /// <summary>
-    /// Requests reconciliation of this node's render fragment. Reconciliation cascades into
+    /// Requests reconciliation of this node's tree fragment. Reconciliation cascades into
     /// layout and rendering.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the node is not attached to a slot.</exception>
@@ -109,10 +109,10 @@ public abstract class GuiNode : IGuiNode
     public virtual void OnFrame(float deltaTime) { }
 
     /// <summary>
-    /// Override this method to build the render tree for this node using the provided builder.
+    /// Override this method to build the component tree for this node using the provided builder.
     /// </summary>
-    /// <param name="builder">Builder for constructing internal render tree of this node.</param>
-    protected virtual void BuildRenderTree(IGuiRenderTreeBuilder builder) { }
+    /// <param name="builder">Builder for constructing the node's component tree.</param>
+    protected virtual void BuildComponentTree(IGuiTreeBuilder builder) { }
 
     /// <summary>
     /// Override this method to perform custom rendering using the provided Cairo context and bounds.

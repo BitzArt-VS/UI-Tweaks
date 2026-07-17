@@ -76,12 +76,12 @@ public class GuiDropdown<T> : GuiInputBase
 
     /// <summary>Renders a single item inside the popup list. Default: a <see cref="GuiLabel"/>
     /// containing <c>item?.ToString()</c>.</summary>
-    public GuiRenderFragment<T>? ItemTemplate { get; set; }
+    public GuiTreeFragment<T>? ItemTemplate { get; set; }
 
     /// <summary>Renders the closed-state header content (excluding chrome and chevron).
     /// Defaults to <see cref="ItemTemplate"/> when null — pass a separate fragment when
     /// the closed-state visual differs from the popup row.</summary>
-    public GuiRenderFragment<T>? SelectedTemplate { get; set; }
+    public GuiTreeFragment<T>? SelectedTemplate { get; set; }
 
     /// <summary>Fired after <see cref="SelectedIndex"/> changes due to user interaction
     /// or <see cref="SetSelectedIndex"/>.</summary>
@@ -149,7 +149,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Cached delegate so repeated <see cref="OverlayHost.Show"/> calls supply
     /// the same fragment reference (otherwise every frame would allocate a new closure
     /// over <see cref="BuildPopup"/>).</summary>
-    private GuiRenderFragment? _popupFragment;
+    private GuiTreeFragment? _popupFragment;
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
@@ -258,7 +258,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <see cref="SelectedTemplate"/> (falling back to <see cref="ItemTemplate"/>) with the
     /// current selection, or render <see cref="Placeholder"/> at half opacity when nothing
     /// is selected.</summary>
-    protected virtual void BuildHeader(IGuiRenderTreeBuilder builder)
+    protected virtual void BuildHeader(IGuiTreeBuilder builder)
     {
         if (Items is { } items && SelectedIndex >= 0 && SelectedIndex < items.Count)
         {
@@ -287,7 +287,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// iterate <see cref="GetItemCount"/> / <see cref="GetItemAt"/>, declaring a hover-
     /// and click-tracked <see cref="GuiContainer"/> per item that invokes
     /// <see cref="ItemTemplate"/> for its content.</summary>
-    protected virtual void BuildPopup(IGuiRenderTreeBuilder builder)
+    protected virtual void BuildPopup(IGuiTreeBuilder builder)
     {
         int count = GetItemCount();
         for (int i = 0; i < count; i++)
@@ -328,7 +328,7 @@ public class GuiDropdown<T> : GuiInputBase
         }
     }
 
-    private void RenderItem(IGuiRenderTreeBuilder b, T item)
+    private void RenderItem(IGuiTreeBuilder b, T item)
     {
         if (ItemTemplate is { } t)
         {
@@ -412,12 +412,12 @@ public class GuiDropdown<T> : GuiInputBase
     }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Inner click capture (key 0) — added by GuiInputBase. Absolutely positioned,
         // fills the input's content area; handles down/up/click/enter/leave for the
         // closed-state trigger.
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
         // Header content (key 1) — relative, FitContent height with a vertical-centering
         // top margin computed from the font line metrics. The header container sits inside
@@ -476,7 +476,7 @@ public class GuiDropdown<T> : GuiInputBase
         //    point upward while the popup is open (mirrors common dropdown UX).
         DrawChevron(ctx, bounds);
 
-        // 4. Popup overlay registration. Done from Render (rather than BuildRenderTree)
+        // 4. Popup overlay registration. Done from Render (rather than BuildComponentTree)
         //    so the overlay's bounds are computed from the just-resolved header bounds —
         //    no need to read back stale LastBounds from a prior frame. When closed (or
         //    when no items / no overlay host is available), simply skip registration and
@@ -524,7 +524,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Stable popup fragment — declares the popup chrome (a
     /// <see cref="GuiDropdownPopup"/> filling the registered overlay bounds) wrapped
     /// around <see cref="BuildPopup"/>.</summary>
-    private void BuildPopupOverlay(IGuiRenderTreeBuilder builder)
+    private void BuildPopupOverlay(IGuiTreeBuilder builder)
     {
         bool overflow = _popupOverflow;
         builder.AddContainer<GuiDropdownPopup>(0,

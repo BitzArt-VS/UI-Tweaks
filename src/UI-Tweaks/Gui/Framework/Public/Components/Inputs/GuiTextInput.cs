@@ -142,13 +142,13 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Base declares the full-fill mouse-capture container at key 0. The spinner
         // buttons are added afterwards as separately-keyed absolute-positioned slots,
         // so they are appended to the interactive-region table after the base container
         // and win the topmost-wins reverse hit-test for any pixel inside the gutter.
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
         if (!SpinnerButtonsVisible)
         {
@@ -170,7 +170,7 @@ public sealed class GuiTextInput : GuiInputBase
             .OnMouseLeave(_ => SetSpinnerHovered(up: false, hovered: false));
     }
 
-    private void BuildSpinnerUpTargetContent(IGuiRenderTreeBuilder builder)
+    private void BuildSpinnerUpTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0,
             width: SpinnerGutterWidth,
@@ -180,7 +180,7 @@ public sealed class GuiTextInput : GuiInputBase
             verticalAlignment: GuiVerticalAlignment.Top);
     }
 
-    private void BuildSpinnerDownTargetContent(IGuiRenderTreeBuilder builder)
+    private void BuildSpinnerDownTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0,
             width: SpinnerGutterWidth,

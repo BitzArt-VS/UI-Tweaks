@@ -46,7 +46,7 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
         _context = GetCascadingValue<ModConfigContext>();
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         var quickSearch = _context?.Config.QuickSearch;
         var gameTweaks = _context?.Config.GameTweaks;
@@ -111,7 +111,7 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                 }));
     }
 
-    private static void BuildSectionLabel(IGuiRenderTreeBuilder builder, int key, string text)
+    private static void BuildSectionLabel(IGuiTreeBuilder builder, int key, string text)
     {
         builder.AddLabel(key, text,
             font: GuiFontStyle.MediumBold,
@@ -131,11 +131,11 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
     /// control stretches with the dialog.
     /// </summary>
     private static void BuildSettingRow(
-        IGuiRenderTreeBuilder builder,
+        IGuiTreeBuilder builder,
         int key,
         string label,
-        GuiRenderFragment tooltip,
-        GuiRenderFragment control)
+        GuiTreeFragment tooltip,
+        GuiTreeFragment control)
     {
         builder.AddContainer(key,
             widthMode: GuiSizeMode.Fill,

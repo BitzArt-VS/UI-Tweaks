@@ -1,14 +1,28 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
-public static class RenderTreeBuilderExtensions
+public static class GuiTreeBuilderExtensions
 {
+    /// <summary>
+    /// Configures <see cref="GuiComponentLayoutParameters"/> for this slot.
+    /// </summary>
+    public static TBuilder ConfigureLayout<TBuilder>(this TBuilder builder, Action<GuiComponentLayoutParameters> configure)
+        where TBuilder : IGuiSlotBuilder
+    {
+        builder.AddLayoutConfiguration(configure);
+        return builder;
+    }
+
+    public static IGuiTreeBuilder<T> Configure<T>(this IGuiTreeBuilder<T> builder, Action<T> configure)
+        where T : IGuiNode
+        => builder.AddConfigurationAction(configure);
+
     /// <summary>
     /// Declares a node slot of type <typeparamref name="T"/> at <paramref name="key"/>.
     /// Layout parameters may be set inline when <typeparamref name="T"/> implements
     /// <see cref="IGuiComponent"/>; pure <see cref="IGuiNode"/> slots are layout-transparent.
     /// </summary>
-    public static IGuiComponentBuilder<T> Add<T>(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<T> Add<T>(
+        this IGuiTreeBuilder builder,
         int key,
         GuiSize? width = null,
         GuiSize? height = null,
@@ -42,8 +56,8 @@ public static class RenderTreeBuilderExtensions
     /// brightness / radius without subclassing.
     /// </para>
     /// </summary>
-    public static IGuiComponentBuilder<GuiContainer> AddContainer(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiContainer> AddContainer(
+        this IGuiTreeBuilder builder,
         int key,
         GuiSize? width = null,
         GuiSize? height = null,
@@ -62,7 +76,7 @@ public static class RenderTreeBuilderExtensions
         GuiScrollDirection? alwaysShowScrollbar = null,
         bool withInset = false,
         Action<GuiInset>? configureInset = null,
-        GuiRenderFragment? content = null)
+        GuiTreeFragment? content = null)
     {
         var b = ApplyLayout(builder.AddComponent<GuiContainer>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
@@ -105,9 +119,9 @@ public static class RenderTreeBuilderExtensions
     /// container slot. Prefer passing <c>content:</c> directly to
     /// <see cref="AddContainer"/> when possible.
     /// </summary>
-    public static IGuiComponentBuilder<GuiContainer> WithContent(
-        this IGuiComponentBuilder<GuiContainer> builder,
-        GuiRenderFragment content)
+    public static IGuiTreeBuilder<GuiContainer> WithContent(
+        this IGuiTreeBuilder<GuiContainer> builder,
+        GuiTreeFragment content)
         => builder.Configure(c => c.Content = content);
 
     /// <summary>
@@ -116,8 +130,8 @@ public static class RenderTreeBuilderExtensions
     /// parameters, and optionally attaches <paramref name="content"/>. Use this as the
     /// building block when wrapping custom container components in their own fluent helpers.
     /// </summary>
-    public static IGuiComponentBuilder<TContainer> AddContainer<TContainer>(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<TContainer> AddContainer<TContainer>(
+        this IGuiTreeBuilder builder,
         int key,
         GuiSize? width = null,
         GuiSize? height = null,
@@ -130,7 +144,7 @@ public static class RenderTreeBuilderExtensions
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
-        GuiRenderFragment? content = null)
+        GuiTreeFragment? content = null)
         where TContainer : GuiContainer, new()
     {
         var b = ApplyLayout(
@@ -151,8 +165,8 @@ public static class RenderTreeBuilderExtensions
     /// that directly when you need full control over the container's properties.
     /// </para>
     /// </summary>
-    public static IGuiComponentBuilder<GuiDialogBackground> AddDialogBackground(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiDialogBackground> AddDialogBackground(
+        this IGuiTreeBuilder builder,
         int key,
         GuiSize? width = null,
         GuiSize? height = null,
@@ -165,7 +179,7 @@ public static class RenderTreeBuilderExtensions
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
-        GuiRenderFragment? content = null)
+        GuiTreeFragment? content = null)
     {
         return builder.AddContainer<GuiDialogBackground>(
             key, width, height, widthMode, heightMode, fill,
@@ -182,8 +196,8 @@ public static class RenderTreeBuilderExtensions
     /// <paramref name="width"/>/<paramref name="widthMode"/> is given — matching how
     /// vanilla title bars are typically laid out at the top of a dialog.
     /// </summary>
-    public static IGuiComponentBuilder<GuiDialogTitleBar> AddDialogTitleBar(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBar(
+        this IGuiTreeBuilder builder,
         int key,
         string title,
         GuiFontStyle? titleFont = null,
@@ -205,10 +219,10 @@ public static class RenderTreeBuilderExtensions
 
     /// <summary>
     /// Asynchronous-handler overload of
-    /// <see cref="AddDialogTitleBar(IGuiRenderTreeBuilder, int, string, GuiFontStyle?, Action{double, double}, Action, double?, double?, GuiSizeMode?, GuiSizeMode?, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
+    /// <see cref="AddDialogTitleBar(IGuiTreeBuilder, int, string, GuiFontStyle?, Action{double, double}, Action, double?, double?, GuiSizeMode?, GuiSizeMode?, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
     /// </summary>
-    public static IGuiComponentBuilder<GuiDialogTitleBar> AddDialogTitleBar(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBar(
+        this IGuiTreeBuilder builder,
         int key,
         string title,
         Func<System.Threading.Tasks.Task> onClose,
@@ -227,8 +241,8 @@ public static class RenderTreeBuilderExtensions
             width, height, widthMode, heightMode, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
 
-    private static IGuiComponentBuilder<GuiDialogTitleBar> AddDialogTitleBarCore(
-        IGuiRenderTreeBuilder builder,
+    private static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBarCore(
+        IGuiTreeBuilder builder,
         int key,
         string title,
         GuiFontStyle? titleFont,
@@ -274,8 +288,8 @@ public static class RenderTreeBuilderExtensions
     /// Optionally supply a <paramref name="font"/>; if omitted the label uses
     /// <see cref="GuiFontStyle.Default"/>.
     /// </summary>
-    public static IGuiComponentBuilder<GuiLabel> AddLabel(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiLabel> AddLabel(
+        this IGuiTreeBuilder builder,
         int key,
         string text,
         GuiFontStyle? font = null,
@@ -301,8 +315,8 @@ public static class RenderTreeBuilderExtensions
     /// optionally sets its <see cref="GuiRectangle.Color"/>. All layout parameters may
     /// be set inline as named arguments.
     /// </summary>
-    public static IGuiComponentBuilder<GuiRectangle> AddRectangle(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiRectangle> AddRectangle(
+        this IGuiTreeBuilder builder,
         int key,
         GuiColor? color = null,
         GuiSize? width = null,
@@ -329,8 +343,8 @@ public static class RenderTreeBuilderExtensions
     /// <see cref="GuiStyle.DialogTitleBarBgColor"/>. Override any property or
     /// layout parameter via fluent <c>.Configure(...)</c> / <c>.ConfigureLayout(...)</c>.
     /// </summary>
-    public static IGuiComponentBuilder<GuiSeparator> AddSeparator(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiSeparator> AddSeparator(
+        this IGuiTreeBuilder builder,
         int key,
         GuiThickness? margin = null)
     {
@@ -352,8 +366,8 @@ public static class RenderTreeBuilderExtensions
     /// content.
     /// </para>
     /// </summary>
-    public static IGuiComponentBuilder<GuiInset> AddInset(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiInset> AddInset(
+        this IGuiTreeBuilder builder,
         int key,
         GuiSize? width = null,
         GuiSize? height = null,
@@ -369,7 +383,7 @@ public static class RenderTreeBuilderExtensions
         int? depth = null,
         float? brightness = null,
         double? radius = null,
-        GuiRenderFragment? content = null)
+        GuiTreeFragment? content = null)
     {
         var b = ApplyLayout(builder.AddComponent<GuiInset>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
@@ -403,8 +417,8 @@ public static class RenderTreeBuilderExtensions
     /// requiring an explicit cast — same DX as Blazor's overloaded callback APIs.
     /// </para>
     /// </summary>
-    public static IGuiComponentBuilder<GuiButton> AddButton(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiButton> AddButton(
+        this IGuiTreeBuilder builder,
         int key,
         string text,
         Action? onClick = null,
@@ -424,10 +438,10 @@ public static class RenderTreeBuilderExtensions
             horizontalAlignment, verticalAlignment);
 
     /// <summary>
-    /// Asynchronous-handler overload of <see cref="AddButton(IGuiRenderTreeBuilder, int, string, System.Action, double?, double?, GuiSizeMode?, GuiSizeMode?, bool, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
+    /// Asynchronous-handler overload of <see cref="AddButton(IGuiTreeBuilder, int, string, System.Action, double?, double?, GuiSizeMode?, GuiSizeMode?, bool, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
     /// </summary>
-    public static IGuiComponentBuilder<GuiButton> AddButton(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiButton> AddButton(
+        this IGuiTreeBuilder builder,
         int key,
         string text,
         System.Func<System.Threading.Tasks.Task> onClick,
@@ -445,8 +459,8 @@ public static class RenderTreeBuilderExtensions
             width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
 
-    private static IGuiComponentBuilder<GuiButton> AddButtonCore(
-        IGuiRenderTreeBuilder builder,
+    private static IGuiTreeBuilder<GuiButton> AddButtonCore(
+        IGuiTreeBuilder builder,
         int key,
         string text,
         GuiCallback onClick,
@@ -473,11 +487,11 @@ public static class RenderTreeBuilderExtensions
     }
 
     /// <summary>Sets <see cref="GuiButton.OnClick"/> to a synchronous handler. Method-group friendly.</summary>
-    public static IGuiComponentBuilder<GuiButton> OnClick(this IGuiComponentBuilder<GuiButton> builder, System.Action handler)
+    public static IGuiTreeBuilder<GuiButton> OnClick(this IGuiTreeBuilder<GuiButton> builder, System.Action handler)
         => builder.Configure(btn => btn.OnClick = handler);
 
     /// <summary>Sets <see cref="GuiButton.OnClick"/> to an asynchronous handler. Method-group friendly.</summary>
-    public static IGuiComponentBuilder<GuiButton> OnClick(this IGuiComponentBuilder<GuiButton> builder, System.Func<System.Threading.Tasks.Task> handler)
+    public static IGuiTreeBuilder<GuiButton> OnClick(this IGuiTreeBuilder<GuiButton> builder, System.Func<System.Threading.Tasks.Task> handler)
         => builder.Configure(btn => btn.OnClick = handler);
 
     /// <summary>
@@ -497,9 +511,9 @@ public static class RenderTreeBuilderExtensions
     /// </para>
     /// </summary>
     public static void AddCascadingValue<T>(
-        this IGuiRenderTreeBuilder builder,
+        this IGuiTreeBuilder builder,
         T value,
-        GuiRenderFragment content,
+        GuiTreeFragment content,
         string? name = null)
         => builder.PushCascadeScope(value, name, content);
 
@@ -539,11 +553,11 @@ public static class RenderTreeBuilderExtensions
     /// The fluent builder for the <see cref="GuiTooltip"/> slot, so callers can attach
     /// mouse handlers (e.g. <c>OnMouseEnter</c>) or chain further <c>Configure</c> calls.
     /// </returns>
-    public static IGuiComponentBuilder<GuiTooltip> AddTooltip(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiTooltip> AddTooltip(
+        this IGuiTreeBuilder builder,
         int key,
-        GuiRenderFragment tooltip,
-        GuiRenderFragment content,
+        GuiTreeFragment tooltip,
+        GuiTreeFragment content,
         Action<GuiTooltipBackground>? configureBackground = null)
     {
         return builder.Add<GuiTooltip>(key).Configure(t =>
@@ -561,8 +575,8 @@ public static class RenderTreeBuilderExtensions
     /// optionally enable the right-edge spinner buttons via <paramref name="showSpinnerButtons"/>
     /// / <paramref name="spinnerInterval"/>.
     /// </summary>
-    public static IGuiComponentBuilder<GuiTextInput> AddTextInput(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiTextInput> AddTextInput(
+        this IGuiTreeBuilder builder,
         int key,
         string? text = null,
         Action<string>? onTextChanged = null,
@@ -638,8 +652,8 @@ public static class RenderTreeBuilderExtensions
     /// enabled by default. Step size is configured via <paramref name="interval"/>
     /// (default <c>1</c>).
     /// </summary>
-    public static IGuiComponentBuilder<GuiTextInput> AddNumberInput(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiTextInput> AddNumberInput(
+        this IGuiTreeBuilder builder,
         int key,
         string? text = null,
         Action<string>? onTextChanged = null,
@@ -678,8 +692,8 @@ public static class RenderTreeBuilderExtensions
     /// initial <paramref name="checked_"/> state and an <paramref name="onCheckedChanged"/>
     /// handler.
     /// </summary>
-    public static IGuiComponentBuilder<GuiCheckbox> AddCheckbox(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiCheckbox> AddCheckbox(
+        this IGuiTreeBuilder builder,
         int key,
         bool? checked_ = null,
         Action<bool>? onCheckedChanged = null,
@@ -724,8 +738,8 @@ public static class RenderTreeBuilderExtensions
     /// to defer the callback until the user releases the mouse — the visual still
     /// updates live during a drag, but the callback fires once with the final value.
     /// </summary>
-    public static IGuiComponentBuilder<GuiSlider> AddSlider(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiSlider> AddSlider(
+        this IGuiTreeBuilder builder,
         int key,
         int? value = null,
         int? minValue = null,
@@ -803,15 +817,15 @@ public static class RenderTreeBuilderExtensions
     /// separate <paramref name="selectedTemplate"/> when the closed-state visual differs
     /// from the popup row (otherwise <paramref name="itemTemplate"/> is reused for both).
     /// </summary>
-    public static IGuiComponentBuilder<GuiDropdown<T>> AddDropdown<T>(
-        this IGuiRenderTreeBuilder builder,
+    public static IGuiTreeBuilder<GuiDropdown<T>> AddDropdown<T>(
+        this IGuiTreeBuilder builder,
         int key,
         IReadOnlyList<T>? items = null,
         int? selectedIndex = null,
         Action<int>? onSelectionChanged = null,
         Action<T>? onItemSelected = null,
-        GuiRenderFragment<T>? itemTemplate = null,
-        GuiRenderFragment<T>? selectedTemplate = null,
+        GuiTreeFragment<T>? itemTemplate = null,
+        GuiTreeFragment<T>? selectedTemplate = null,
         string? placeholder = null,
         GuiFontStyle? font = null,
         double? itemHeight = null,
@@ -886,8 +900,8 @@ public static class RenderTreeBuilderExtensions
 
     // Composes an Action<GuiComponentLayoutParameters> from only the non-null parameters.
     // Returns the builder unchanged (no allocation) when nothing was provided.
-    private static IGuiComponentBuilder<T> ApplyLayout<T>(
-        IGuiComponentBuilder<T> builder,
+    private static IGuiTreeBuilder<T> ApplyLayout<T>(
+        IGuiTreeBuilder<T> builder,
         GuiSize? width,
         GuiSize? height,
         GuiSizeMode? widthMode,

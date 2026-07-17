@@ -35,7 +35,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
         _navigator = GetCascadingValue<ModConfigPageNavigator>();
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         builder.AddContainer(0,
             widthMode: GuiSizeMode.Fill,

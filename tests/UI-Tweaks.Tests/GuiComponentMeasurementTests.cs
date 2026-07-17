@@ -216,7 +216,7 @@ public class GuiComponentMeasurementTests
         private IGuiNodeSlot? _slot;
 
         public GuiComponentLayoutParameters LayoutParameters { get; } = new();
-        public GuiRenderFragment RenderFragment { get; } = _ => { };
+        public GuiTreeFragment TreeFragment { get; } = _ => { };
         public IGuiNodeSlot RenderSlot => _slot!;
 
         public void Attach(IGuiNodeSlot slot)

@@ -3,7 +3,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <summary>
 /// Carries the layout and spacing configuration for a single slot in the render tree.
 /// Created by <see cref="GuiRenderTreeBuilder"/> when a component is declared, then mutated
-/// in place through the fluent <see cref="IGuiComponentBuilder"/> API; consumed by the layout pass.
+/// in place through the fluent <see cref="IGuiTreeBuilder"/> API; consumed by the layout pass.
 /// </summary>
 public sealed class GuiComponentLayoutParameters
 {

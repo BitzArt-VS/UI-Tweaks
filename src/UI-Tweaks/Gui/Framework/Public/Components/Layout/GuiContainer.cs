@@ -42,7 +42,7 @@ public class GuiContainer : GuiComponent
     /// Set via <c>.WithContent(b =&gt; { ... })</c>, the <c>content:</c> argument on
     /// <c>AddContainer</c>, or <c>.Configure(c =&gt; c.Content = ...)</c>.
     /// </summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <summary>
     /// Background fill colour. Defaults to fully transparent — the default
@@ -157,9 +157,9 @@ public class GuiContainer : GuiComponent
     /// <summary>
     /// Renders the nested <see cref="Content"/> fragment into this container. Subclasses may
     /// override to inject additional children (e.g. an overlay click target); call
-    /// <c>base.BuildRenderTree(builder)</c> to keep <see cref="Content"/> support.
+    /// <c>base.BuildComponentTree(builder)</c> to keep <see cref="Content"/> support.
     /// </summary>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         Content?.Invoke(builder);
     }

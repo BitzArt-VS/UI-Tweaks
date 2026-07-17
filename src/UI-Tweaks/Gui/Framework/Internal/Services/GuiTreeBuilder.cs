@@ -3,11 +3,11 @@ using Cairo;
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// Executes <see cref="GuiRenderFragment"/>s, reconciles the resulting
+/// Executes <see cref="GuiTreeFragment"/>s, reconciles the resulting
 /// <see cref="TreeFrame"/> instructions against previously-known state,
 /// and manages the lifetimes of child <see cref="IGuiNode"/> instances.
 /// </summary>
-internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
+internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
 {
     private readonly GuiSurfaceRenderer _renderer;
 
@@ -44,7 +44,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         _nodeSlots = _renderOrder.AsReadOnly();
     }
 
-    public IGuiComponentBuilder<T> AddComponent<T>(int key)
+    public IGuiTreeBuilder<T> AddComponent<T>(int key)
         where T : IGuiNode, new()
     {
         var slotKey = new ComponentSlotKey(typeof(T), key);
@@ -65,7 +65,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             // Reuse the frame that lives inside the persistent slot — zero allocation in steady state.
             frame = (TreeFrame<T>)existingSlot.Frame;
             // Discard any actions accumulated on the previous pass. Actions are re-registered
-            // each pass by the user's BuildRenderTree, so per-pass values (e.g. inline
+            // each pass by the user's BuildComponentTree, so per-pass values (e.g. inline
             // `width: x` arguments) take effect immediately on the next pass.
             frame.Reset();
         }
@@ -92,7 +92,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     /// and is restored after <paramref name="content"/> returns — no component is created,
     /// no slot is allocated, and the layout tree is completely unaffected.
     /// </summary>
-    public void PushCascadeScope<T>(T value, string? name, GuiRenderFragment content)
+    public void PushCascadeScope<T>(T value, string? name, GuiTreeFragment content)
     {
         var saved = CascadeChain;
         CascadeChain = new CascadingValueChain(saved, typeof(T), name, value);
@@ -108,7 +108,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     ///   <item><description><b>Patch phase</b> — pushes configure into reused instances; creates new ones where needed; prunes stale keyed slots; recurses into each component's own children.</description></item>
     /// </list>
     /// </summary>
-    internal void Run(GuiRenderFragment fragment)
+    internal void Run(GuiTreeFragment fragment)
     {
         _frames.Clear();
         _renderOrder.Clear();
@@ -209,8 +209,8 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         slot.Instance.OnParametersSet();
         // Cancel any separately scheduled rebuild for this child's fragment — we are
         // about to rebuild its subtree right now, making the pending entry redundant.
-        _renderer.Cancel(slot.Instance.RenderFragment);
-        slot.ChildTreeBuilder.Run(slot.Instance.RenderFragment);
+        _renderer.Cancel(slot.Instance.TreeFragment);
+        slot.ChildTreeBuilder.Run(slot.Instance.TreeFragment);
     }
 
     /// <summary>
@@ -795,7 +795,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
     }
 
-    private sealed class TreeFrame<T> : TreeFrame, IGuiComponentBuilder<T>
+    private sealed class TreeFrame<T> : TreeFrame, IGuiTreeBuilder<T>
         where T : IGuiNode, new()
     {
         private readonly GuiTreeBuilder _treeBuilder;
@@ -812,7 +812,7 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             Key = key;
         }
 
-        IGuiComponentBuilder<T> IGuiComponentBuilder<T>.AddConfigurationAction(Action<T> action)
+        IGuiTreeBuilder<T> IGuiTreeBuilder<T>.AddConfigurationAction(Action<T> action)
         {
             _configure += action;
             return this;
@@ -885,10 +885,10 @@ internal sealed class GuiTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             SlotCallbacks.Combine(_ownCallbacks, _externalCallbacks).ApplyTo(slot);
         }
 
-        IGuiComponentBuilder<TNewComponent> IGuiRenderTreeBuilder.AddComponent<TNewComponent>(int key)
+        IGuiTreeBuilder<TNewComponent> IGuiTreeBuilder.AddComponent<TNewComponent>(int key)
             => _treeBuilder.AddComponent<TNewComponent>(key);
 
-        void IGuiRenderTreeBuilder.PushCascadeScope<TValue>(TValue value, string? name, GuiRenderFragment content)
+        void IGuiTreeBuilder.PushCascadeScope<TValue>(TValue value, string? name, GuiTreeFragment content)
             => _treeBuilder.PushCascadeScope(value, name, content);
 
         private sealed class SlotBuilder(TreeFrame<T> frame, IGuiNode instance) : IGuiSlotBuilder

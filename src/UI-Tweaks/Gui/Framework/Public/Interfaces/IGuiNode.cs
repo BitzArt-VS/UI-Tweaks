@@ -4,7 +4,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 public interface IGuiNode
 {
-    public GuiRenderFragment RenderFragment { get; }
+    public GuiTreeFragment TreeFragment { get; }
 
     public void Attach(IGuiNodeSlot slot);
 

@@ -30,10 +30,10 @@ namespace BitzArt.UI.Tweaks.Gui;
 public sealed class GuiTooltip : GuiNode
 {
     /// <summary>The wrapped content — laid out at the wrapper's declaration site.</summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <summary>The render fragment shown inside the floating tooltip surface.</summary>
-    public GuiRenderFragment? TooltipContent { get; set; }
+    public GuiTreeFragment? TooltipContent { get; set; }
 
     /// <summary>
     /// Optional configuration applied to the automatic <see cref="GuiTooltipBackground"/>
@@ -44,7 +44,7 @@ public sealed class GuiTooltip : GuiNode
 
     private TooltipHost? _host;
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Inline wrapped content. Because GuiTooltip is layout-transparent (IGuiNode only),
         // the renderer splices these slots into the parent's flow rather than allocating

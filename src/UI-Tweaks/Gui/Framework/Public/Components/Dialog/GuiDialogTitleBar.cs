@@ -78,7 +78,7 @@ public class GuiDialogTitleBar : GuiContainer
     private double _dragLastY;
     private bool _dragging;
 
-    // Captured at BuildRenderTree time (via Configure on the close-icon slot) so DrawBackground
+    // Captured at BuildComponentTree time (via Configure on the close-icon slot) so DrawBackground
     // can update its absolute Margin.Left to anchor it to the bar's right edge once the bar's
     // actual width is known. The reference is reset on every blueprint pass — Configure runs
     // every rebuild and re-assigns it.
@@ -124,10 +124,10 @@ public class GuiDialogTitleBar : GuiContainer
         }
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Render any user-supplied content first (matches the GuiContainer contract).
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
         // Drag click-target — only emitted when an OnDrag handler is attached. An absolute,
         // fill-mode container covers the title bar's entire content area without participating
@@ -166,7 +166,7 @@ public class GuiDialogTitleBar : GuiContainer
         }
     }
 
-    private static void BuildDragTargetContent(IGuiRenderTreeBuilder builder)
+    private static void BuildDragTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0, fill: true, positioning: GuiComponentPositioning.Absolute);
     }

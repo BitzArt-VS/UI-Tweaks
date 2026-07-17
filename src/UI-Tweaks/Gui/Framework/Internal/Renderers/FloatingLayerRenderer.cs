@@ -11,13 +11,13 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
     private FloatingLayerPlacement _activePlacement;
     private bool _refreshedThisFrame;
 
-    protected GuiRenderFragment? ActiveFragment { get; set; }
+    protected GuiTreeFragment? ActiveFragment { get; set; }
 
     internal bool IsActive => ActiveFragment is not null;
 
     public FloatingLayerRenderer(ICoreClientAPI clientApi) : base(clientApi) { }
 
-    public void Show(object token, GuiRenderFragment content, in FloatingLayerPlacement placement)
+    public void Show(object token, GuiTreeFragment content, in FloatingLayerPlacement placement)
     {
         _activeToken = token;
         ActiveFragment = content;
@@ -116,7 +116,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         _measuredSize = ResolveLogicalSize();
     }
 
-    private void BuildRootFragment(IGuiRenderTreeBuilder builder)
+    private void BuildRootFragment(IGuiTreeBuilder builder)
     {
         GuiSize? width = null;
         GuiSize? height = null;

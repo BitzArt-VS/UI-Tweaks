@@ -30,7 +30,7 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
         _context = GetCascadingValue<ModConfigContext>();
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         var config = _context?.Config.Zoom;
 
@@ -126,11 +126,11 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
     }
 
     private static void BuildSettingRow(
-        IGuiRenderTreeBuilder builder,
+        IGuiTreeBuilder builder,
         int key,
         string label,
-        GuiRenderFragment tooltip,
-        GuiRenderFragment control)
+        GuiTreeFragment tooltip,
+        GuiTreeFragment control)
     {
         builder.AddContainer(key,
             widthMode: GuiSizeMode.Fill,

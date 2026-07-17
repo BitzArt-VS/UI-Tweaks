@@ -37,10 +37,10 @@ public sealed class GuiInset : GuiComponent
     /// children — rendered after the inset's own background (brightness overlay + emboss
     /// ring) so they appear inside the recessed frame.
     /// </summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         Content?.Invoke(builder);
     }

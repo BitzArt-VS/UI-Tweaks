@@ -52,7 +52,7 @@ public sealed class OverlayHost
     /// <param name="content">The render fragment producing the overlay's content. Should
     /// be reference-stable across frames where the overlay's identity is unchanged so the
     /// renderer's reuse path skips per-frame closures.</param>
-    public void Show(object token, GuiComponentBounds dialogLocalBounds, GuiRenderFragment content)
+    public void Show(object token, GuiComponentBounds dialogLocalBounds, GuiTreeFragment content)
     {
         _activeBounds = dialogLocalBounds;
 

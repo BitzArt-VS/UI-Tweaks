@@ -41,10 +41,10 @@ public sealed class GuiShadow : GuiComponent
 
     /// <summary>Optional nested render fragment. When set, its declared subtree becomes
     /// the shadow's children — rendered after the shadow so they sit on top of it.</summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         Content?.Invoke(builder);
     }

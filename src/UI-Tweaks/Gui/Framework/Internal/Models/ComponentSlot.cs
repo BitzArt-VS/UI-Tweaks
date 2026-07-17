@@ -49,7 +49,7 @@ internal sealed class ComponentSlot(
         OnKeyDown.HasHandler || OnKeyUp.HasHandler || OnKeyPress.HasHandler || OnFocusChanged.HasHandler;
 
     public void RequestReconcile()
-        => _renderer.Schedule(Instance.RenderFragment, ChildTreeBuilder);
+        => _renderer.Schedule(Instance.TreeFragment, ChildTreeBuilder);
 
     public void RequestLayout()
         => _renderer.RequestLayout();

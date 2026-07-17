@@ -17,7 +17,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
     private static readonly GuiColor SidebarSeparatorColor = GuiColor.FromRgba(0, 0, 0, 0.34);
     private static readonly GuiColor BreadcrumbSeparatorColor = GuiColor.FromRgba(0.78, 0.69, 0.58, 0.10);
 
-    private sealed record NavPage(string Label, GuiRenderFragment Content);
+    private sealed record NavPage(string Label, GuiTreeFragment Content);
 
     private static readonly NavPage[] NavItems =
     [
@@ -92,7 +92,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
         });
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         builder.AddCascadingValue(Context, builder =>
         builder.AddCascadingValue(Navigator, builder =>
@@ -111,7 +111,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
         }));
     }
 
-    private void BuildBody(IGuiRenderTreeBuilder builder)
+    private void BuildBody(IGuiTreeBuilder builder)
     {
         builder.AddContainer(0, fill: true, direction: GuiDirection.Horizontal,
             content: builder =>
