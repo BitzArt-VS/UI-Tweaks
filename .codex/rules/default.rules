@@ -24,3 +24,12 @@ prefix_rule(
         "dotnet test",
     ],
 )
+
+prefix_rule(
+    pattern = ["dotnet", "run", "--project", "tools/LineCounter/LineCounter.csproj"],
+    decision = "allow",
+    justification = "Run the repository's read-only C# line counter.",
+    match = [
+        "dotnet run --project tools/LineCounter/LineCounter.csproj",
+    ],
+)
