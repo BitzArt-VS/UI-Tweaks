@@ -140,7 +140,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
     private void DrawToSurface(float scale)
     {
         var bounds = new GuiComponentBounds(0, 0, _measuredSize.Width, _measuredSize.Height);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, scale, arrange: true);
+        DrawSurfaceContents(bounds, scale, arrange: true);
     }
 
     private void Blit()

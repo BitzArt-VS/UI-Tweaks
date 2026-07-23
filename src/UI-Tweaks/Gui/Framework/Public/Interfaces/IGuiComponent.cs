@@ -5,7 +5,12 @@ public interface IGuiComponent : IGuiNode
     public GuiComponentLayoutParameters LayoutParameters { get; }
 
     /// <summary>
-    /// Returns the component's desired content size given the available space.
+    /// Attempts to arrange this component using layout context available through
+    /// its mounted slot.
     /// </summary>
-    public GuiLayoutSize Measure(GuiLayoutSize available);
+    /// <returns>
+    /// <c>null</c> when the component's arranged size cannot yet be resolved;
+    /// otherwise, the resolved size and an optional resolved position.
+    /// </returns>
+    public GuiComponentBounds? Arrange();
 }

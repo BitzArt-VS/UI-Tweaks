@@ -147,7 +147,6 @@ public class GuiBreadcrumbs<T> : GuiComponent
         }
 
         builder.AddContainer(0,
-            direction: GuiDirection.Horizontal,
             widthMode: GuiSizeMode.Fill,
             margin: bottomMargin,
             content: BuildRow);

@@ -113,7 +113,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
 
     private void BuildBody(IGuiTreeBuilder builder)
     {
-        builder.AddContainer(0, fill: true, direction: GuiDirection.Horizontal,
+        builder.AddContainer(0, fill: true,
             content: builder =>
             {
                 builder.AddContainer(0,

@@ -31,13 +31,12 @@ public static class GuiTreeBuilderExtensions
         bool fill = false,
         GuiThickness? margin = null,
         GuiThickness? padding = null,
-        GuiDirection? direction = null,
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null)
         where T : IGuiNode, new()
         => ApplyLayout(builder.AddComponent<T>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
 
     /// <summary>
@@ -66,7 +65,6 @@ public static class GuiTreeBuilderExtensions
         bool fill = false,
         GuiThickness? margin = null,
         GuiThickness? padding = null,
-        GuiDirection? direction = null,
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
@@ -79,7 +77,7 @@ public static class GuiTreeBuilderExtensions
         GuiTreeFragment? content = null)
     {
         var b = ApplyLayout(builder.AddComponent<GuiContainer>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (background is not null)
         {
@@ -140,7 +138,6 @@ public static class GuiTreeBuilderExtensions
         bool fill = false,
         GuiThickness? margin = null,
         GuiThickness? padding = null,
-        GuiDirection? direction = null,
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
@@ -149,7 +146,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<TContainer>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         return content is null ? b : b.Configure(c => c.Content = content);
     }
@@ -175,7 +172,6 @@ public static class GuiTreeBuilderExtensions
         bool fill = false,
         GuiThickness? margin = null,
         GuiThickness? padding = null,
-        GuiDirection? direction = null,
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
@@ -183,7 +179,7 @@ public static class GuiTreeBuilderExtensions
     {
         return builder.AddContainer<GuiDialogBackground>(
             key, width, height, widthMode, heightMode, fill,
-            margin, padding, direction, positioning,
+            margin, padding, positioning,
             horizontalAlignment, verticalAlignment, content);
     }
 
@@ -271,7 +267,7 @@ public static class GuiTreeBuilderExtensions
                 t.OnClose = onClose;
             }),
             width, resolvedHeight, resolvedWidthMode, heightMode, fill: false,
-            margin, padding, direction: null, positioning,
+            margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
 
         if (titleFont is not null)
@@ -305,7 +301,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiLabel>(key).Configure(l => l.Text = text),
-            width, height, widthMode, heightMode, fill: false, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill: false, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         return font is null ? b : b.Configure(l => l.Font = font.Value);
     }
@@ -332,7 +328,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiRectangle>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         return color is null ? b : b.Configure(r => r.Color = color.Value);
     }
@@ -376,7 +372,6 @@ public static class GuiTreeBuilderExtensions
         bool fill = false,
         GuiThickness? margin = null,
         GuiThickness? padding = null,
-        GuiDirection? direction = null,
         GuiComponentPositioning? positioning = null,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null,
@@ -386,7 +381,7 @@ public static class GuiTreeBuilderExtensions
         GuiTreeFragment? content = null)
     {
         var b = ApplyLayout(builder.AddComponent<GuiInset>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (depth is not null)
         {
@@ -481,7 +476,7 @@ public static class GuiTreeBuilderExtensions
                 btn.Text = text;
                 btn.OnClick = onClick;
             }),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         return b;
     }
@@ -599,7 +594,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiTextInput>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (text is not null)
         {
@@ -711,7 +706,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiCheckbox>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (checked_ is not null)
         {
@@ -762,7 +757,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiSlider>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (minValue is not null)
         {
@@ -843,7 +838,7 @@ public static class GuiTreeBuilderExtensions
     {
         var b = ApplyLayout(
             builder.AddComponent<GuiDropdown<T>>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            width, height, widthMode, heightMode, fill, margin, padding, positioning,
             horizontalAlignment, verticalAlignment);
         if (items is not null)
         {
@@ -909,7 +904,6 @@ public static class GuiTreeBuilderExtensions
         bool fill,
         GuiThickness? margin,
         GuiThickness? padding,
-        GuiDirection? direction,
         GuiComponentPositioning? positioning,
         GuiHorizontalAlignment? horizontalAlignment = null,
         GuiVerticalAlignment? verticalAlignment = null)
@@ -945,11 +939,6 @@ public static class GuiTreeBuilderExtensions
         if (padding != null)
         {
             action += lp => lp.Padding = padding.Value;
-        }
-
-        if (direction != null)
-        {
-            action += lp => lp.Direction = direction.Value;
         }
 
         if (positioning != null)

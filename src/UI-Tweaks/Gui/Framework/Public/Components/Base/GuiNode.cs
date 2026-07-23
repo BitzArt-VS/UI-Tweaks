@@ -10,7 +10,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <para>
 /// Layout-participating components inherit from <see cref="GuiComponent"/> (which extends
 /// this base with <see cref="GuiComponent.LayoutParameters"/> and
-/// <see cref="GuiComponent.Measure"/>). Pure layout-transparent wrappers — tooltips,
+/// <see cref="GuiComponent.Arrange"/>). Pure layout-transparent wrappers — tooltips,
 /// focus trackers, debug overlays — inherit from this base directly.
 /// </para>
 /// </summary>

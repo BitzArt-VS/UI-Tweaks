@@ -2,11 +2,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Default base class for layout-participating components. Extends <see cref="GuiNode"/>
-/// with the <see cref="LayoutParameters"/> bundle and a virtual <see cref="Measure"/>
-/// hook consumed by the layout pass. The default measurement walks the component's
-/// mounted child slots and applies the framework's stack-layout sizing rules. Pure
-/// decorators that do not occupy layout space should inherit from <see cref="GuiNode"/>
-/// directly instead.
+/// with the <see cref="LayoutParameters"/> bundle and a virtual <see cref="Arrange"/>
+/// hook consumed by the layout pass. Pure decorators that do not occupy layout space
+/// should inherit from <see cref="GuiNode"/> directly instead.
 /// </summary>
 public abstract class GuiComponent : GuiNode, IGuiComponent
 {
@@ -18,17 +16,9 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     }
 
     /// <inheritdoc/>
-    public virtual GuiLayoutSize Measure(GuiLayoutSize available)
+    public virtual GuiComponentBounds? Arrange()
     {
-        if (Slot is null)
-        {
-            return default;
-        }
-
-        return GuiComponentLayout.MeasureContent(
-            Slot.Children,
-            available,
-            LayoutParameters.Direction);
+        return null;
     }
 
     /// <summary>

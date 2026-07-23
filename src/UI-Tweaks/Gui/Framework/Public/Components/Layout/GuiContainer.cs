@@ -6,9 +6,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <summary>
 /// The framework's general-purpose layout/surface component — analogous to a
 /// <c>&lt;div&gt;</c> in HTML or <c>Container</c> in Flutter. Hosts a nested render tree
-/// declared via <see cref="Content"/>, stacks children according to
-/// <see cref="GuiComponentLayoutParameters.Direction"/> (default
-/// <see cref="GuiDirection.Vertical"/>), and optionally paints a background fill.
+/// declared via <see cref="Content"/>, flows children from left to right with line
+/// wrapping, and optionally paints a background fill.
 /// <para>
 /// Both <see cref="GuiComponentLayoutParameters.WidthMode"/> and
 /// <see cref="GuiComponentLayoutParameters.HeightMode"/> default to

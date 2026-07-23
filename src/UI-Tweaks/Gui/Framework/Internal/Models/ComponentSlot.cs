@@ -20,9 +20,8 @@ internal sealed class ComponentSlot(
     // since the slot key includes the type — the frame type always matches.
     public readonly GuiTreeBuilder.TreeFrame Frame = frame;
 
-    public bool HasArrangedBounds;
     public bool IsScrollable;
-    public GuiComponentBounds Bounds;
+    public GuiComponentBounds? Bounds { get; private set; }
     public GuiComponentBounds ScrollClipBounds;
 
     public GuiCallback<GuiMouseEventArgs> OnMouseDown;
@@ -74,16 +73,33 @@ internal sealed class ComponentSlot(
         return chain.TryGet(name, out value);
     }
 
+    public GuiComponentBounds? Arrange(bool layoutChanged = false)
+    {
+        if (Instance is not IGuiComponent component)
+        {
+            throw new InvalidOperationException(
+                "A layout-transparent node cannot be arranged as a component.");
+        }
+
+        if (!layoutChanged && Bounds is GuiComponentBounds arrangedBounds)
+        {
+            return arrangedBounds;
+        }
+
+        GuiComponentBounds? bounds = component.Arrange();
+        Bounds = bounds;
+
+        return bounds;
+    }
+
     public void SetLayoutTransparentBounds(GuiComponentBounds bounds)
     {
-        HasArrangedBounds = true;
         IsScrollable = false;
         Bounds = bounds;
     }
 
     public void SetComponentBounds(GuiComponentBounds bounds)
     {
-        HasArrangedBounds = true;
         IsScrollable = false;
         Bounds = bounds;
         ScrollClipBounds = default;

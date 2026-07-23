@@ -15,6 +15,21 @@ public interface IGuiNodeSlot
 
     public IReadOnlyList<IGuiNodeSlot> Children { get; }
 
+    public GuiComponentBounds? Bounds { get; }
+
+    /// <summary>
+    /// Ensures the mounted component has an arrangement result when its layout
+    /// dependencies can be resolved.
+    /// </summary>
+    /// <param name="layoutChanged">
+    /// Whether layout inputs changed since the cached arrangement.
+    /// </param>
+    /// <returns>
+    /// <c>null</c> when size remains unresolved; otherwise, the cached or newly
+    /// calculated size and optional position.
+    /// </returns>
+    public GuiComponentBounds? Arrange(bool layoutChanged = false);
+
     public void RequestReconcile();
 
     public void RequestLayout();

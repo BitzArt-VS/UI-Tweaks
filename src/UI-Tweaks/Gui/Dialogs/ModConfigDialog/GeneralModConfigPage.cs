@@ -140,7 +140,6 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
         builder.AddContainer(key,
             widthMode: GuiSizeMode.Fill,
             height: RowHeight,
-            direction: GuiDirection.Horizontal,
             margin: new(0, 0, RowSpacing, 0),
             content: builder =>
             {

@@ -1,7 +1,7 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// A 2D point in logical (unscaled) pixel space.
-/// Used in mouse event payloads to carry both dialog-relative and screen-absolute positions.
+/// A point in logical GUI coordinates, where X increases to the right and
+/// Y increases downward.
 /// </summary>
 public readonly record struct GuiPoint(double X, double Y);

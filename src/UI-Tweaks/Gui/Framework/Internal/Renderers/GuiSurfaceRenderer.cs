@@ -72,13 +72,14 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         _physicalHeight = physH;
     }
 
-    protected void DrawSurfaceContents(GuiComponentBounds bounds, GuiDirection direction, float scale, bool arrange)
+    protected void DrawSurfaceContents(GuiComponentBounds bounds, float scale, bool arrange)
     {
         DrawSurfaceContents(bounds, scale, arrange, context =>
         {
             if (arrange)
             {
-                TreeBuilder.Render(context, bounds, direction);
+                TreeBuilder.ArrangeRoot(layoutChanged: true);
+                TreeBuilder.Render(context, bounds);
             }
             else
             {

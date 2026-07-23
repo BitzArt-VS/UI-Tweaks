@@ -208,7 +208,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         }
 
         var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: true);
+        DrawSurfaceContents(bounds, _currentScale, arrange: true);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
         {
@@ -223,7 +223,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _tooltipHost.ResetFrame();
 
         var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: false);
+        DrawSurfaceContents(bounds, _currentScale, arrange: false);
 
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }

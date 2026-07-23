@@ -1,15 +1,15 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// The final arranged bounds of a component — its position and size within the rendered surface.
-/// All values are in logical (Cairo) pixels.
+/// A component's size and optional position in logical GUI coordinates.
 /// </summary>
-public readonly record struct GuiComponentBounds(double X, double Y, double Width, double Height)
-{
-    public static readonly GuiComponentBounds Empty = new(0, 0, 0, 0);
-
-    public double Right => X + Width;
-    public double Bottom => Y + Height;
-
-    public GuiComponentBounds Translated(double dx, double dy) => this with { X = X + dx, Y = Y + dy };
-}
+/// <param name="Position">
+/// The top-left reference point, or <c>null</c> when position is unresolved.
+/// </param>
+/// <param name="Size">
+/// Width extends rightward and height extends downward from
+/// <paramref name="Position"/>.
+/// </param>
+public readonly record struct GuiComponentBounds(
+    GuiPoint? Position,
+    GuiLayoutSize Size);

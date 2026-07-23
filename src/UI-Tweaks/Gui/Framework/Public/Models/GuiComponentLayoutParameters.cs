@@ -41,9 +41,6 @@ public sealed class GuiComponentLayoutParameters
     /// </summary>
     public GuiSizeMode HeightMode { get; set; } = GuiSizeMode.FitContent;
 
-    /// <summary>Direction in which this component stacks its children.</summary>
-    public GuiDirection Direction { get; set; } = GuiDirection.Vertical;
-
     /// <summary>
     /// Horizontal alignment of this slot within the available cross-axis space. Applies on
     /// the cross axis of relative slots whose parent stacks vertically, and on both axes of
@@ -75,7 +72,6 @@ public sealed class GuiComponentLayoutParameters
         Height = GuiSize.Auto;
         WidthMode = GuiSizeMode.FitContent;
         HeightMode = GuiSizeMode.FitContent;
-        Direction = GuiDirection.Vertical;
         HorizontalAlignment = GuiHorizontalAlignment.Left;
         VerticalAlignment = GuiVerticalAlignment.Top;
     }

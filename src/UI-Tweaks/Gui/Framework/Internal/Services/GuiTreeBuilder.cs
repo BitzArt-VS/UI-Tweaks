@@ -215,6 +215,23 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         slot.ChildTreeBuilder.Run(slot.Instance.TreeFragment);
     }
 
+    internal GuiComponentBounds? ArrangeRoot(bool layoutChanged = false)
+    {
+        if (_ownerSlot is not null)
+        {
+            throw new InvalidOperationException(
+                "Only a root tree builder can arrange the GUI root.");
+        }
+
+        if (_renderOrder.Count != 1)
+        {
+            throw new InvalidOperationException(
+                "A GUI tree must contain exactly one root node.");
+        }
+
+        return _renderOrder[0].Arrange(layoutChanged);
+    }
+
     /// <summary>
     /// Walks the current render order, running the layout pass for each child and then
     /// calling <see cref="IGuiNode.Render"/> with its computed bounds, before recursing
@@ -225,14 +242,11 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     /// The parent's content area (already inset by the parent's padding).
     /// Relative children are stacked inside this area; absolute children are pinned to it.
     /// </param>
-    /// <param name="direction">
-    /// The stacking direction declared by the parent (<see cref="GuiComponentLayoutParameters.Direction"/>).
-    /// </param>
-    internal void Render(Context context, GuiComponentBounds contentBounds, GuiDirection direction = GuiDirection.Vertical)
+    internal void Render(Context context, GuiComponentBounds contentBounds)
     {
         double cursorX = contentBounds.X;
         double cursorY = contentBounds.Y;
-        RenderInto(context, contentBounds, direction, ref cursorX, ref cursorY);
+        RenderInto(context, contentBounds, ref cursorX, ref cursorY);
     }
 
     internal void Paint(Context context)
@@ -245,14 +259,13 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     /// <see cref="Render"/> and recursively for layout-transparent wrappers (slots whose
     /// instance does not implement <see cref="IGuiComponent"/>): the wrapper's child
     /// builder calls back into this method with the <i>parent</i>'s
-    /// <paramref name="contentBounds"/> / <paramref name="direction"/> / cursor refs, so
+    /// <paramref name="contentBounds"/> and cursor refs, so
     /// the wrapper's slots flow at the parent's level without the wrapper itself
     /// consuming any space.
     /// </summary>
     private GuiComponentBounds? RenderInto(
         Context context,
         GuiComponentBounds contentBounds,
-        GuiDirection direction,
         ref double cursorX,
         ref double cursorY)
     {
@@ -270,13 +283,11 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             if (slot.Instance is not IGuiComponent layoutComponent)
             {
                 double startX = cursorX;
-                double startY = cursorY;
 
-                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, direction, ref cursorX, ref cursorY);
+                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, ref cursorX, ref cursorY);
 
-                GuiComponentBounds wrapperBounds = childExtent ?? (direction == GuiDirection.Vertical
-                    ? new GuiComponentBounds(contentBounds.X, startY, contentBounds.Width, cursorY - startY)
-                    : new GuiComponentBounds(startX, contentBounds.Y, cursorX - startX, contentBounds.Height));
+                GuiComponentBounds wrapperBounds = childExtent
+                    ?? new GuiComponentBounds(startX, contentBounds.Y, cursorX - startX, contentBounds.Height);
 
                 slot.SetLayoutTransparentBounds(wrapperBounds);
                 slot.Instance.Render(context, wrapperBounds);
@@ -296,15 +307,9 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             // Without this, a Fill-mode child in a vertical/horizontal stack would claim the
             // full container size and overflow the surface (visible as clipped strokes /
             // missing bottom borders).
-            double consumedFlow = direction == GuiDirection.Vertical
-                ? cursorY - contentBounds.Y
-                : cursorX - contentBounds.X;
-            double availW = direction == GuiDirection.Horizontal
-                ? Math.Max(0, contentBounds.Width - consumedFlow - lp.Margin.Horizontal)
-                : Math.Max(0, contentBounds.Width - lp.Margin.Horizontal);
-            double availH = direction == GuiDirection.Vertical
-                ? Math.Max(0, contentBounds.Height - consumedFlow - lp.Margin.Vertical)
-                : Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
+            double consumedFlow = cursorX - contentBounds.X;
+            double availW = Math.Max(0, contentBounds.Width - consumedFlow - lp.Margin.Horizontal);
+            double availH = Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
 
             var (slotW, slotH) = GuiComponentLayout.ResolveAllocatedSize(layoutComponent, new GuiLayoutSize(availW, availH));
 
@@ -326,22 +331,11 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 slotX = cursorX + lp.Margin.Left;
                 slotY = cursorY + lp.Margin.Top;
 
-                if (direction == GuiDirection.Vertical)
-                {
-                    // Cross axis is X — apply horizontal alignment within the parent's
-                    // cross-axis extent (content width minus this slot's horizontal margin).
-                    double crossAvail = Math.Max(0, contentBounds.Width - lp.Margin.Horizontal);
-                    slotX += AlignOffsetH(lp.HorizontalAlignment, crossAvail - slotW);
-                    cursorY += lp.Margin.Top + slotH + lp.Margin.Bottom;
-                }
-                else
-                {
-                    // Cross axis is Y — apply vertical alignment within the parent's
-                    // cross-axis extent (content height minus this slot's vertical margin).
-                    double crossAvail = Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
-                    slotY += AlignOffsetV(lp.VerticalAlignment, crossAvail - slotH);
-                    cursorX += lp.Margin.Left + slotW + lp.Margin.Right;
-                }
+                // Cross axis is Y — apply vertical alignment within the parent's
+                // cross-axis extent (content height minus this slot's vertical margin).
+                double crossAvail = Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
+                slotY += AlignOffsetV(lp.VerticalAlignment, crossAvail - slotH);
+                cursorX += lp.Margin.Left + slotW + lp.Margin.Right;
             }
 
             var allocated = new GuiComponentBounds(slotX, slotY, slotW, slotH);
@@ -377,7 +371,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             // them like any other background.
             (slot.Instance as GuiContainer)?.DrawInsetBackground(context, allocated);
 
-            slot.ChildTreeBuilder.Render(context, childContent, lp.Direction);
+            slot.ChildTreeBuilder.Render(context, childContent);
             layoutComponent.RenderOverlay(context, allocated);
         }
 
@@ -388,7 +382,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     {
         foreach (var slot in _renderOrder)
         {
-            if (!slot.HasArrangedBounds)
+            if (slot.Bounds is not GuiComponentBounds bounds)
             {
                 continue;
             }
@@ -396,12 +390,12 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             if (slot.Instance is not IGuiComponent layoutComponent)
             {
                 slot.ChildTreeBuilder.PaintInto(context);
-                slot.Instance.Render(context, slot.Bounds);
-                slot.Instance.RenderOverlay(context, slot.Bounds);
+                slot.Instance.Render(context, bounds);
+                slot.Instance.RenderOverlay(context, bounds);
                 continue;
             }
 
-            layoutComponent.Render(context, slot.Bounds);
+            layoutComponent.Render(context, bounds);
 
             if (slot.IsScrollable && slot.Instance is GuiContainer scrollContainer)
             {
@@ -416,13 +410,13 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 slot.ChildTreeBuilder.PaintInto(context);
                 context.Restore();
                 scrollContainer.RenderScrollbars(context);
-                layoutComponent.RenderOverlay(context, slot.Bounds);
+                layoutComponent.RenderOverlay(context, bounds);
                 continue;
             }
 
-            (slot.Instance as GuiContainer)?.DrawInsetBackground(context, slot.Bounds);
+            (slot.Instance as GuiContainer)?.DrawInsetBackground(context, bounds);
             slot.ChildTreeBuilder.PaintInto(context);
-            layoutComponent.RenderOverlay(context, slot.Bounds);
+            layoutComponent.RenderOverlay(context, bounds);
         }
     }
 
@@ -570,7 +564,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             slot.ScrollClipBounds.Height);
         context.Clip();
 
-        slot.ChildTreeBuilder.Render(context, scrolledChildBounds, lp.Direction);
+        slot.ChildTreeBuilder.Render(context, scrolledChildBounds);
 
         context.Restore();
 
