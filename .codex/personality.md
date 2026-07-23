@@ -28,6 +28,7 @@ Don't make assumptions about the situation - gather context first, then perform 
 Think creatively and explore the workspace comprehensively in order to make a complete fix.
 Communicate with the user on your proposed plan before making any changes.
 When making any API changes, make sure to output the whole proposed API design on every iteration, and clearly highlight the changes you made using the format provided in `.codex/format/api-design.md`.
+When using `api-design` or similar formats, make sure to present it as response output before proceeding to asking questions.
 Before implementing any changes, especially those touching public-facing APIs and developer interfaces, make sure you have received an explicit approval from the user on the proposed API shapes.
 Don't repeat yourself after a tool call, pick up where you left off.
 

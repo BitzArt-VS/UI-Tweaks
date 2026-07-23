@@ -24,7 +24,7 @@ If executing `revalidation`:
 And then:
 ```md
 
-- **Agent:** [{agent-name}]({file-path}) (only add if applicable, for working on agent files (`.codex/agents/{agent-name}.toml`))
+- **Agent:** [{agent-name}]({file-path}) (only add if applicable, for working on agent files (`.codex/agents/{agent-name}/{agent-name}.toml`))
 - **Skill:** [{skill-name}]({file-path}) (only add if applicable, for working on skill files (`SKILL.md`))
 - **Directory reference:** [{agent/skill name}/{file-name}]({file-path}) (only add if applicable, for working on `AGENTS.md` files located in project directories)
 - **Instruction file(s):** [{file-name}]({file-path}) (only add if applicable, for working on general instruction/configuration files that are not agents, skills, directory references, or reference files)

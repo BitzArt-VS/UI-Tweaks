@@ -7,28 +7,7 @@ description: "Work through tasks in small, reviewable iterations and require exp
 
 - Split work into smallest meaningful, reviewable iterations.
 - Apply separable-decision test: if user could reasonably approve one part and reject another, split those parts into separate iterations.
-- Calculate and display an iteration score immediately above every proposal.
-
-  **Impact**
-  - `1` — Cosmetic or negligible benefit.
-  - `2` — Small benefit limited to one detail.
-  - `3` — Meaningful benefit within one component or workflow.
-  - `4` — Substantial benefit across multiple callers, components, or workflows.
-  - `5` — Critical or widespread improvement to correctness, safety, usability, or maintainability.
-
-  **Complexity**
-  - `1` — Isolated, obvious change that is easy to implement and validate.
-  - `2` — Small, localized, low-risk change.
-  - `3` — Moderately scoped change with understood implementation and validation.
-  - `4` — Complex change spanning several areas or requiring significant validation.
-  - `5` — Broad, risky, uncertain, or dependent on many changes.
-
-  **Iteration score**
-  - **Impact:** `{score}/5` — {brief rationale}
-  - **Complexity:** `{score}/5` — {brief rationale}
-  - **Priority:** `{Impact + (6 - Complexity)}/10`
-
-- When alternatives exist, propose highest-priority iteration; break ties by higher impact.
+- When alternatives exist, propose highest-priority iteration based on impact (higher is better) and simplicity (lower is better).
 - Handle only one iteration at a time; do not batch or parallelize them.
 - Research relevant behavior, usages, files, and constraints for current iteration.
 - Before editing, identify current context and show complete proposed change or output.
