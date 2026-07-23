@@ -10,6 +10,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
 {
     private readonly GuiSurfaceRenderer _renderer;
+    private ComponentSlot? _ownerSlot;
 
     // Frame buffer: filled during the blueprint phase, cleared at the start of each Run().
     private readonly List<TreeFrame> _frames = [];
@@ -176,7 +177,8 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     {
         var childBuilder = new GuiTreeBuilder(_renderer);
         var instance = frame.CreateInstance();
-        var slot = new ComponentSlot(_renderer, instance, childBuilder, frame);
+        var slot = new ComponentSlot(_renderer, _ownerSlot, instance, childBuilder, frame);
+        childBuilder._ownerSlot = slot;
         instance.Attach(slot);
         return slot;
     }

@@ -76,6 +76,25 @@ public class GuiComponentMeasurementTests
     }
 
     [Fact]
+    public void MountedSlot_InComponentTree_ShouldExposeParentAndChildren()
+    {
+        // Arrange
+        var parent = new TestContainer();
+        var child = new TestContainer();
+
+        Mount(parent, Slot(child));
+
+        // Act
+        IGuiNodeSlot parentSlot = parent.RenderSlot;
+        IGuiNodeSlot childSlot = child.RenderSlot;
+
+        // Assert
+        Assert.Null(parentSlot.Parent);
+        Assert.Same(parentSlot, childSlot.Parent);
+        Assert.Same(childSlot, Assert.Single(parentSlot.Children));
+    }
+
+    [Fact]
     public void Measure_AbsoluteChild_ShouldSkipChild()
     {
         // Arrange
@@ -198,10 +217,11 @@ public class GuiComponentMeasurementTests
     private static TestSlot Slot(IGuiNode node, params TestSlot[] children)
         => new(node, children);
 
-    private static void Mount(IGuiNode node, params TestSlot[] children)
+    private static TestSlot Mount(IGuiNode node, params TestSlot[] children)
     {
         var rootSlot = Slot(node, children);
         rootSlot.AttachRecursive();
+        return rootSlot;
     }
 
     private sealed class TestContainer : GuiComponent
@@ -258,15 +278,17 @@ public class GuiComponentMeasurementTests
 
         public IGuiNode Node { get; } = node;
         public ICoreClientAPI ClientApi => null!;
+        public IGuiNodeSlot? Parent { get; private set; }
         public IReadOnlyList<IGuiNodeSlot> Children => _children;
 
-        public void AttachRecursive()
+        public void AttachRecursive(IGuiNodeSlot? parent = null)
         {
+            Parent = parent;
             Node.Attach(this);
 
             for (int i = 0; i < children.Count; i++)
             {
-                children[i].AttachRecursive();
+                children[i].AttachRecursive(this);
             }
         }
 

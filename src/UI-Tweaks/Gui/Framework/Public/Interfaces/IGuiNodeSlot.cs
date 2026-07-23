@@ -9,6 +9,8 @@ public interface IGuiNodeSlot
 {
     public ICoreClientAPI ClientApi { get; }
 
+    public IGuiNodeSlot? Parent { get; }
+
     public IGuiNode Node { get; }
 
     public IReadOnlyList<IGuiNodeSlot> Children { get; }

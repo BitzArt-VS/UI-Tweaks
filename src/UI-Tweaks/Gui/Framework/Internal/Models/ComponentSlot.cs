@@ -4,6 +4,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal sealed class ComponentSlot(
     GuiSurfaceRenderer renderer,
+    ComponentSlot? parent,
     IGuiNode instance,
     GuiTreeBuilder childTreeBuilder,
     GuiTreeBuilder.TreeFrame frame)
@@ -37,6 +38,7 @@ internal sealed class ComponentSlot(
     public GuiCallback<bool> OnFocusChanged;
 
     public ICoreClientAPI ClientApi => _renderer.ClientApi;
+    public IGuiNodeSlot? Parent { get; } = parent;
     public IGuiNode Node => Instance;
     public IReadOnlyList<IGuiNodeSlot> Children => ChildTreeBuilder.NodeSlots;
 
