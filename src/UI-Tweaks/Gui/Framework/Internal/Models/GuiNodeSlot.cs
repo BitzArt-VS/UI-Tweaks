@@ -12,7 +12,6 @@ internal sealed class GuiNodeSlot(
 
     public override void Arrange()
     {
-        throw new InvalidOperationException(
-            "A layout-transparent node cannot be arranged as a component.");
+        // Plain nodes have no layout responsibility, so there is nothing to arrange.
     }
 }
