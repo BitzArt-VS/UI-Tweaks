@@ -78,13 +78,13 @@ internal sealed class ConfigNavigationRow : GuiComponent
     {
         _isPressed = true;
         ClientApi?.Gui.PlaySound("menubutton_down");
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs args)
     {
         _isPressed = false;
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs args)
@@ -96,12 +96,12 @@ internal sealed class ConfigNavigationRow : GuiComponent
     {
         _isHovered = true;
         ClientApi?.Gui.PlaySound("menubutton");
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs args)
     {
         _isHovered = false;
-        RequestRender();
+        Slot!.RequestRender();
     }
 }

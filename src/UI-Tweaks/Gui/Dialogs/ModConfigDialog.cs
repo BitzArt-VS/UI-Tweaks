@@ -66,7 +66,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
         _context = new ModConfigContext(config, _saveDebouncer.Trigger);
 
         var initialPage = CreateNavPage<GeneralModConfigPage>();
-        _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
+        _navigator = new ModConfigPageNavigator(() => Slot!.RequestReconcile(), initialPage.Label, initialPage.Content);
     }
 
     public void Dispose()
@@ -78,7 +78,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
 
     protected override void OnResizeUpdated(bool sizeChanged)
     {
-        RequestLayout();
+        Slot!.RequestLayout();
     }
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)

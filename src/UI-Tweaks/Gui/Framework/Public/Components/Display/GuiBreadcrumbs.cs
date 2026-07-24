@@ -68,7 +68,7 @@ public class GuiBreadcrumbs : GuiBreadcrumbs<string>
     {
         _hoveredItemIndex = index;
         _cursorHost?.SetHoverCursor(LinkCursor);
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     private void LeaveItemHover(int index)
@@ -80,7 +80,7 @@ public class GuiBreadcrumbs : GuiBreadcrumbs<string>
 
         _hoveredItemIndex = -1;
         _cursorHost?.SetHoverCursor(null);
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     private void BuildCurrentStringItem(IGuiTreeBuilder builder, string text)

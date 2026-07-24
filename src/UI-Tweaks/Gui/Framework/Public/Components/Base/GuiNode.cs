@@ -32,16 +32,6 @@ public abstract class GuiNode : IGuiNode
     }
 
     /// <summary>
-    /// Requests reconciliation of this node's tree fragment. Reconciliation cascades into
-    /// layout and rendering.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the node is not attached to a slot.</exception>
-    protected void RequestReconcile()
-    {
-        GetAttachedSlot(nameof(RequestReconcile)).RequestReconcile();
-    }
-
-    /// <summary>
     /// Returns the cascading value of type <typeparamref name="T"/> published by the
     /// nearest ancestor <see cref="CascadingValue{T}"/> with no <c>Name</c>, or
     /// <c>default</c> when no matching provider exists.
@@ -130,13 +120,4 @@ public abstract class GuiNode : IGuiNode
     /// <param name="bounds">Node bounds defining the area available for rendering.</param>
     public virtual void RenderOverlay(Context context, GuiComponentBounds bounds) { }
 
-    protected GuiSlot GetAttachedSlot(string memberName)
-    {
-        if (Slot is null)
-        {
-            throw new InvalidOperationException($"Cannot access {memberName} on a node that is not attached to a slot.");
-        }
-
-        return Slot;
-    }
 }

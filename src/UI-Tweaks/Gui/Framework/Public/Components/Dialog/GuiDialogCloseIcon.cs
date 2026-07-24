@@ -102,13 +102,13 @@ public class GuiDialogCloseIcon : GuiComponent
     private void HandleMouseEnter(GuiMouseEventArgs e)
     {
         _isHovered = true;
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs e)
     {
         _isHovered = false;
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e) => OnClick.Invoke();

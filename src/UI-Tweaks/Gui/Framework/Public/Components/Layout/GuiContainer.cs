@@ -121,7 +121,7 @@ public class GuiContainer : GuiComponent
 
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
         {
-            RequestLayout();
+            Slot!.RequestLayout();
         }
     }
 
@@ -359,7 +359,7 @@ public class GuiContainer : GuiComponent
 
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
         {
-            RequestLayout();
+            Slot!.RequestLayout();
         }
     }
 
@@ -581,7 +581,7 @@ public class GuiContainer : GuiComponent
         ScrollY = rel * maxScroll;
         if (ScrollY != previousScrollY)
         {
-            RequestLayout();
+            Slot!.RequestLayout();
         }
     }
 
@@ -595,7 +595,7 @@ public class GuiContainer : GuiComponent
         ScrollX = rel * maxScroll;
         if (ScrollX != previousScrollX)
         {
-            RequestLayout();
+            Slot!.RequestLayout();
         }
     }
 

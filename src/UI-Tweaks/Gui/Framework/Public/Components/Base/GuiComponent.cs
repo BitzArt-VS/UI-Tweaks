@@ -21,23 +21,4 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         return default;
     }
 
-    /// <summary>
-    /// Requests a fresh layout pass for the existing component tree. Layout cascades into rendering.
-    /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a slot.</exception>
-    protected void RequestLayout()
-    {
-        GetAttachedSlot(nameof(RequestLayout)).RequestLayout();
-    }
-
-    /// <summary>
-    /// Requests rendering of the existing component tree without scheduling this component's
-    /// render fragment for reconciliation.
-    /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown if the component is not attached to a slot.</exception>
-    protected void RequestRender()
-    {
-        GetAttachedSlot(nameof(RequestRender)).RequestRender();
-    }
-
 }

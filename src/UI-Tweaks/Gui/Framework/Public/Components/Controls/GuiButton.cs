@@ -149,7 +149,7 @@ public sealed class GuiButton : GuiComponent
 
         _isPressed = true;
         ClientApi?.Gui.PlaySound("menubutton_down");
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs e)
@@ -171,7 +171,7 @@ public sealed class GuiButton : GuiComponent
             ClientApi?.Gui.PlaySound("menubutton_up");
         }
 
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e)
@@ -192,12 +192,12 @@ public sealed class GuiButton : GuiComponent
             ClientApi?.Gui.PlaySound("menubutton");
         }
 
-        RequestRender();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs e)
     {
         _isHovered = false;
-        RequestRender();
+        Slot!.RequestRender();
     }
 }

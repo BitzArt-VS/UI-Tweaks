@@ -193,7 +193,7 @@ public class GuiDropdown<T> : GuiInputBase
             OnItemSelected.Invoke(Items![clamped]);
         }
 
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Opens the popup. No-op when already open or while disabled.</summary>
@@ -205,7 +205,7 @@ public class GuiDropdown<T> : GuiInputBase
         }
 
         IsOpen = true;
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Closes the popup. No-op when already closed.</summary>
@@ -218,7 +218,7 @@ public class GuiDropdown<T> : GuiInputBase
 
         IsOpen = false;
         _hoveredItemIndex = -1;
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Flips the popup state.</summary>
@@ -458,7 +458,7 @@ public class GuiDropdown<T> : GuiInputBase
         {
             IsOpen = false;
             _hoveredItemIndex = -1;
-            RequestReconcile();
+            Slot!.RequestReconcile();
         }
 
         // 1. Recessed chrome — vanilla text-input recipe (depth 2, brightness 0.8, r=1).
@@ -554,7 +554,7 @@ public class GuiDropdown<T> : GuiInputBase
         // Rebuild the dropdown subtree so the row's Background config picks up the new
         // hover state. Cheap for typical dropdown sizes — popups usually carry under 50
         // rows, and we only run on hover transitions.
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     private void SelectAndClose(int actualIndex)
