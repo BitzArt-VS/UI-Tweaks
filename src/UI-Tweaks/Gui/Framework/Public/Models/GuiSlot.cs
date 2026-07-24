@@ -18,7 +18,6 @@ public abstract class GuiSlot
     internal readonly GuiTreeBuilder.TreeFrame Frame;
 
     internal bool IsScrollable;
-    public GuiComponentBounds? Bounds { get; set; }
     public bool IsArranging { get; private protected set; }
     internal GuiComponentBounds ScrollClipBounds;
 

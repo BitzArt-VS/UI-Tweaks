@@ -4,6 +4,8 @@ public sealed class GuiComponentSlot : GuiSlot
 {
     private readonly IGuiComponent _component;
 
+    public GuiComponentBounds? Bounds { get; set; }
+
     internal GuiComponentSlot(
         GuiSurfaceRenderer renderer,
         GuiSlot? parent,

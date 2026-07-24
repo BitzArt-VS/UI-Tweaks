@@ -18,6 +18,16 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     /// <inheritdoc/>
     public virtual GuiComponentBounds Arrange()
     {
+        if (Slot is null)
+        {
+            return default;
+        }
+
+        foreach (GuiSlot child in Slot.Children)
+        {
+            child.Arrange();
+        }
+
         return default;
     }
 
