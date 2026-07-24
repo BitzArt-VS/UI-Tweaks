@@ -295,7 +295,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             // Render/Overlay are still called once with bounds spanning the cursor delta
             // along the flow axis — so e.g. GuiTooltip can register its hover region
             // against the union extent.
-            if (slot.Instance is not IGuiComponent layoutComponent)
+            if (slot is not GuiComponentSlot componentSlot)
             {
                 double startX = cursorX;
 
@@ -304,7 +304,6 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 GuiComponentBounds wrapperBounds = childExtent
                     ?? new GuiComponentBounds(startX, contentBounds.Y, cursorX - startX, contentBounds.Height);
 
-                slot.SetLayoutTransparentBounds(wrapperBounds);
                 slot.Instance.Render(context, wrapperBounds);
 
                 RegisterRegions(slot, wrapperBounds);
@@ -314,6 +313,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 continue;
             }
 
+            IGuiComponent layoutComponent = componentSlot.Component;
             var lp = layoutComponent.LayoutParameters;
 
             // Available space for measuring, after subtracting the slot's own margins AND
@@ -366,7 +366,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 Math.Max(0, allocated.Height - lp.Padding.Vertical)
             );
 
-            slot.SetComponentBounds(allocated);
+            componentSlot.SetBounds(allocated);
             layoutComponent.Render(context, allocated);
             RegisterRegions(slot, allocated);
 
@@ -393,46 +393,58 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         return extent;
     }
 
-    private void PaintInto(Context context)
+    private GuiComponentBounds? PaintInto(Context context)
     {
-        foreach (var slot in _renderOrder)
+        GuiComponentBounds? extent = null;
+
+        foreach (GuiSlot slot in _renderOrder)
         {
-            if (slot.Bounds is not GuiComponentBounds bounds)
+            if (slot is not GuiComponentSlot componentSlot)
+            {
+                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.PaintInto(context);
+                if (childExtent is not GuiComponentBounds wrapperBounds)
+                {
+                    continue;
+                }
+
+                slot.Instance.Render(context, wrapperBounds);
+                slot.Instance.RenderOverlay(context, wrapperBounds);
+                extent = Union(extent, wrapperBounds);
+                continue;
+            }
+
+            if (componentSlot.Bounds is not GuiComponentBounds bounds)
             {
                 continue;
             }
 
-            if (slot.Instance is not IGuiComponent layoutComponent)
-            {
-                slot.ChildTreeBuilder.PaintInto(context);
-                slot.Instance.Render(context, bounds);
-                slot.Instance.RenderOverlay(context, bounds);
-                continue;
-            }
-
+            IGuiComponent layoutComponent = componentSlot.Component;
+            extent = Union(extent, bounds);
             layoutComponent.Render(context, bounds);
 
-            if (slot.IsScrollable && slot.Instance is GuiContainer scrollContainer)
+            if (componentSlot.IsScrollable && layoutComponent is GuiContainer scrollContainer)
             {
                 scrollContainer.DrawInsetBackground(context, scrollContainer.GetScrollInsetBounds());
                 context.Save();
                 context.Rectangle(
-                    slot.ScrollClipBounds.X,
-                    slot.ScrollClipBounds.Y,
-                    slot.ScrollClipBounds.Width,
-                    slot.ScrollClipBounds.Height);
+                    componentSlot.ScrollClipBounds.X,
+                    componentSlot.ScrollClipBounds.Y,
+                    componentSlot.ScrollClipBounds.Width,
+                    componentSlot.ScrollClipBounds.Height);
                 context.Clip();
-                slot.ChildTreeBuilder.PaintInto(context);
+                componentSlot.ChildTreeBuilder.PaintInto(context);
                 context.Restore();
                 scrollContainer.RenderScrollbars(context);
                 layoutComponent.RenderOverlay(context, bounds);
                 continue;
             }
 
-            (slot.Instance as GuiContainer)?.DrawInsetBackground(context, bounds);
-            slot.ChildTreeBuilder.PaintInto(context);
+            (layoutComponent as GuiContainer)?.DrawInsetBackground(context, bounds);
+            componentSlot.ChildTreeBuilder.PaintInto(context);
             layoutComponent.RenderOverlay(context, bounds);
         }
+
+        return extent;
     }
 
     /// <summary>

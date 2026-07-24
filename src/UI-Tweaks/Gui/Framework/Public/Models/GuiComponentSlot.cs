@@ -3,7 +3,6 @@ namespace BitzArt.UI.Tweaks.Gui;
 public sealed class GuiComponentSlot : GuiSlot
 {
     private readonly IGuiComponent _component;
-    private bool _isArranging;
 
     internal GuiComponentSlot(
         GuiSurfaceRenderer renderer,
@@ -16,9 +15,7 @@ public sealed class GuiComponentSlot : GuiSlot
         _component = component;
     }
 
-    public GuiComponentBounds? Bounds { get; set; }
-
-    public override bool IsArranging => _isArranging;
+    internal IGuiComponent Component => _component;
 
     public override void Arrange()
     {
@@ -28,14 +25,14 @@ public sealed class GuiComponentSlot : GuiSlot
                 $"Arrangement cycle detected at {Instance.GetType().Name}.");
         }
 
-        _isArranging = true;
+        IsArranging = true;
         try
         {
             Bounds = _component.Arrange();
         }
         finally
         {
-            _isArranging = false;
+            IsArranging = false;
         }
     }
 

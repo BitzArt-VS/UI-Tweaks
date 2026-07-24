@@ -8,10 +8,25 @@ internal sealed class GuiNodeSlot(
     GuiTreeBuilder.TreeFrame frame)
     : GuiSlot(renderer, parent, node, childTreeBuilder, frame)
 {
-    public override bool IsArranging => false;
-
     public override void Arrange()
     {
-        // Plain nodes have no layout responsibility, so there is nothing to arrange.
+        if (IsArranging)
+        {
+            throw new InvalidOperationException(
+                $"Arrangement cycle detected at {Instance.GetType().Name}.");
+        }
+
+        IsArranging = true;
+        try
+        {
+            foreach (GuiSlot child in Children)
+            {
+                child.Arrange();
+            }
+        }
+        finally
+        {
+            IsArranging = false;
+        }
     }
 }
