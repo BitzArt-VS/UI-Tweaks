@@ -73,7 +73,7 @@ internal sealed class ComponentSlot(
         return chain.TryGet(name, out value);
     }
 
-    public GuiComponentBounds? Arrange(bool layoutChanged = false)
+    public GuiComponentBounds Arrange(bool layoutChanged = false)
     {
         if (Instance is not IGuiComponent component)
         {
@@ -86,7 +86,7 @@ internal sealed class ComponentSlot(
             return arrangedBounds;
         }
 
-        GuiComponentBounds? bounds = component.Arrange();
+        GuiComponentBounds bounds = component.Arrange();
         Bounds = bounds;
 
         return bounds;

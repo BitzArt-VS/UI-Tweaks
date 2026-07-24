@@ -9,8 +9,8 @@ public interface IGuiComponent : IGuiNode
     /// its mounted slot.
     /// </summary>
     /// <returns>
-    /// <c>null</c> when the component's arranged size cannot yet be resolved;
-    /// otherwise, the resolved size and an optional resolved position.
+    /// The arranged bounds. Individual bounds fields are <c>null</c> while
+    /// their geometry is unresolved.
     /// </returns>
-    public GuiComponentBounds? Arrange();
+    public GuiComponentBounds Arrange();
 }

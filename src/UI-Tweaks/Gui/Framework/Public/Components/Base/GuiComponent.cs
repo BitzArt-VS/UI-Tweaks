@@ -16,9 +16,9 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     }
 
     /// <inheritdoc/>
-    public virtual GuiComponentBounds? Arrange()
+    public virtual GuiComponentBounds Arrange()
     {
-        return null;
+        return default;
     }
 
     /// <summary>

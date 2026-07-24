@@ -25,10 +25,10 @@ public interface IGuiNodeSlot
     /// Whether layout inputs changed since the cached arrangement.
     /// </param>
     /// <returns>
-    /// <c>null</c> when size remains unresolved; otherwise, the cached or newly
-    /// calculated size and optional position.
+    /// The cached or newly calculated bounds. Individual bounds fields are
+    /// <c>null</c> while their geometry is unresolved.
     /// </returns>
-    public GuiComponentBounds? Arrange(bool layoutChanged = false);
+    public GuiComponentBounds Arrange(bool layoutChanged = false);
 
     public void RequestReconcile();
 
