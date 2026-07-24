@@ -7,7 +7,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// The top-left reference point, or <c>null</c> when position is unresolved.
 /// </param>
 /// <param name="Size">
-/// The arranged size, or <c>null</c> when size is unresolved.
+/// The arranged size, or <c>null</c> when size is unknown. A non-null size may
+/// contain unlimited dimensions represented by <c>null</c> values.
 /// </param>
 public readonly record struct GuiComponentBounds(
     GuiPoint? Position,
