@@ -7,13 +7,13 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// Declares a one-dimensional fixed or fractional length. A declaration may remain
 /// relative until <see cref="Resolve"/> converts it into logical-pixel geometry.
 /// </summary>
-public readonly struct GuiLength
+public readonly struct GuiLengthRule
 {
     private readonly Kind _kind;
     private readonly double _fixedValue;
     private readonly double _fractionalValue;
 
-    private GuiLength(
+    private GuiLengthRule(
         Kind kind,
         double fixedValue = 0,
         double fractionalValue = 0)
@@ -23,22 +23,22 @@ public readonly struct GuiLength
         _fractionalValue = fractionalValue;
     }
 
-    public static GuiLength Fixed(double value)
+    public static GuiLengthRule Fixed(double value)
         => new(Kind.Fixed, fixedValue: value);
 
-    public static GuiLength Fraction(double value)
+    public static GuiLengthRule Fraction(double value)
     {
         if (value < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(value), "Fractional length must be non-negative.");
         }
 
-        return new GuiLength(
+        return new GuiLengthRule(
             Kind.Fraction,
             fractionalValue: value);
     }
 
-    public static GuiLength Parse(string value)
+    public static GuiLengthRule Parse(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -69,9 +69,9 @@ public readonly struct GuiLength
         };
     }
 
-    public static implicit operator GuiLength(int value) => Fixed(value);
-    public static implicit operator GuiLength(double value) => Fixed(value);
-    public static implicit operator GuiLength(string value) => Parse(value);
+    public static implicit operator GuiLengthRule(int value) => Fixed(value);
+    public static implicit operator GuiLengthRule(double value) => Fixed(value);
+    public static implicit operator GuiLengthRule(string value) => Parse(value);
 
     private enum Kind
     {

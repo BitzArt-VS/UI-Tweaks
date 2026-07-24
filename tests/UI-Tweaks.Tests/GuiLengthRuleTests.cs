@@ -2,7 +2,7 @@ using BitzArt.UI.Tweaks.Gui;
 
 namespace BitzArt.UI.Tweaks.Tests;
 
-public class GuiLengthTests
+public class GuiLengthRuleTests
 {
     [Theory]
     [InlineData(0d, 0d)]
@@ -24,7 +24,7 @@ public class GuiLengthTests
         double? availableLength)
     {
         // Arrange
-        GuiLength length = GuiLength.Fixed(fixedValue);
+        GuiLengthRule length = GuiLengthRule.Fixed(fixedValue);
 
         // Act
         double? result = length.Resolve(availableLength);
@@ -49,7 +49,7 @@ public class GuiLengthTests
         double expected)
     {
         // Arrange
-        GuiLength length = GuiLength.Fraction(fractionalValue);
+        GuiLengthRule length = GuiLengthRule.Fraction(fractionalValue);
 
         // Act
         double? result = length.Resolve(availableLength);
@@ -68,7 +68,7 @@ public class GuiLengthTests
     {
         // Act + Assert
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => GuiLength.Fraction(fractionalValue));
+            () => GuiLengthRule.Fraction(fractionalValue));
     }
 
     [Theory]
@@ -82,7 +82,7 @@ public class GuiLengthTests
         double expected)
     {
         // Act
-        GuiLength length = GuiLength.Parse(value);
+        GuiLengthRule length = GuiLengthRule.Parse(value);
         double? result = length.Resolve(null);
 
         // Assert
@@ -102,7 +102,7 @@ public class GuiLengthTests
         double expected)
     {
         // Act
-        GuiLength length = GuiLength.Parse(value);
+        GuiLengthRule length = GuiLengthRule.Parse(value);
         double? result = length.Resolve(availableLength);
 
         // Assert
@@ -120,6 +120,6 @@ public class GuiLengthTests
     {
         // Act + Assert
         Assert.ThrowsAny<Exception>(
-            () => GuiLength.Parse(value!));
+            () => GuiLengthRule.Parse(value!));
     }
 }

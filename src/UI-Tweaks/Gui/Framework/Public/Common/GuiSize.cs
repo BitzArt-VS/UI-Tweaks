@@ -4,4 +4,4 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// Width/height pair used by layout arrangement, in logical pixels.
 /// A <c>null</c> dimension is unlimited along that axis.
 /// </summary>
-public readonly record struct GuiSize(GuiLength? Width, GuiLength? Height);
+public readonly record struct GuiSize(GuiLengthRule? Width, GuiLengthRule? Height);

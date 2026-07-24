@@ -18,34 +18,34 @@ public sealed class GuiComponentLayoutParameters
     /// <summary>
     /// Optional minimum width constraint.
     /// </summary>
-    public GuiLength? MinimumWidth { get; set; }
+    public GuiLengthRule? MinimumWidth { get; set; }
 
     /// <summary>
     /// Optional explicit width override. When <c>null</c>, the size is determined by <see cref="WidthMode"/>.
     /// Takes priority over <see cref="WidthMode"/> when set.
     /// </summary>
-    public GuiLength? Width { get; set; }
+    public GuiLengthRule? Width { get; set; }
 
     /// <summary>
     /// Optional maximum width constraint.
     /// </summary>
-    public GuiLength? MaximumWidth { get; set; }
+    public GuiLengthRule? MaximumWidth { get; set; }
 
     /// <summary>
     /// Optional minimum height constraint.
     /// </summary>
-    public GuiLength? MinimumHeight { get; set; }
+    public GuiLengthRule? MinimumHeight { get; set; }
 
     /// <summary>
     /// Optional explicit height override. When <c>null</c>, the size is determined by <see cref="HeightMode"/>.
     /// Takes priority over <see cref="HeightMode"/> when set.
     /// </summary>
-    public GuiLength? Height { get; set; }
+    public GuiLengthRule? Height { get; set; }
 
     /// <summary>
     /// Optional maximum height constraint.
     /// </summary>
-    public GuiLength? MaximumHeight { get; set; }
+    public GuiLengthRule? MaximumHeight { get; set; }
 
     /// <summary>
     /// How to resolve width when <see cref="Width"/> is <c>null</c>.
