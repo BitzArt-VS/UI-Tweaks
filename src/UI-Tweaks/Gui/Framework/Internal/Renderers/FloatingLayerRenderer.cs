@@ -118,8 +118,8 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void BuildRootFragment(IGuiTreeBuilder builder)
     {
-        GuiSize? width = null;
-        GuiSize? height = null;
+        GuiLengthRule? width = null;
+        GuiLengthRule? height = null;
 
         if (_activePlacement.FixedLogicalSize is GuiLayoutSize fixedSize)
         {
@@ -127,7 +127,13 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             height = fixedSize.Height;
         }
 
-        builder.AddContainer(0, width: width, height: height, content: ActiveFragment);
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = ActiveFragment)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = width;
+                layout.Height = height;
+            });
     }
 
     private void ReallocateSurfaceIfNeeded(float scale)

@@ -18,179 +18,35 @@ public static class GuiTreeBuilderExtensions
 
     /// <summary>
     /// Declares a node slot of type <typeparamref name="T"/> at <paramref name="key"/>.
-    /// Layout parameters may be set inline when <typeparamref name="T"/> implements
-    /// <see cref="IGuiComponent"/>; pure <see cref="IGuiNode"/> slots are layout-transparent.
     /// </summary>
     public static IGuiTreeBuilder<T> Add<T>(
         this IGuiTreeBuilder builder,
-        int key,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        int key)
         where T : IGuiNode, new()
-        => ApplyLayout(builder.AddComponent<T>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-
-    /// <summary>
-    /// Declares a <see cref="GuiContainer"/> slot at <paramref name="key"/>.
-    /// All layout parameters may be set inline as named arguments. Pass
-    /// <paramref name="background"/> to paint a solid fill behind <paramref name="content"/> —
-    /// omit it for an invisible flow box.
-    /// <paramref name="content"/> may be supplied here as the last argument, or set afterwards
-    /// via <see cref="WithContent"/>; passing it here is marginally more efficient as it avoids
-    /// an extra builder call.
-    /// <para>
-    /// Set <paramref name="withInset"/> to overlay the vanilla recessed-border inset chrome
-    /// over the container's viewport (excluding any visible scrollbar gutter — the scrollbar
-    /// sits beside the inset). When no scrollbar is visible the inset fills the entire
-    /// container. Use <paramref name="configureInset"/> to tweak the inset's depth /
-    /// brightness / radius without subclassing.
-    /// </para>
-    /// </summary>
-    public static IGuiTreeBuilder<GuiContainer> AddContainer(
-        this IGuiTreeBuilder builder,
-        int key,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null,
-        GuiColor? background = null,
-        GuiScrollDirection? scroll = null,
-        GuiScrollDirection? scrollbar = null,
-        GuiScrollDirection? alwaysShowScrollbar = null,
-        bool withInset = false,
-        Action<GuiInset>? configureInset = null,
-        GuiTreeFragment? content = null)
-    {
-        var b = ApplyLayout(builder.AddComponent<GuiContainer>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-        if (background is not null)
-        {
-            b = b.Configure(c => c.Background = background.Value);
-        }
-
-        if (scroll is not null)
-        {
-            b = b.Configure(c => c.Scroll = scroll.Value);
-        }
-
-        if (scrollbar is not null)
-        {
-            b = b.Configure(c => c.Scrollbar = scrollbar.Value);
-        }
-
-        if (alwaysShowScrollbar is not null)
-        {
-            b = b.Configure(c => c.AlwaysShowScrollbar = alwaysShowScrollbar.Value);
-        }
-
-        if (withInset)
-        {
-            b = b.Configure(c => c.HasInset = true);
-        }
-
-        if (configureInset is not null)
-        {
-            b = b.Configure(c => c.InsetConfiguration = configureInset);
-        }
-
-        return content is null ? b : b.Configure(c => c.Content = content);
-    }
-
-    /// <summary>
-    /// Sets the <see cref="GuiContainer.Content"/> render fragment on an already-declared
-    /// container slot. Prefer passing <c>content:</c> directly to
-    /// <see cref="AddContainer"/> when possible.
-    /// </summary>
-    public static IGuiTreeBuilder<GuiContainer> WithContent(
-        this IGuiTreeBuilder<GuiContainer> builder,
-        GuiTreeFragment content)
-        => builder.Configure(c => c.Content = content);
-
-    /// <summary>
-    /// Generic container helper: declares a slot of any <typeparamref name="TContainer"/> subtype
-    /// (e.g. <see cref="GuiDialogBackground"/>) at <paramref name="key"/>, applies the layout
-    /// parameters, and optionally attaches <paramref name="content"/>. Use this as the
-    /// building block when wrapping custom container components in their own fluent helpers.
-    /// </summary>
-    public static IGuiTreeBuilder<TContainer> AddContainer<TContainer>(
-        this IGuiTreeBuilder builder,
-        int key,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null,
-        GuiTreeFragment? content = null)
-        where TContainer : GuiContainer, new()
-    {
-        var b = ApplyLayout(
-            builder.AddComponent<TContainer>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-        return content is null ? b : b.Configure(c => c.Content = content);
-    }
+        => builder.AddComponent<T>(key);
 
     /// <summary>
     /// Declares a <see cref="GuiDialogBackground"/> slot at <paramref name="key"/>.
     /// Paints the vanilla shaded-dialog look (rounded fill colour overlaid with a tiled
     /// texture and an outer stroke). Override any of the texture / colour / stroke
     /// parameters to retune the recipe; pass <paramref name="content"/> to populate the
-    /// inner area, or set it later via the container's <see cref="GuiContainer.Content"/>.
-    /// <para>
-    /// This is a thin convenience wrapper over <see cref="AddContainer{TContainer}"/> — call
-    /// that directly when you need full control over the container's properties.
-    /// </para>
+    /// inner area.
     /// </summary>
     public static IGuiTreeBuilder<GuiDialogBackground> AddDialogBackground(
         this IGuiTreeBuilder builder,
         int key,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null,
         GuiTreeFragment? content = null)
     {
-        return builder.AddContainer<GuiDialogBackground>(
-            key, width, height, widthMode, heightMode, fill,
-            margin, padding, positioning,
-            horizontalAlignment, verticalAlignment, content);
+        var backgroundBuilder = builder.AddComponent<GuiDialogBackground>(key);
+        return content is null
+            ? backgroundBuilder
+            : backgroundBuilder.Configure(background => background.Content = content);
     }
 
     /// <summary>
     /// Declares a <see cref="GuiDialogTitleBar"/> slot at <paramref name="key"/>.
     /// Paints the vanilla title-bar chrome (lighter rounded fill, inner highlight bevel,
     /// open three-sided dark border) with <paramref name="title"/> drawn inside.
-    /// Defaults the bar height to <see cref="GuiStyle.TitleBarHeight"/> when no
-    /// <paramref name="height"/> is specified, and full width when no
-    /// <paramref name="width"/>/<paramref name="widthMode"/> is given — matching how
-    /// vanilla title bars are typically laid out at the top of a dialog.
     /// </summary>
     public static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBar(
         this IGuiTreeBuilder builder,
@@ -198,24 +54,13 @@ public static class GuiTreeBuilderExtensions
         string title,
         GuiFontStyle? titleFont = null,
         Action<double, double>? onDrag = null,
-        Action? onClose = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        Action? onClose = null)
         => AddDialogTitleBarCore(builder, key, title, titleFont, onDrag,
-            onClose is null ? default : (GuiCallback)onClose,
-            width, height, widthMode, heightMode, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+            onClose is null ? default : (GuiCallback)onClose);
 
     /// <summary>
     /// Asynchronous-handler overload of
-    /// <see cref="AddDialogTitleBar(IGuiTreeBuilder, int, string, GuiFontStyle?, Action{double, double}, Action, double?, double?, GuiSizeMode?, GuiSizeMode?, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
+    /// <see cref="AddDialogTitleBar(IGuiTreeBuilder, int, string, GuiFontStyle?, Action{double, double}, Action)"/>.
     /// </summary>
     public static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBar(
         this IGuiTreeBuilder builder,
@@ -223,19 +68,8 @@ public static class GuiTreeBuilderExtensions
         string title,
         Func<System.Threading.Tasks.Task> onClose,
         GuiFontStyle? titleFont = null,
-        Action<double, double>? onDrag = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
-        => AddDialogTitleBarCore(builder, key, title, titleFont, onDrag, (GuiCallback)onClose,
-            width, height, widthMode, heightMode, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        Action<double, double>? onDrag = null)
+        => AddDialogTitleBarCore(builder, key, title, titleFont, onDrag, (GuiCallback)onClose);
 
     private static IGuiTreeBuilder<GuiDialogTitleBar> AddDialogTitleBarCore(
         IGuiTreeBuilder builder,
@@ -243,94 +77,55 @@ public static class GuiTreeBuilderExtensions
         string title,
         GuiFontStyle? titleFont,
         Action<double, double>? onDrag,
-        GuiCallback onClose,
-        GuiSize? width,
-        GuiSize? height,
-        GuiSizeMode? widthMode,
-        GuiSizeMode? heightMode,
-        GuiThickness? margin,
-        GuiThickness? padding,
-        GuiComponentPositioning? positioning,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        GuiCallback onClose)
     {
-        // Default to "fill width, 31 px high" when the caller omits sizing — that's the
-        // shape vanilla composer-based title bars take.
-        var resolvedHeight = height ?? GuiVanillaStyle.TitleBarHeight;
-        var resolvedWidthMode = widthMode ?? (width is null ? GuiSizeMode.Fill : (GuiSizeMode?)null);
-
-        var b = ApplyLayout(
-            builder.AddComponent<GuiDialogTitleBar>(key).Configure(t =>
+        var titleBarBuilder = builder.AddComponent<GuiDialogTitleBar>(key)
+            .Configure(titleBar =>
             {
-                t.Title = title;
-                t.OnDrag = onDrag;
-                t.OnClose = onClose;
-            }),
-            width, resolvedHeight, resolvedWidthMode, heightMode, fill: false,
-            margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+                titleBar.Title = title;
+                titleBar.OnDrag = onDrag;
+                titleBar.OnClose = onClose;
+            });
 
         if (titleFont is not null)
         {
-            b = b.Configure(t => t.TitleFont = titleFont.Value);
+            titleBarBuilder = titleBarBuilder.Configure(titleBar => titleBar.TitleFont = titleFont.Value);
         }
 
-        return b;
+        return titleBarBuilder;
     }
 
     /// <summary>
     /// Declares a <see cref="GuiLabel"/> slot at <paramref name="key"/> and sets its
-    /// <see cref="GuiLabel.Text"/>. All layout parameters may be set inline as named arguments.
-    /// Optionally supply a <paramref name="font"/>; if omitted the label uses
+    /// <see cref="GuiLabel.Text"/>. Optionally supply a <paramref name="font"/>; if omitted the label uses
     /// <see cref="GuiFontStyle.Default"/>.
     /// </summary>
     public static IGuiTreeBuilder<GuiLabel> AddLabel(
         this IGuiTreeBuilder builder,
         int key,
         string text,
-        GuiFontStyle? font = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        GuiFontStyle? font = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiLabel>(key).Configure(l => l.Text = text),
-            width, height, widthMode, heightMode, fill: false, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-        return font is null ? b : b.Configure(l => l.Font = font.Value);
+        var labelBuilder = builder.AddComponent<GuiLabel>(key)
+            .Configure(label => label.Text = text);
+        return font is null
+            ? labelBuilder
+            : labelBuilder.Configure(label => label.Font = font.Value);
     }
 
     /// <summary>
     /// Declares a <see cref="GuiRectangle"/> slot at <paramref name="key"/> and
-    /// optionally sets its <see cref="GuiRectangle.Color"/>. All layout parameters may
-    /// be set inline as named arguments.
+    /// optionally sets its <see cref="GuiRectangle.Color"/>.
     /// </summary>
     public static IGuiTreeBuilder<GuiRectangle> AddRectangle(
         this IGuiTreeBuilder builder,
         int key,
-        GuiColor? color = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        GuiColor? color = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiRectangle>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-        return color is null ? b : b.Configure(r => r.Color = color.Value);
+        var rectangleBuilder = builder.AddComponent<GuiRectangle>(key);
+        return color is null
+            ? rectangleBuilder
+            : rectangleBuilder.Configure(rectangle => rectangle.Color = color.Value);
     }
 
     /// <summary>
@@ -341,144 +136,83 @@ public static class GuiTreeBuilderExtensions
     /// </summary>
     public static IGuiTreeBuilder<GuiSeparator> AddSeparator(
         this IGuiTreeBuilder builder,
-        int key,
-        GuiThickness? margin = null)
-    {
-        var b = builder.AddComponent<GuiSeparator>(key);
-        return margin is null ? b : b.Configure(s => s.LayoutParameters.Margin = margin.Value);
-    }
+        int key)
+        => builder.AddComponent<GuiSeparator>(key);
 
     /// <summary>
     /// Declares a <see cref="GuiInset"/> slot at <paramref name="key"/>.
-    /// Behaves as a normal layout component: both axes default to
-    /// <see cref="GuiSizeMode.FitContent"/> and positioning defaults to
-    /// <see cref="GuiComponentPositioning.Relative"/>. Override via the standard inline
-    /// named arguments (<c>fill</c>, <c>widthMode</c>, <c>positioning</c>, etc.) or by
-    /// chaining <c>.ConfigureLayout(...)</c>.
-    /// <para>
     /// Pass <paramref name="content"/> to nest a render fragment inside the inset — children
     /// are drawn between the brightness overlay and the emboss ring, producing a recessed
     /// look. Leave it null when using the inset purely as chrome over absolute-positioned
     /// content.
-    /// </para>
     /// </summary>
     public static IGuiTreeBuilder<GuiInset> AddInset(
         this IGuiTreeBuilder builder,
         int key,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null,
         int? depth = null,
         float? brightness = null,
         double? radius = null,
         GuiTreeFragment? content = null)
     {
-        var b = ApplyLayout(builder.AddComponent<GuiInset>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        var insetBuilder = builder.AddComponent<GuiInset>(key);
         if (depth is not null)
         {
-            b = b.Configure(c => c.Depth = depth.Value);
+            insetBuilder = insetBuilder.Configure(inset => inset.Depth = depth.Value);
         }
 
         if (brightness is not null)
         {
-            b = b.Configure(c => c.Brightness = brightness.Value);
+            insetBuilder = insetBuilder.Configure(inset => inset.Brightness = brightness.Value);
         }
 
         if (radius is not null)
         {
-            b = b.Configure(c => c.Radius = radius.Value);
+            insetBuilder = insetBuilder.Configure(inset => inset.Radius = radius.Value);
         }
 
-        return content is null ? b : b.Configure(c => c.Content = content);
+        return content is null
+            ? insetBuilder
+            : insetBuilder.Configure(inset => inset.Content = content);
     }
 
     /// <summary>
     /// Declares a <see cref="GuiButton"/> slot at <paramref name="key"/>.
-    /// All layout parameters may be set inline as named arguments.
-    /// <para>
     /// Synchronous overload — accepts an <see cref="System.Action"/> for <paramref name="onClick"/>.
     /// For asynchronous handlers, use the <see cref="System.Func{T}"/>-returning-<see cref="System.Threading.Tasks.Task"/>
     /// overload below. The two overloads exist (rather than a single <see cref="GuiCallback"/>
     /// parameter) so plain lambdas like <c>() =&gt; DoStuff()</c> bind unambiguously without
     /// requiring an explicit cast — same DX as Blazor's overloaded callback APIs.
-    /// </para>
     /// </summary>
     public static IGuiTreeBuilder<GuiButton> AddButton(
         this IGuiTreeBuilder builder,
         int key,
         string text,
-        Action? onClick = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        Action? onClick = null)
         => AddButtonCore(builder, key, text,
-            onClick is null ? default : (GuiCallback)onClick,
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+            onClick is null ? default : (GuiCallback)onClick);
 
     /// <summary>
-    /// Asynchronous-handler overload of <see cref="AddButton(IGuiTreeBuilder, int, string, System.Action, double?, double?, GuiSizeMode?, GuiSizeMode?, bool, GuiThickness?, GuiThickness?, GuiComponentPositioning?)"/>.
+    /// Asynchronous-handler overload of <see cref="AddButton(IGuiTreeBuilder, int, string, System.Action)"/>.
     /// </summary>
     public static IGuiTreeBuilder<GuiButton> AddButton(
         this IGuiTreeBuilder builder,
         int key,
         string text,
-        System.Func<System.Threading.Tasks.Task> onClick,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
-        => AddButtonCore(builder, key, text, onClick,
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        System.Func<System.Threading.Tasks.Task> onClick)
+        => AddButtonCore(builder, key, text, onClick);
 
     private static IGuiTreeBuilder<GuiButton> AddButtonCore(
         IGuiTreeBuilder builder,
         int key,
         string text,
-        GuiCallback onClick,
-        GuiSize? width,
-        GuiSize? height,
-        GuiSizeMode? widthMode,
-        GuiSizeMode? heightMode,
-        bool fill,
-        GuiThickness? margin,
-        GuiThickness? padding,
-        GuiComponentPositioning? positioning,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        GuiCallback onClick)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiButton>(key).Configure(btn =>
+        return builder.AddComponent<GuiButton>(key)
+            .Configure(button =>
             {
-                btn.Text = text;
-                btn.OnClick = onClick;
-            }),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
-        return b;
+                button.Text = text;
+                button.OnClick = onClick;
+            });
     }
 
     /// <summary>Sets <see cref="GuiButton.OnClick"/> to a synchronous handler. Method-group friendly.</summary>
@@ -580,63 +314,50 @@ public static class GuiTreeBuilderExtensions
         int? maxLength = null,
         GuiFontStyle? font = null,
         bool? showSpinnerButtons = null,
-        double? spinnerInterval = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        double? spinnerInterval = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiTextInput>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        var inputBuilder = builder.AddComponent<GuiTextInput>(key);
         if (text is not null)
         {
-            b = b.Configure(c => c.Text = text);
+            inputBuilder = inputBuilder.Configure(input => input.Text = text);
         }
 
         if (onTextChanged is not null)
         {
-            b = b.Configure(c => c.OnTextChanged = onTextChanged);
+            inputBuilder = inputBuilder.Configure(input => input.OnTextChanged = onTextChanged);
         }
 
         if (mode is not null)
         {
-            b = b.Configure(c => c.Mode = mode.Value);
+            inputBuilder = inputBuilder.Configure(input => input.Mode = mode.Value);
         }
 
         if (placeholder is not null)
         {
-            b = b.Configure(c => c.Placeholder = placeholder);
+            inputBuilder = inputBuilder.Configure(input => input.Placeholder = placeholder);
         }
 
         if (maxLength is not null)
         {
-            b = b.Configure(c => c.MaxLength = maxLength.Value);
+            inputBuilder = inputBuilder.Configure(input => input.MaxLength = maxLength.Value);
         }
 
         if (font is not null)
         {
-            b = b.Configure(c => c.Font = font.Value);
+            inputBuilder = inputBuilder.Configure(input => input.Font = font.Value);
         }
 
         if (showSpinnerButtons is not null)
         {
-            b = b.Configure(c => c.ShowSpinnerButtons = showSpinnerButtons.Value);
+            inputBuilder = inputBuilder.Configure(input => input.ShowSpinnerButtons = showSpinnerButtons.Value);
         }
 
         if (spinnerInterval is not null)
         {
-            b = b.Configure(c => c.SpinnerInterval = spinnerInterval.Value);
+            inputBuilder = inputBuilder.Configure(input => input.SpinnerInterval = spinnerInterval.Value);
         }
 
-        return b;
+        return inputBuilder;
     }
 
     /// <summary>
@@ -657,17 +378,7 @@ public static class GuiTreeBuilderExtensions
         bool showSpinnerButtons = true,
         string? placeholder = null,
         int? maxLength = null,
-        GuiFontStyle? font = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        GuiFontStyle? font = null)
         => builder.AddTextInput(key,
             text: text,
             onTextChanged: onTextChanged,
@@ -676,11 +387,7 @@ public static class GuiTreeBuilderExtensions
             maxLength: maxLength,
             font: font,
             showSpinnerButtons: showSpinnerButtons,
-            spinnerInterval: interval,
-            width: width, height: height,
-            widthMode: widthMode, heightMode: heightMode, fill: fill,
-            margin: margin, padding: padding, positioning: positioning,
-            horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment);
+            spinnerInterval: interval);
 
     /// <summary>
     /// Declares a <see cref="GuiCheckbox"/> slot at <paramref name="key"/>. Provides the
@@ -692,38 +399,25 @@ public static class GuiTreeBuilderExtensions
         int key,
         bool? checked_ = null,
         Action<bool>? onCheckedChanged = null,
-        double? size = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        double? size = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiCheckbox>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        var checkboxBuilder = builder.AddComponent<GuiCheckbox>(key);
         if (checked_ is not null)
         {
-            b = b.Configure(c => c.Checked = checked_.Value);
+            checkboxBuilder = checkboxBuilder.Configure(checkbox => checkbox.Checked = checked_.Value);
         }
 
         if (onCheckedChanged is not null)
         {
-            b = b.Configure(c => c.OnCheckedChanged = onCheckedChanged);
+            checkboxBuilder = checkboxBuilder.Configure(checkbox => checkbox.OnCheckedChanged = onCheckedChanged);
         }
 
         if (size is not null)
         {
-            b = b.Configure(c => c.Size = size.Value);
+            checkboxBuilder = checkboxBuilder.Configure(checkbox => checkbox.Size = size.Value);
         }
 
-        return b;
+        return checkboxBuilder;
     }
 
     /// <summary>
@@ -743,63 +437,50 @@ public static class GuiTreeBuilderExtensions
         string? unit = null,
         Action<int>? onValueChanged = null,
         Func<int, string>? onTooltipText = null,
-        bool? triggerOnMouseUp = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        bool? triggerOnMouseUp = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiSlider>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        var sliderBuilder = builder.AddComponent<GuiSlider>(key);
         if (minValue is not null)
         {
-            b = b.Configure(c => c.MinValue = minValue.Value);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.MinValue = minValue.Value);
         }
 
         if (maxValue is not null)
         {
-            b = b.Configure(c => c.MaxValue = maxValue.Value);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.MaxValue = maxValue.Value);
         }
 
         if (step is not null)
         {
-            b = b.Configure(c => c.Step = step.Value);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.Step = step.Value);
         }
 
         if (unit is not null)
         {
-            b = b.Configure(c => c.Unit = unit);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.Unit = unit);
         }
 
         if (value is not null)
         {
-            b = b.Configure(c => c.Value = value.Value);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.Value = value.Value);
         }
 
         if (onValueChanged is not null)
         {
-            b = b.Configure(c => c.OnValueChanged = onValueChanged);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.OnValueChanged = onValueChanged);
         }
 
         if (onTooltipText is not null)
         {
-            b = b.Configure(c => c.OnTooltipText = onTooltipText);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.OnTooltipText = onTooltipText);
         }
 
         if (triggerOnMouseUp is not null)
         {
-            b = b.Configure(c => c.TriggerOnMouseUp = triggerOnMouseUp.Value);
+            sliderBuilder = sliderBuilder.Configure(slider => slider.TriggerOnMouseUp = triggerOnMouseUp.Value);
         }
 
-        return b;
+        return sliderBuilder;
     }
 
     /// <summary>
@@ -824,153 +505,60 @@ public static class GuiTreeBuilderExtensions
         string? placeholder = null,
         GuiFontStyle? font = null,
         double? itemHeight = null,
-        double? maxPopupHeight = null,
-        GuiSize? width = null,
-        GuiSize? height = null,
-        GuiSizeMode? widthMode = null,
-        GuiSizeMode? heightMode = null,
-        bool fill = false,
-        GuiThickness? margin = null,
-        GuiThickness? padding = null,
-        GuiComponentPositioning? positioning = null,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
+        double? maxPopupHeight = null)
     {
-        var b = ApplyLayout(
-            builder.AddComponent<GuiDropdown<T>>(key),
-            width, height, widthMode, heightMode, fill, margin, padding, positioning,
-            horizontalAlignment, verticalAlignment);
+        var dropdownBuilder = builder.AddComponent<GuiDropdown<T>>(key);
         if (items is not null)
         {
-            b = b.Configure(c => c.Items = items);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.Items = items);
         }
 
         if (selectedIndex is not null)
         {
-            b = b.Configure(c => c.SelectedIndex = selectedIndex.Value);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.SelectedIndex = selectedIndex.Value);
         }
 
         if (onSelectionChanged is not null)
         {
-            b = b.Configure(c => c.OnSelectionChanged = onSelectionChanged);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.OnSelectionChanged = onSelectionChanged);
         }
 
         if (onItemSelected is not null)
         {
-            b = b.Configure(c => c.OnItemSelected = onItemSelected);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.OnItemSelected = onItemSelected);
         }
 
         if (itemTemplate is not null)
         {
-            b = b.Configure(c => c.ItemTemplate = itemTemplate);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.ItemTemplate = itemTemplate);
         }
 
         if (selectedTemplate is not null)
         {
-            b = b.Configure(c => c.SelectedTemplate = selectedTemplate);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.SelectedTemplate = selectedTemplate);
         }
 
         if (placeholder is not null)
         {
-            b = b.Configure(c => c.Placeholder = placeholder);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.Placeholder = placeholder);
         }
 
         if (font is not null)
         {
-            b = b.Configure(c => c.Font = font.Value);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.Font = font.Value);
         }
 
         if (itemHeight is not null)
         {
-            b = b.Configure(c => c.ItemHeight = itemHeight.Value);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.ItemHeight = itemHeight.Value);
         }
 
         if (maxPopupHeight is not null)
         {
-            b = b.Configure(c => c.MaxPopupHeight = maxPopupHeight.Value);
+            dropdownBuilder = dropdownBuilder.Configure(dropdown => dropdown.MaxPopupHeight = maxPopupHeight.Value);
         }
 
-        return b;
-    }
-
-    // Composes an Action<GuiComponentLayoutParameters> from only the non-null parameters.
-    // Returns the builder unchanged (no allocation) when nothing was provided.
-    private static IGuiTreeBuilder<T> ApplyLayout<T>(
-        IGuiTreeBuilder<T> builder,
-        GuiSize? width,
-        GuiSize? height,
-        GuiSizeMode? widthMode,
-        GuiSizeMode? heightMode,
-        bool fill,
-        GuiThickness? margin,
-        GuiThickness? padding,
-        GuiComponentPositioning? positioning,
-        GuiHorizontalAlignment? horizontalAlignment = null,
-        GuiVerticalAlignment? verticalAlignment = null)
-        where T : IGuiNode
-    {
-        Action<GuiComponentLayoutParameters> action = null!;
-
-        if (width != null)
-        {
-            action += lp => lp.Width = width.Value;
-        }
-
-        if (height != null)
-        {
-            action += lp => lp.Height = height.Value;
-        }
-
-        if (widthMode != null)
-        {
-            action += lp => lp.WidthMode = widthMode.Value;
-        }
-
-        if (heightMode != null)
-        {
-            action += lp => lp.HeightMode = heightMode.Value;
-        }
-
-        if (margin != null)
-        {
-            action += lp => lp.Margin = margin.Value;
-        }
-
-        if (padding != null)
-        {
-            action += lp => lp.Padding = padding.Value;
-        }
-
-        if (positioning != null)
-        {
-            action += lp => lp.Positioning = positioning.Value;
-        }
-
-        if (horizontalAlignment != null)
-        {
-            action += lp => lp.HorizontalAlignment = horizontalAlignment.Value;
-        }
-
-        if (verticalAlignment != null)
-        {
-            action += lp => lp.VerticalAlignment = verticalAlignment.Value;
-        }
-
-        if (fill)
-        {
-            action += lp =>
-        {
-            lp.WidthMode = GuiSizeMode.Fill;
-            lp.HeightMode = GuiSizeMode.Fill;
-        };
-        }
-
-        if (action is null)
-        {
-            return builder;
-        }
-
-        return builder.ConfigureLayout(action);
+        return dropdownBuilder;
     }
 }
 

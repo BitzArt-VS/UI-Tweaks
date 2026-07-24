@@ -46,8 +46,9 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                 builder.AddLabel(0, Lang.Get($"{Constants.ModId}:config-zoom-enable-tooltip"));
                 builder.AddLabel(1, string.Empty);
                 builder.AddLabel(2, Lang.Get($"{Constants.ModId}:config-requires-restart"),
-                    font: ItalicNoteFont,
-                    margin: new(0, 0, GuiVanillaStyle.HalfPadding, 0));
+                        font: ItalicNoteFont)
+                    .ConfigureLayout(layout =>
+                        layout.Margin = new(0, 0, GuiVanillaStyle.HalfPadding, 0));
             },
             control: builder => builder.AddCheckbox(0,
                 checked_: config.Enable,
@@ -67,7 +68,6 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                 maxValue: 10,
                 step: 1,
                 triggerOnMouseUp: true,
-                widthMode: GuiSizeMode.Fill,
                 onValueChanged: value =>
                 {
                     config.Strength = value;
@@ -84,7 +84,6 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                 maxValue: 10,
                 step: 1,
                 triggerOnMouseUp: true,
-                widthMode: GuiSizeMode.Fill,
                 onValueChanged: value =>
                 {
                     config.Speed = value;
@@ -101,7 +100,6 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                 maxValue: 10,
                 step: 1,
                 triggerOnMouseUp: true,
-                widthMode: GuiSizeMode.Fill,
                 onValueChanged: value =>
                 {
                     config.VignetteStrength = value;
@@ -132,19 +130,31 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
         GuiTreeFragment tooltip,
         GuiTreeFragment control)
     {
-        builder.AddContainer(key,
-            widthMode: GuiSizeMode.Fill,
-            height: RowHeight,
-            margin: new(0, 0, RowSpacing, 0),
-            content: builder =>
+        builder.Add<GuiContainer>(key)
+            .Configure(container => container.Content = builder =>
             {
                 builder.AddTooltip(0,
                     tooltip: tooltip,
-                    content: builder => builder.AddLabel(0, label,
-                        width: LabelColumnWidth,
-                        verticalAlignment: GuiVerticalAlignment.Center));
+                    content: builder => builder.AddLabel(0, label)
+                        .ConfigureLayout(layout =>
+                        {
+                            layout.Width = LabelColumnWidth;
+                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                        }));
 
-                builder.AddContainer(1, fill: true, content: control);
+                builder.Add<GuiContainer>(1)
+                    .Configure(container => container.Content = control)
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.WidthMode = GuiSizeMode.Fill;
+                        layout.HeightMode = GuiSizeMode.Fill;
+                    });
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Height = RowHeight;
+                layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
 }

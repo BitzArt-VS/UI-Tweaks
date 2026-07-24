@@ -307,18 +307,23 @@ public class GuiDropdown<T> : GuiInputBase
                 rowBg = HoveredItemBackground;
             }
 
-            // Always pass `rowBg` (even when transparent) so the row's GuiContainer.Background
-            // gets reapplied every reconcile. AddContainer's `background:` parameter is
-            // skip-when-null — passing null here would leave a previously-set non-transparent
-            // background in place, which would otherwise leave a row stuck highlighted after
+            // Always apply `rowBg` (even when transparent) so the row's
+            // GuiContainer.Background gets reset every reconciliation pass. Otherwise, a
+            // previously-set non-transparent background would leave a row stuck highlighted after
             // its hover state cleared. Transparent fills are already short-circuited in
             // GuiContainer.DrawBackground (A<=0), so the always-set path costs nothing extra.
-            builder.AddContainer(i,
-                widthMode: GuiSizeMode.Fill,
-                height: ItemHeight,
-                padding: new GuiThickness(0, TextPaddingX),
-                background: rowBg,
-                content: b => RenderItem(b, item))
+            builder.Add<GuiContainer>(i)
+                .Configure(container =>
+                {
+                    container.Background = rowBg;
+                    container.Content = b => RenderItem(b, item);
+                })
+                .ConfigureLayout(layout =>
+                {
+                    layout.WidthMode = GuiSizeMode.Fill;
+                    layout.Height = ItemHeight;
+                    layout.Padding = new GuiThickness(0, TextPaddingX);
+                })
                 .OnMouseEnter(_ => SetHoveredItem(rowIdx))
                 .OnMouseLeave(_ => SetHoveredItem(-1))
                 // Keep dropdown focus while clicking inside the popup so the click-outside
@@ -431,10 +436,13 @@ public class GuiDropdown<T> : GuiInputBase
         double lineHeight = Font.MeasureHeight();
         double topMargin = Math.Max(0, (headerHeight - lineHeight) / 2.0);
 
-        builder.AddContainer(1,
-            widthMode: GuiSizeMode.Fill,
-            margin: new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX),
-            content: BuildHeader);
+        builder.Add<GuiContainer>(1)
+            .Configure(container => container.Content = BuildHeader)
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Margin = new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX);
+            });
 
         // Popup is no longer declared as a child slot here — it lives on the dialog's
         // OverlayHost so it paints on top of every regular slot and its rows always win
@@ -527,19 +535,22 @@ public class GuiDropdown<T> : GuiInputBase
     private void BuildPopupOverlay(IGuiTreeBuilder builder)
     {
         bool overflow = _popupOverflow;
-        builder.AddContainer<GuiDropdownPopup>(0,
-                widthMode: GuiSizeMode.Fill,
-                heightMode: GuiSizeMode.Fill,
-                content: BuildPopup)
-            .Configure(p =>
+        builder.Add<GuiDropdownPopup>(0)
+            .Configure(popup =>
             {
-                p.FillColor = PopupBackground;
-                p.BorderColor = PopupBorder;
-                p.BorderWidth = PopupBorderWidth;
-                p.Radius = PopupRadius;
-                p.LayoutParameters.Padding = new GuiThickness(PopupPadding);
-                p.Scroll = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
-                p.Scrollbar = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+                popup.Content = BuildPopup;
+                popup.FillColor = PopupBackground;
+                popup.BorderColor = PopupBorder;
+                popup.BorderWidth = PopupBorderWidth;
+                popup.Radius = PopupRadius;
+                popup.Scroll = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+                popup.Scrollbar = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.HeightMode = GuiSizeMode.Fill;
+                layout.Padding = new GuiThickness(PopupPadding);
             });
     }
 

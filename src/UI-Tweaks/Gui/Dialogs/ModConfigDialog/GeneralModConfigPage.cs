@@ -64,8 +64,9 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                 builder.AddLabel(0, Lang.Get($"{Constants.ModId}:config-quicksearch-enable-tooltip"));
                 builder.AddLabel(1, string.Empty);
                 builder.AddLabel(2, Lang.Get($"{Constants.ModId}:config-requires-restart"),
-                    font: ItalicNoteFont,
-                    margin: new(0, 0, GuiVanillaStyle.HalfPadding, 0));
+                        font: ItalicNoteFont)
+                    .ConfigureLayout(layout =>
+                        layout.Margin = new(0, 0, GuiVanillaStyle.HalfPadding, 0));
             },
             control: builder => builder.AddCheckbox(0,
                 checked_: quickSearch.Enable,
@@ -87,7 +88,6 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                 step: QsResultListHeightStep,
                 unit: "px",
                 triggerOnMouseUp: true,
-                widthMode: GuiSizeMode.Fill,
                 onValueChanged: value =>
                 {
                     quickSearch.ResultListHeight = value;
@@ -114,13 +114,16 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
     private static void BuildSectionLabel(IGuiTreeBuilder builder, int key, string text)
     {
         builder.AddLabel(key, text,
-            font: GuiFontStyle.MediumBold,
-            margin: new(0, 0, SectionRuleGap, 0));
-        builder.AddRectangle(key + 1,
-            color: SectionSeparatorColor,
-            height: 1,
-            widthMode: GuiSizeMode.Fill,
-            margin: new(0, 0, RowSpacing, 0));
+                font: GuiFontStyle.MediumBold)
+            .ConfigureLayout(layout =>
+                layout.Margin = new(0, 0, SectionRuleGap, 0));
+        builder.AddRectangle(key + 1, color: SectionSeparatorColor)
+            .ConfigureLayout(layout =>
+            {
+                layout.Height = 1;
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Margin = new(0, 0, RowSpacing, 0);
+            });
     }
 
     /// <summary>
@@ -137,11 +140,8 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
         GuiTreeFragment tooltip,
         GuiTreeFragment control)
     {
-        builder.AddContainer(key,
-            widthMode: GuiSizeMode.Fill,
-            height: RowHeight,
-            margin: new(0, 0, RowSpacing, 0),
-            content: builder =>
+        builder.Add<GuiContainer>(key)
+            .Configure(container => container.Content = builder =>
             {
                 // Label column — wrapped in a tooltip so only the left side triggers
                 // the hover help. Width is fixed so labels line up across all rows.
@@ -149,13 +149,28 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                 // relative child in a horizontal stack).
                 builder.AddTooltip(0,
                     tooltip: tooltip,
-                    content: builder => builder.AddLabel(0, label,
-                        width: LabelColumnWidth,
-                        verticalAlignment: GuiVerticalAlignment.Center));
+                    content: builder => builder.AddLabel(0, label)
+                        .ConfigureLayout(layout =>
+                        {
+                            layout.Width = LabelColumnWidth;
+                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                        }));
 
                 // Control column — fills the rest of the row; the control inside should
                 // also use widthMode: Fill (or fill: true) to stretch with the dialog.
-                builder.AddContainer(1, fill: true, content: control);
+                builder.Add<GuiContainer>(1)
+                    .Configure(container => container.Content = control)
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.WidthMode = GuiSizeMode.Fill;
+                        layout.HeightMode = GuiSizeMode.Fill;
+                    });
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Height = RowHeight;
+                layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
 }

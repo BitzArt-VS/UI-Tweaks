@@ -172,22 +172,28 @@ public sealed class GuiTextInput : GuiInputBase
 
     private void BuildSpinnerUpTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0,
-            width: SpinnerGutterWidth,
-            height: SpinnerButtonHeight,
-            positioning: GuiComponentPositioning.Absolute,
-            horizontalAlignment: GuiHorizontalAlignment.Right,
-            verticalAlignment: GuiVerticalAlignment.Top);
+        builder.Add<GuiRectangle>(0)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = SpinnerGutterWidth;
+                layout.Height = SpinnerButtonHeight;
+                layout.Positioning = GuiComponentPositioning.Absolute;
+                layout.HorizontalAlignment = GuiHorizontalAlignment.Right;
+                layout.VerticalAlignment = GuiVerticalAlignment.Top;
+            });
     }
 
     private void BuildSpinnerDownTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0,
-            width: SpinnerGutterWidth,
-            height: SpinnerButtonHeight,
-            positioning: GuiComponentPositioning.Absolute,
-            horizontalAlignment: GuiHorizontalAlignment.Right,
-            verticalAlignment: GuiVerticalAlignment.Bottom);
+        builder.Add<GuiRectangle>(0)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = SpinnerGutterWidth;
+                layout.Height = SpinnerButtonHeight;
+                layout.Positioning = GuiComponentPositioning.Absolute;
+                layout.HorizontalAlignment = GuiHorizontalAlignment.Right;
+                layout.VerticalAlignment = GuiVerticalAlignment.Bottom;
+            });
     }
 
     private double SpinnerButtonHeight => (LayoutParameters.Height?.Resolve(null) ?? 30) / 2.0;

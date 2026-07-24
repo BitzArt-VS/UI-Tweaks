@@ -79,8 +79,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                     options.DialogArea = CombineDialogArea(HorizontalAlignmentItems[idx], ExtractVerticalAlignment(options.DialogArea));
                     options.NotifyPropertyChanged(nameof(TooltipOptions.DialogArea));
                     _context!.SaveConfig();
-                },
-                widthMode: GuiSizeMode.Fill));
+                }));
 
         BuildSettingRow(builder, key: 16,
             label: Lang.Get($"{Constants.ModId}:config-tooltip-dialog-area-vertical"),
@@ -93,8 +92,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                     options.DialogArea = CombineDialogArea(ExtractHorizontalAlignment(options.DialogArea), VerticalAlignmentItems[idx]);
                     options.NotifyPropertyChanged(nameof(TooltipOptions.DialogArea));
                     _context!.SaveConfig();
-                },
-                widthMode: GuiSizeMode.Fill));
+                }));
 
         BuildSettingRow(builder, key: 3,
             label: Lang.Get($"{Constants.ModId}:config-tooltip-height"),
@@ -103,7 +101,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Height.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
@@ -123,7 +120,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Width.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
@@ -143,7 +139,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Offset.X.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -163,7 +158,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Offset.Y.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -197,7 +191,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.FontSize.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
@@ -217,7 +210,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Padding.Top.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -237,7 +229,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Padding.Right.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -257,7 +248,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Padding.Bottom.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -277,7 +267,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.Padding.Left.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -312,7 +301,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
                 spinnerInterval: 0.05,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -332,7 +320,6 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 text: options.BackgroundCornerRadius.ToString(InvCulture),
                 mode: GuiTextInputMode.Decimal,
                 showSpinnerButtons: true,
-                widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
                     if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
@@ -375,13 +362,16 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
     private static void BuildSectionLabel(IGuiTreeBuilder builder, int key, string text, bool isFirst = false)
     {
         builder.AddLabel(key, text,
-            font: GuiFontStyle.MediumBold,
-            margin: new(isFirst ? 0 : SectionSpacing, 0, SectionRuleGap, 0));
-        builder.AddRectangle(key + 1,
-            color: SectionSeparatorColor,
-            height: 1,
-            widthMode: GuiSizeMode.Fill,
-            margin: new(0, 0, RowSpacing, 0));
+                font: GuiFontStyle.MediumBold)
+            .ConfigureLayout(layout =>
+                layout.Margin = new(isFirst ? 0 : SectionSpacing, 0, SectionRuleGap, 0));
+        builder.AddRectangle(key + 1, color: SectionSeparatorColor)
+            .ConfigureLayout(layout =>
+            {
+                layout.Height = 1;
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Margin = new(0, 0, RowSpacing, 0);
+            });
     }
 
     private static void BuildSettingRow(
@@ -391,19 +381,31 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
         GuiTreeFragment tooltip,
         GuiTreeFragment control)
     {
-        builder.AddContainer(key,
-            widthMode: GuiSizeMode.Fill,
-            height: RowHeight,
-            margin: new(0, 0, RowSpacing, 0),
-            content: builder =>
+        builder.Add<GuiContainer>(key)
+            .Configure(container => container.Content = builder =>
             {
                 builder.AddTooltip(0,
                     tooltip: tooltip,
-                    content: builder => builder.AddLabel(0, label,
-                        width: LabelColumnWidth,
-                        verticalAlignment: GuiVerticalAlignment.Center));
+                    content: builder => builder.AddLabel(0, label)
+                        .ConfigureLayout(layout =>
+                        {
+                            layout.Width = LabelColumnWidth;
+                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                        }));
 
-                builder.AddContainer(1, fill: true, content: control);
+                builder.Add<GuiContainer>(1)
+                    .Configure(container => container.Content = control)
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.WidthMode = GuiSizeMode.Fill;
+                        layout.HeightMode = GuiSizeMode.Fill;
+                    });
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Height = RowHeight;
+                layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
 }

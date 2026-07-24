@@ -8,7 +8,7 @@ namespace BitzArt.UI.Tweaks;
 public class ModConfigDialog : Gui.GuiDialog, IDisposable
 {
     private const int SaveDebounceMs = 10000;
-    private static readonly GuiSize SidebarWidth = GuiSize.Fraction(0.2, minimum: 200);
+    private static readonly GuiLengthRule SidebarWidth = GuiLengthRule.Fraction(0.2);
     private const double SidebarSeparatorWidth = 1;
     private const double NavigationRowHeight = 44;
 
@@ -27,7 +27,8 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
     ];
 
     private static NavPage CreateNavPage<T>() where T : IModConfigPage, new()
-        => new(T.PageName, b => b.Add<T>(0, widthMode: GuiSizeMode.Fill));
+        => new(T.PageName, builder => builder.Add<T>(0)
+            .ConfigureLayout(layout => layout.WidthMode = GuiSizeMode.Fill));
 
     private UiTweaksModConfig? _config;
     private ModConfigContext? _context;
@@ -97,86 +98,133 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
         builder.AddCascadingValue(Context, builder =>
         builder.AddCascadingValue(Navigator, builder =>
         {
-            builder.AddContainer(0, fill: true,
-                content: builder =>
+            builder.Add<GuiContainer>(0)
+                .Configure(container => container.Content = builder =>
                 {
                     builder
                         .AddDialogTitleBar(0, Lang.Get($"{Constants.ModId}:ui-tweaks-config"),
                             onDrag: Move, onClose: RequestClose);
 
                     builder
-                        .AddDialogBackground(1, fill: true,
-                            content: BuildBody);
+                        .AddDialogBackground(1, content: BuildBody)
+                        .ConfigureLayout(layout =>
+                        {
+                            layout.WidthMode = GuiSizeMode.Fill;
+                            layout.HeightMode = GuiSizeMode.Fill;
+                        });
+                })
+                .ConfigureLayout(layout =>
+                {
+                    layout.WidthMode = GuiSizeMode.Fill;
+                    layout.HeightMode = GuiSizeMode.Fill;
                 });
         }));
     }
 
     private void BuildBody(IGuiTreeBuilder builder)
     {
-        builder.AddContainer(0, fill: true,
-            content: builder =>
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = builder =>
             {
-                builder.AddContainer(0,
-                    width: SidebarWidth,
-                    heightMode: GuiSizeMode.Fill,
-                    background: SidebarPanelFillColor,
-                    content: builder =>
+                builder.Add<GuiContainer>(0)
+                    .Configure(container =>
                     {
-                        for (int i = 0; i < NavItems.Length; i++)
+                        container.Background = SidebarPanelFillColor;
+                        container.Content = builder =>
                         {
-                            int index = i;
-                            var page = NavItems[index];
-                            builder.Add<ConfigNavigationRow>(index,
-                                height: NavigationRowHeight,
-                                widthMode: GuiSizeMode.Fill)
-                                .Configure(row =>
-                                {
-                                    row.Text = page.Label;
-                                    row.IsSelected = Navigator.RootPageName == page.Label;
-                                    row.OnClick = (Action)(() => SelectPage(page));
-                                });
-                        }
-                    });
-
-                builder.AddRectangle(1,
-                    color: SidebarSeparatorColor,
-                    width: SidebarSeparatorWidth,
-                    heightMode: GuiSizeMode.Fill);
-
-                builder.AddContainer(2,
-                    fill: true,
-                    background: ContentPanelFillColor,
-                    content: builder =>
-                    {
-                        builder.AddContainer(0,
-                            fill: true,
-                            content: builder =>
+                            for (int i = 0; i < NavItems.Length; i++)
                             {
-                                builder.AddContainer(0,
-                                    widthMode: GuiSizeMode.Fill,
-                                    padding: new GuiThickness(Top: 14, Right: 10, Bottom: 8, Left: 10),
-                                    content: builder =>
+                                int index = i;
+                                var page = NavItems[index];
+                                builder.Add<ConfigNavigationRow>(index)
+                                    .ConfigureLayout(layout =>
                                     {
-                                        builder.Add<GuiBreadcrumbs>(0, widthMode: GuiSizeMode.Fill)
-                                            .Configure(c =>
-                                            {
-                                                c.CurrentItem = Navigator.CurrentPageName;
-                                                c.PreviousItems = Navigator.BreadcrumbPreviousItems;
-                                                c.OnItemClicked = name => Navigator.PopToName(name);
-                                            });
-
-                                        builder.AddRectangle(1,
-                                            color: BreadcrumbSeparatorColor,
-                                            height: 2,
-                                            widthMode: GuiSizeMode.Fill);
+                                        layout.Height = NavigationRowHeight;
+                                        layout.WidthMode = GuiSizeMode.Fill;
+                                    })
+                                    .Configure(row =>
+                                    {
+                                        row.Text = page.Label;
+                                        row.IsSelected = Navigator.RootPageName == page.Label;
+                                        row.OnClick = (Action)(() => SelectPage(page));
                                     });
-
-                                builder.AddContainer<ConfigScrollPanel>(1,
-                                    fill: true,
-                                    margin: new GuiThickness(0, 8, 8, 8),
-                                    content: Navigator.CurrentContent);
-                            });
+                            }
+                        };
+                    })
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.MinimumWidth = 200;
+                        layout.Width = SidebarWidth;
+                        layout.HeightMode = GuiSizeMode.Fill;
                     });
+
+                builder.AddRectangle(1, color: SidebarSeparatorColor)
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.Width = SidebarSeparatorWidth;
+                        layout.HeightMode = GuiSizeMode.Fill;
+                    });
+
+                builder.Add<GuiContainer>(2)
+                    .Configure(container =>
+                    {
+                        container.Background = ContentPanelFillColor;
+                        container.Content = builder =>
+                        {
+                            builder.Add<GuiContainer>(0)
+                                .Configure(container => container.Content = builder =>
+                                {
+                                    builder.Add<GuiContainer>(0)
+                                        .Configure(container => container.Content = builder =>
+                                        {
+                                            builder.Add<GuiBreadcrumbs>(0)
+                                                .ConfigureLayout(layout => layout.WidthMode = GuiSizeMode.Fill)
+                                                .Configure(c =>
+                                                {
+                                                    c.CurrentItem = Navigator.CurrentPageName;
+                                                    c.PreviousItems = Navigator.BreadcrumbPreviousItems;
+                                                    c.OnItemClicked = name => Navigator.PopToName(name);
+                                                });
+
+                                            builder.AddRectangle(1, color: BreadcrumbSeparatorColor)
+                                                .ConfigureLayout(layout =>
+                                                {
+                                                    layout.Height = 2;
+                                                    layout.WidthMode = GuiSizeMode.Fill;
+                                                });
+                                        })
+                                        .ConfigureLayout(layout =>
+                                        {
+                                            layout.WidthMode = GuiSizeMode.Fill;
+                                            layout.Padding = new GuiThickness(Top: 14, Right: 10, Bottom: 8, Left: 10);
+                                        });
+
+                                    builder.Add<ConfigScrollPanel>(1)
+                                        .Configure(container => container.Content = Navigator.CurrentContent)
+                                        .ConfigureLayout(layout =>
+                                        {
+                                            layout.WidthMode = GuiSizeMode.Fill;
+                                            layout.HeightMode = GuiSizeMode.Fill;
+                                            layout.Margin = new GuiThickness(0, 8, 8, 8);
+                                        });
+                                })
+                                .ConfigureLayout(layout =>
+                                {
+                                    layout.WidthMode = GuiSizeMode.Fill;
+                                    layout.HeightMode = GuiSizeMode.Fill;
+                                });
+                        };
+                    })
+                    .ConfigureLayout(layout =>
+                    {
+                        layout.WidthMode = GuiSizeMode.Fill;
+                        layout.HeightMode = GuiSizeMode.Fill;
+                    });
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.HeightMode = GuiSizeMode.Fill;
             });
     }
 

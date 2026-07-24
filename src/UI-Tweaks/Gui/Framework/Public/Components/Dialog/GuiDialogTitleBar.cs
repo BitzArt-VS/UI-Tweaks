@@ -84,6 +84,16 @@ public class GuiDialogTitleBar : GuiContainer
     // every rebuild and re-assigns it.
     private GuiDialogCloseIcon? _closeIcon;
 
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
+    {
+        base.ConfigureSlot(builder);
+        builder.ConfigureLayout(layout =>
+        {
+            layout.Height = GuiVanillaStyle.TitleBarHeight;
+            layout.WidthMode = GuiSizeMode.Fill;
+        });
+    }
+
     protected override void DrawBackground(Context ctx, GuiComponentBounds bounds)
     {
         double sw = StrokeWidth / RuntimeEnv.GUIScale;
@@ -153,7 +163,8 @@ public class GuiDialogTitleBar : GuiContainer
         // can mutate its layout each frame without needing a separate framework anchor mode.
         if (OnClose.HasHandler)
         {
-            builder.Add<GuiDialogCloseIcon>(int.MaxValue, positioning: GuiComponentPositioning.Absolute)
+            builder.Add<GuiDialogCloseIcon>(int.MaxValue)
+                .ConfigureLayout(layout => layout.Positioning = GuiComponentPositioning.Absolute)
                 .Configure(icon =>
                 {
                     icon.OnClick = OnClose;
@@ -168,7 +179,13 @@ public class GuiDialogTitleBar : GuiContainer
 
     private static void BuildDragTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0, fill: true, positioning: GuiComponentPositioning.Absolute);
+        builder.Add<GuiRectangle>(0)
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.HeightMode = GuiSizeMode.Fill;
+                layout.Positioning = GuiComponentPositioning.Absolute;
+            });
     }
 
     private void HandleMouseDown(GuiMouseEventArgs e)

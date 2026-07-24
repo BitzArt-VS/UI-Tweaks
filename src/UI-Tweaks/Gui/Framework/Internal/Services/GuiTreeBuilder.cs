@@ -66,8 +66,8 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             // Reuse the frame that lives inside the persistent slot — zero allocation in steady state.
             frame = (TreeFrame<T>)existingSlot.Frame;
             // Discard any actions accumulated on the previous pass. Actions are re-registered
-            // each pass by the user's BuildComponentTree, so per-pass values (e.g. inline
-            // `width: x` arguments) take effect immediately on the next pass.
+            // each pass by the user's BuildComponentTree, so per-pass values configured
+            // through Configure and ConfigureLayout take effect on the next pass.
             frame.Reset();
         }
         else

@@ -100,10 +100,10 @@ public sealed class TooltipHost
         // wrapped fragment changes.
         GuiTreeFragment wrapped = builder =>
         {
-            var slot = builder.AddContainer<GuiTooltipBackground>(
-                0,
-                padding: new GuiThickness(GuiTooltipBackground.DefaultPadding),
-                content: userContent);
+            var slot = builder.Add<GuiTooltipBackground>(0)
+                .Configure(background => background.Content = userContent)
+                .ConfigureLayout(layout =>
+                    layout.Padding = new GuiThickness(GuiTooltipBackground.DefaultPadding));
             if (configureBackground is not null)
             {
                 slot.Configure(configureBackground);

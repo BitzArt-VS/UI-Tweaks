@@ -38,8 +38,7 @@ public class GuiContainer : GuiComponent
 {
     /// <summary>
     /// The nested render fragment that populates this container's inner content.
-    /// Set via <c>.WithContent(b =&gt; { ... })</c>, the <c>content:</c> argument on
-    /// <c>AddContainer</c>, or <c>.Configure(c =&gt; c.Content = ...)</c>.
+    /// Set through <c>.Configure(container =&gt; container.Content = ...)</c>.
     /// </summary>
     public GuiTreeFragment? Content { get; set; }
 

@@ -57,8 +57,9 @@ public class GuiBreadcrumbs : GuiBreadcrumbs<string>
         int capturedIndex = RenderingItemIndex;
         bool isHovered = _hoveredItemIndex == capturedIndex;
 
-        builder.AddContainer(0, content: b =>
-            b.AddLabel(0, text, font: GuiFontStyle.Large with { Color = isHovered ? LinkHoverColor : LinkIdleColor }))
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = b =>
+                b.AddLabel(0, text, font: GuiFontStyle.Large with { Color = isHovered ? LinkHoverColor : LinkIdleColor }))
             .OnMouseEnter(_ => EnterItemHover(capturedIndex))
             .OnMouseLeave(_ => LeaveItemHover(capturedIndex))
             .OnMouseClick(_ => OnItemClicked?.Invoke(text));
@@ -146,10 +147,13 @@ public class GuiBreadcrumbs<T> : GuiComponent
             return;
         }
 
-        builder.AddContainer(0,
-            widthMode: GuiSizeMode.Fill,
-            margin: bottomMargin,
-            content: BuildRow);
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = BuildRow)
+            .ConfigureLayout(layout =>
+            {
+                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Margin = bottomMargin;
+            });
     }
 
     private void BuildRow(IGuiTreeBuilder row)
@@ -161,14 +165,15 @@ public class GuiBreadcrumbs<T> : GuiComponent
             T item = PreviousItems[i];
             int capturedIndex = i;
 
-            row.AddContainer(slotKey++,
-                content: b =>
+            row.Add<GuiContainer>(slotKey++)
+                .Configure(container => container.Content = b =>
                 {
                     RenderingItemIndex = capturedIndex;
                     ItemTemplate?.Invoke(b, item);
                 });
 
-            row.AddLabel(slotKey++, SeparatorText, font: GuiFontStyle.Large, margin: new GuiThickness(0));
+            row.AddLabel(slotKey++, SeparatorText, font: GuiFontStyle.Large)
+                .ConfigureLayout(layout => layout.Margin = new GuiThickness(0));
         }
 
         BuildCurrentItemSlot(row, slotKey, margin: null);
@@ -182,6 +187,11 @@ public class GuiBreadcrumbs<T> : GuiComponent
         }
 
         T capturedItem = CurrentItem;
-        builder.AddContainer(key, margin: margin, content: b => CurrentTemplate(b, capturedItem));
+        var currentItemBuilder = builder.Add<GuiContainer>(key)
+            .Configure(container => container.Content = b => CurrentTemplate(b, capturedItem));
+        if (margin is not null)
+        {
+            currentItemBuilder.ConfigureLayout(layout => layout.Margin = margin.Value);
+        }
     }
 }
