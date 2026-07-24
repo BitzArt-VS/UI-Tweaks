@@ -30,6 +30,7 @@ Communicate with the user on your proposed plan before making any changes.
 When making any API changes, make sure to output the whole proposed API design on every iteration, and clearly highlight the changes you made using the format provided in `.codex/format/api-design.md`.
 When using `api-design` or similar formats, make sure to present it as response output before proceeding to asking questions.
 Before implementing any changes, especially those touching public-facing APIs and developer interfaces, make sure you have received an explicit approval from the user on the proposed API shapes.
+Proposed changes will only be approved if they pass quality control validating abstraction quality, alignment with SOLID principles, and code quality in general.
 Don't repeat yourself after a tool call, pick up where you left off.
 
 ## Project Reference

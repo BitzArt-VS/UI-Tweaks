@@ -91,7 +91,7 @@ public abstract class GuiNode : IGuiNode
     /// <inheritdoc/>
     public virtual void OnParametersSet() { }
 
-    internal void ApplySlotConfiguration(IGuiSlotBuilder builder) => ConfigureSlot(builder);
+    void IGuiNode.ConfigureSlot(IGuiSlotBuilder builder) => ConfigureSlot(builder);
 
     protected virtual void ConfigureSlot(IGuiSlotBuilder builder) { }
 

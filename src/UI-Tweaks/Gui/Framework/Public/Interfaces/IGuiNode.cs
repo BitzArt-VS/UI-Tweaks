@@ -8,6 +8,8 @@ public interface IGuiNode
 
     public void Attach(GuiSlot slot);
 
+    public void ConfigureSlot(IGuiSlotBuilder builder) { }
+
     public void OnInitialized() { }
 
     public void OnParametersSet() { }

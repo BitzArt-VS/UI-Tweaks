@@ -43,13 +43,27 @@ public abstract class GuiSlot
     {
         _renderer = renderer;
         Parent = parent;
+        LayoutParent = parent?.Node is IGuiComponent
+            ? parent
+            : parent?.LayoutParent;
         Instance = instance;
         ChildTreeBuilder = childTreeBuilder;
         Frame = frame;
     }
 
     public ICoreClientAPI ClientApi => _renderer.ClientApi;
+
+    /// <summary>
+    /// Gets the immediate structural parent, or <c>null</c> for a root slot.
+    /// </summary>
     public GuiSlot? Parent { get; }
+
+    /// <summary>
+    /// Gets the nearest ancestor whose node participates in layout, or <c>null</c>
+    /// when the slot has no component ancestor.
+    /// </summary>
+    public GuiSlot? LayoutParent { get; }
+
     public IGuiNode Node => Instance;
     public IReadOnlyList<GuiSlot> Children => ChildTreeBuilder.NodeSlots;
 

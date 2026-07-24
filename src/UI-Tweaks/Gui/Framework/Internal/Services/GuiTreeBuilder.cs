@@ -885,10 +885,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         public override void ApplySlotConfiguration(IGuiNode instance)
         {
             _ownCallbacks = default;
-            if (instance is GuiNode node)
-            {
-                node.ApplySlotConfiguration(new SlotBuilder(this, instance));
-            }
+            instance.ConfigureSlot(new SlotBuilder(this, instance));
         }
 
         public override void ComposeSlotConfiguration(GuiSlot slot)
