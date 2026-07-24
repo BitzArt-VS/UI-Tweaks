@@ -52,7 +52,7 @@ public class FruitsTests
 ## Structure
 
 - Use `// Arrange`, `// Act`, and `// Assert` comments to make the test flow obvious.
-- Feel free to combine `// Arrange`, `// Act`, and `// Assert` sections when necessary (e.g. checking for an exception being thrown during the act phase).
+- Feel free to combine sections when necessary (e.g. checking for an exception during the act phase). Use `// Act + Assert` for a combined act/assert section.
 - Keep test code as simple and understandable as possible.
 - Avoid complex branching, loops, helper logic, or hidden behavior inside tests.
 - If setup becomes noisy, extract small, plainly named helper methods or builders that make the scenario easier to read.
