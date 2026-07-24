@@ -2,11 +2,22 @@
 
 ### API design
 
-for every change, include:
-{
-  - **File:** [{file-name}]({file-path})
+For every change, include:
 
-  {snippet showcasing the change to the project's APIs, with code blocks and explanations as needed}
+- **File:** [{file-name}]({file-path})
 
-  {brief explanation of the API design decision, unless obvious from the code snippet already}
-}
+For a modification to existing API code:
+
+- Show a 🔴 **Before** block followed immediately by a 🟢 **After** block.
+- Include the nearest containing type or member signature in both blocks.
+
+For a pure removal, show a 🔴 **Removed** block.
+For a pure addition, show a 🟢 **Added** block.
+
+For every code block:
+
+- Use an ordinary language-specific fence.
+- Include only enough unchanged code to locate and understand the affected API.
+- Do not use inline diff markers.
+
+Briefly explain the API design decision unless it is obvious from the snippets.
