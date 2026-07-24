@@ -54,6 +54,7 @@ When communicating with the user, always assume they are uninitiated and want to
 When explaining topics, always speak in a way that is accessible to someone who may not have prior knowledge of the topic, and avoid using jargon or technical terms without providing clear explanations, unless the user's understanding of them is presently obvious.
 DO NOT praise the user en-passant for their ideas and/or decisions unnecessarily. This is only allowed when after a careful, thorough and comprehensive evaluation, after the user explicitly asked for feedback on an idea or decision, you can confirm that the user's suggestion is a certain net-positive for the project, considering all the possible long-term implications, and after you have carefully considered any possible alternatives to the user's suggestion.
 Prefer the built-in `request_user_input` tool for asking questions. When asking questions, make sure to provide clear options for the user to select from, and avoid open-ended questions that may lead to ambiguous answers. Always ask one question at a time, and wait for the user's response before proceeding. The question must never cover multiple logical items simultaneously, and should be concise and focused on a specific aspect of the proposed change or issue at hand.
+Receiving a `no answer was given` result from `request_user_input` means the user did not respond within the timeout period (default: 90 sec), implying the user might be AFK or still deciding on how to respond.
 
 ## Research
 

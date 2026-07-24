@@ -16,26 +16,26 @@ public sealed class GuiComponentLayoutParameters
     public GuiThickness Padding { get; set; } = GuiThickness.Zero;
 
     /// <summary>
-    /// Explicit width override. When <see cref="GuiSize.Auto"/> the size is determined by <see cref="WidthMode"/>.
+    /// Explicit width override. When <see cref="GuiLength.Auto"/> the size is determined by <see cref="WidthMode"/>.
     /// Takes priority over <see cref="WidthMode"/> when set.
     /// </summary>
-    public GuiSize Width { get; set; } = GuiSize.Auto;
+    public GuiLength Width { get; set; } = GuiLength.Auto;
 
     /// <summary>
-    /// Explicit height override. When <see cref="GuiSize.Auto"/> the size is determined by <see cref="HeightMode"/>.
+    /// Explicit height override. When <see cref="GuiLength.Auto"/> the size is determined by <see cref="HeightMode"/>.
     /// Takes priority over <see cref="HeightMode"/> when set.
     /// </summary>
-    public GuiSize Height { get; set; } = GuiSize.Auto;
+    public GuiLength Height { get; set; } = GuiLength.Auto;
 
     /// <summary>
-    /// How to resolve width when <see cref="Width"/> is <see cref="GuiSize.Auto"/>.
+    /// How to resolve width when <see cref="Width"/> is <see cref="GuiLength.Auto"/>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
     /// <see cref="GuiSizeMode.FitContent"/> uses measured content width plus padding.
     /// </summary>
     public GuiSizeMode WidthMode { get; set; } = GuiSizeMode.FitContent;
 
     /// <summary>
-    /// How to resolve height when <see cref="Height"/> is <see cref="GuiSize.Auto"/>.
+    /// How to resolve height when <see cref="Height"/> is <see cref="GuiLength.Auto"/>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
     /// <see cref="GuiSizeMode.FitContent"/> uses measured content height plus padding.
     /// </summary>
@@ -68,8 +68,8 @@ public sealed class GuiComponentLayoutParameters
         Positioning = GuiComponentPositioning.Relative;
         Margin = GuiThickness.Zero;
         Padding = GuiThickness.Zero;
-        Width = GuiSize.Auto;
-        Height = GuiSize.Auto;
+        Width = GuiLength.Auto;
+        Height = GuiLength.Auto;
         WidthMode = GuiSizeMode.FitContent;
         HeightMode = GuiSizeMode.FitContent;
         HorizontalAlignment = GuiHorizontalAlignment.Left;

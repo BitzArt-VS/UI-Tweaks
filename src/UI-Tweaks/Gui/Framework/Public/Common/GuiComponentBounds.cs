@@ -12,4 +12,4 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </param>
 public readonly record struct GuiComponentBounds(
     GuiPoint? Position,
-    GuiLayoutSize? Size);
+    GuiSize? Size);
