@@ -6,12 +6,11 @@ For every change, include:
 
 - **File:** [{file-name}]({file-path})
 
-For a modification to existing API code:
+- For a removal, show a 🔴 **Remove** block.
+- For an addition, show a 🟢 **Add** block.
+- For a modification to existing API code, show a 🔴 **Before** block followed immediately by a 🟢 **After** block.
 
-- Show a 🔴 **Before** block followed immediately by a 🟢 **After** block.
-
-For a pure removal, show a 🔴 **Remove** block.
-For a pure addition, show a 🟢 **Add** block.
+Prioritize **Remove** and **Add** blocks over **Before/After** blocks where ambiguous.
 
 For every code block:
 

@@ -18,7 +18,6 @@ public abstract class GuiSlot
     internal readonly GuiTreeBuilder.TreeFrame Frame;
 
     internal bool IsScrollable;
-    public GuiComponentBounds? Bounds { get; set; }
     public abstract bool IsArranging { get; }
     internal GuiComponentBounds ScrollClipBounds;
 
@@ -43,9 +42,8 @@ public abstract class GuiSlot
     {
         _renderer = renderer;
         Parent = parent;
-        LayoutParent = parent?.Node is IGuiComponent
-            ? parent
-            : parent?.LayoutParent;
+        LayoutParent = parent as GuiComponentSlot
+            ?? parent?.LayoutParent;
         Instance = instance;
         ChildTreeBuilder = childTreeBuilder;
         Frame = frame;
@@ -62,7 +60,7 @@ public abstract class GuiSlot
     /// Gets the nearest ancestor whose node participates in layout, or <c>null</c>
     /// when the slot has no component ancestor.
     /// </summary>
-    public GuiSlot? LayoutParent { get; }
+    public GuiComponentSlot? LayoutParent { get; }
 
     public IGuiNode Node => Instance;
     public IReadOnlyList<GuiSlot> Children => ChildTreeBuilder.NodeSlots;
@@ -100,19 +98,6 @@ public abstract class GuiSlot
     }
 
     public abstract void Arrange();
-
-    internal void SetLayoutTransparentBounds(GuiComponentBounds bounds)
-    {
-        IsScrollable = false;
-        Bounds = bounds;
-    }
-
-    internal void SetComponentBounds(GuiComponentBounds bounds)
-    {
-        IsScrollable = false;
-        Bounds = bounds;
-        ScrollClipBounds = default;
-    }
 
     internal void SetScrollableBounds(GuiComponentBounds scrollClipBounds)
     {
