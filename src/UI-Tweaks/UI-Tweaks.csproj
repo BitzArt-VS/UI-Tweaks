@@ -16,6 +16,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="UI-Tweaks.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="VintagestoryAPI">
 			<HintPath>..\..\resources\lib\VintagestoryAPI.dll</HintPath>
 			<Private>false</Private>
