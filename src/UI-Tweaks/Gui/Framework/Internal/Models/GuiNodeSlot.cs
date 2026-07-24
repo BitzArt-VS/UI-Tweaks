@@ -8,25 +8,6 @@ internal sealed class GuiNodeSlot(
     GuiTreeBuilder.TreeFrame frame)
     : GuiSlot(renderer, parent, node, childTreeBuilder, frame)
 {
-    public override void Arrange()
-    {
-        if (IsArranging)
-        {
-            throw new InvalidOperationException(
-                $"Arrangement cycle detected at {Instance.GetType().Name}.");
-        }
-
-        IsArranging = true;
-        try
-        {
-            foreach (GuiSlot child in Children)
-            {
-                child.Arrange();
-            }
-        }
-        finally
-        {
-            IsArranging = false;
-        }
-    }
+    private protected override void OnArrange()
+        => ArrangeChildren();
 }

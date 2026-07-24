@@ -18,7 +18,7 @@ public abstract class GuiSlot
     internal readonly GuiTreeBuilder.TreeFrame Frame;
 
     internal bool IsScrollable;
-    public bool IsArranging { get; private protected set; }
+    public bool IsArranging { get; private set; }
     internal GuiComponentBounds ScrollClipBounds;
 
     internal GuiCallback<GuiMouseEventArgs> OnMouseDown;
@@ -97,7 +97,38 @@ public abstract class GuiSlot
         return chain.TryGet(name, out value);
     }
 
-    public abstract void Arrange();
+    public void Arrange()
+    {
+        if (IsArranging)
+        {
+            throw new InvalidOperationException(
+                $"Arrangement cycle detected at {Instance.GetType().Name}.");
+        }
+
+        IsArranging = true;
+        try
+        {
+            OnArrange();
+        }
+        finally
+        {
+            IsArranging = false;
+        }
+    }
+
+    private protected abstract void OnArrange();
+
+    /// <summary>
+    /// Arranges each immediate child slot in declaration order.
+    /// Transparent child slots recursively forward arrangement to their own children.
+    /// </summary>
+    public void ArrangeChildren()
+    {
+        foreach (GuiSlot child in Children)
+        {
+            child.Arrange();
+        }
+    }
 
     internal void SetScrollableBounds(GuiComponentBounds scrollClipBounds)
     {

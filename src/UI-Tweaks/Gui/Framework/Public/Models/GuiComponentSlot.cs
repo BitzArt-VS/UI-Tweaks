@@ -19,24 +19,8 @@ public sealed class GuiComponentSlot : GuiSlot
 
     internal IGuiComponent Component => _component;
 
-    public override void Arrange()
-    {
-        if (IsArranging)
-        {
-            throw new InvalidOperationException(
-                $"Arrangement cycle detected at {Instance.GetType().Name}.");
-        }
-
-        IsArranging = true;
-        try
-        {
-            Bounds = _component.Arrange();
-        }
-        finally
-        {
-            IsArranging = false;
-        }
-    }
+    private protected override void OnArrange()
+        => Bounds = _component.Arrange();
 
     internal void SetBounds(GuiComponentBounds bounds)
     {
