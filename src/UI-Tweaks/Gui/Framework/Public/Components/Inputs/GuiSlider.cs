@@ -107,7 +107,7 @@ public sealed class GuiSlider : GuiInputBase
     {
         // The slider has no intrinsic minimum width — it expands to fill. Return a small
         // height-dominant size so fit-content parents don't collapse it to zero.
-        return new GuiLayoutSize(80, LayoutParameters.Height.FixedOrDefault(24));
+        return new GuiLayoutSize(80, LayoutParameters.Height?.Resolve(null) ?? 24);
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)

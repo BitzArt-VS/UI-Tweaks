@@ -1,38 +1,41 @@
+using System.Diagnostics;
 using System.Globalization;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
+/// <summary>
+/// Declares a one-dimensional fixed or fractional length. A declaration may remain
+/// relative until <see cref="Resolve"/> converts it into logical-pixel geometry.
+/// </summary>
 public readonly struct GuiLength
 {
-    private readonly GuiLengthKind _kind;
+    private readonly Kind _kind;
+    private readonly double _fixedValue;
+    private readonly double _fractionalValue;
 
-    public double Value { get; }
-    public double? Minimum { get; }
-    public double? Maximum { get; }
-
-    public bool IsAuto => _kind == GuiLengthKind.Auto;
-    public bool IsFixed => _kind == GuiLengthKind.Fixed;
-    public bool IsFraction => _kind == GuiLengthKind.Fraction;
-
-    private GuiLength(GuiLengthKind kind, double value, double? minimum = null, double? maximum = null)
+    private GuiLength(
+        Kind kind,
+        double fixedValue = 0,
+        double fractionalValue = 0)
     {
         _kind = kind;
-        Value = value;
-        Minimum = minimum;
-        Maximum = maximum;
+        _fixedValue = fixedValue;
+        _fractionalValue = fractionalValue;
     }
 
-    public static GuiLength Auto => default;
-    public static GuiLength Fixed(double value) => new(GuiLengthKind.Fixed, value);
+    public static GuiLength Fixed(double value)
+        => new(Kind.Fixed, fixedValue: value);
 
-    public static GuiLength Fraction(double value, double? minimum = null, double? maximum = null)
+    public static GuiLength Fraction(double value)
     {
         if (value < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Fractional size must be non-negative.");
+            throw new ArgumentOutOfRangeException(nameof(value), "Fractional length must be non-negative.");
         }
 
-        return new GuiLength(GuiLengthKind.Fraction, value, minimum, maximum);
+        return new GuiLength(
+            Kind.Fraction,
+            fractionalValue: value);
     }
 
     public static GuiLength Parse(string value)
@@ -49,42 +52,30 @@ public readonly struct GuiLength
         return Fixed(double.Parse(trimmed, CultureInfo.InvariantCulture));
     }
 
-    public double Resolve(double availableSize)
+    /// <summary>
+    /// Resolves this declaration to a logical-pixel value, or <c>null</c> when
+    /// a fractional declaration has no available length to resolve against.
+    /// </summary>
+    /// <param name="availableLength">
+    /// The available logical-pixel length, or <c>null</c> when the axis is unlimited.
+    /// </param>
+    public double? Resolve(double? availableLength)
     {
-        double resolved = _kind switch
+        return _kind switch
         {
-            GuiLengthKind.Fixed => Value,
-            GuiLengthKind.Fraction => availableSize * Value,
-            _ => throw new InvalidOperationException("Auto sizes cannot be resolved directly."),
+            Kind.Fixed => _fixedValue,
+            Kind.Fraction => availableLength * _fractionalValue,
+            _ => throw new UnreachableException(),
         };
-
-        if (Minimum is not null)
-        {
-            resolved = Math.Max(Minimum.Value, resolved);
-        }
-
-        if (Maximum is not null)
-        {
-            resolved = Math.Min(Maximum.Value, resolved);
-        }
-
-        return resolved;
     }
-
-    public double FixedOrDefault(double defaultValue)
-        => IsFixed ? Value : defaultValue;
-
-    internal bool CanResolve(double availableSize)
-        => !IsAuto && (!IsFraction || !double.IsPositiveInfinity(availableSize));
 
     public static implicit operator GuiLength(int value) => Fixed(value);
     public static implicit operator GuiLength(double value) => Fixed(value);
     public static implicit operator GuiLength(string value) => Parse(value);
-}
 
-internal enum GuiLengthKind
-{
-    Auto,
-    Fixed,
-    Fraction,
+    private enum Kind
+    {
+        Fixed,
+        Fraction,
+    }
 }

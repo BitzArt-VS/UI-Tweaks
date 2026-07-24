@@ -16,26 +16,46 @@ public sealed class GuiComponentLayoutParameters
     public GuiThickness Padding { get; set; } = GuiThickness.Zero;
 
     /// <summary>
-    /// Explicit width override. When <see cref="GuiLength.Auto"/> the size is determined by <see cref="WidthMode"/>.
+    /// Optional minimum width constraint.
+    /// </summary>
+    public GuiLength? MinimumWidth { get; set; }
+
+    /// <summary>
+    /// Optional explicit width override. When <c>null</c>, the size is determined by <see cref="WidthMode"/>.
     /// Takes priority over <see cref="WidthMode"/> when set.
     /// </summary>
-    public GuiLength Width { get; set; } = GuiLength.Auto;
+    public GuiLength? Width { get; set; }
 
     /// <summary>
-    /// Explicit height override. When <see cref="GuiLength.Auto"/> the size is determined by <see cref="HeightMode"/>.
+    /// Optional maximum width constraint.
+    /// </summary>
+    public GuiLength? MaximumWidth { get; set; }
+
+    /// <summary>
+    /// Optional minimum height constraint.
+    /// </summary>
+    public GuiLength? MinimumHeight { get; set; }
+
+    /// <summary>
+    /// Optional explicit height override. When <c>null</c>, the size is determined by <see cref="HeightMode"/>.
     /// Takes priority over <see cref="HeightMode"/> when set.
     /// </summary>
-    public GuiLength Height { get; set; } = GuiLength.Auto;
+    public GuiLength? Height { get; set; }
 
     /// <summary>
-    /// How to resolve width when <see cref="Width"/> is <see cref="GuiLength.Auto"/>.
+    /// Optional maximum height constraint.
+    /// </summary>
+    public GuiLength? MaximumHeight { get; set; }
+
+    /// <summary>
+    /// How to resolve width when <see cref="Width"/> is <c>null</c>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
     /// <see cref="GuiSizeMode.FitContent"/> uses measured content width plus padding.
     /// </summary>
     public GuiSizeMode WidthMode { get; set; } = GuiSizeMode.FitContent;
 
     /// <summary>
-    /// How to resolve height when <see cref="Height"/> is <see cref="GuiLength.Auto"/>.
+    /// How to resolve height when <see cref="Height"/> is <c>null</c>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
     /// <see cref="GuiSizeMode.FitContent"/> uses measured content height plus padding.
     /// </summary>
@@ -68,8 +88,12 @@ public sealed class GuiComponentLayoutParameters
         Positioning = GuiComponentPositioning.Relative;
         Margin = GuiThickness.Zero;
         Padding = GuiThickness.Zero;
-        Width = GuiLength.Auto;
-        Height = GuiLength.Auto;
+        MinimumWidth = null;
+        Width = null;
+        MaximumWidth = null;
+        MinimumHeight = null;
+        Height = null;
+        MaximumHeight = null;
         WidthMode = GuiSizeMode.FitContent;
         HeightMode = GuiSizeMode.FitContent;
         HorizontalAlignment = GuiHorizontalAlignment.Left;

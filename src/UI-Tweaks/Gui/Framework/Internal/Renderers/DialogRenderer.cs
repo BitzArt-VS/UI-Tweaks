@@ -94,8 +94,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         ReconcileDialogSlot(configure);
         var dialog = (TDialog)_dialog;
 
-        _currentLogicalWidth = dialog.LayoutParameters.Width.Value;
-        _currentLogicalHeight = dialog.LayoutParameters.Height.Value;
+        _currentLogicalWidth = dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        _currentLogicalHeight = dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
         EnsureSurfaceSize(
             (int)Math.Round(_currentLogicalWidth * _currentScale),
@@ -179,8 +181,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     private void RequestSurfaceUpdateForScaleOrSizeChanges()
     {
         float scale = RuntimeEnv.GUIScale;
-        double logicalWidth = _dialog.LayoutParameters.Width.Value;
-        double logicalHeight = _dialog.LayoutParameters.Height.Value;
+        double logicalWidth = _dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        double logicalHeight = _dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
         if (scale == _currentScale && logicalWidth == _currentLogicalWidth && logicalHeight == _currentLogicalHeight)
         {
@@ -274,8 +278,12 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     private (int positionX, int positionY, double physicalWidth, double physicalHeight, float scale) ResolveScreenRect()
     {
         float scale = RuntimeEnv.GUIScale;
-        double physicalWidth = Math.Round(_dialog.LayoutParameters.Width.Value * scale);
-        double physicalHeight = Math.Round(_dialog.LayoutParameters.Height.Value * scale);
+        double logicalWidth = _dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        double logicalHeight = _dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
+        double physicalWidth = Math.Round(logicalWidth * scale);
+        double physicalHeight = Math.Round(logicalHeight * scale);
         var (positionX, positionY) = ComputeScreenOrigin(physicalWidth, physicalHeight, scale);
         return (positionX, positionY, physicalWidth, physicalHeight, scale);
     }

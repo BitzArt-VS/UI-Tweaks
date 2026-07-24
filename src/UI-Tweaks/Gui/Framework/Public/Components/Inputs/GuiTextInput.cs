@@ -138,7 +138,7 @@ public sealed class GuiTextInput : GuiInputBase
     {
         // The input doesn't shrink to its text — it's an interactive box. Returning a
         // small minimum just keeps fit-content parents from collapsing to zero.
-        return new GuiLayoutSize(80, LayoutParameters.Height.FixedOrDefault(30));
+        return new GuiLayoutSize(80, LayoutParameters.Height?.Resolve(null) ?? 30);
     }
 
     /// <inheritdoc/>
@@ -190,7 +190,7 @@ public sealed class GuiTextInput : GuiInputBase
             verticalAlignment: GuiVerticalAlignment.Bottom);
     }
 
-    private double SpinnerButtonHeight => LayoutParameters.Height.FixedOrDefault(30) / 2.0;
+    private double SpinnerButtonHeight => (LayoutParameters.Height?.Resolve(null) ?? 30) / 2.0;
 
     private void SetSpinnerHovered(bool up, bool hovered)
     {

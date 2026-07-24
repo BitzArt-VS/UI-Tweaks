@@ -352,7 +352,7 @@ public class GuiDropdown<T> : GuiInputBase
         var content = base.Measure(available);
         return new GuiLayoutSize(
             Math.Max(content.Width, 120),
-            Math.Max(content.Height, LayoutParameters.Height.FixedOrDefault(30)));
+            Math.Max(content.Height, LayoutParameters.Height?.Resolve(null) ?? 30));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)
@@ -427,7 +427,7 @@ public class GuiDropdown<T> : GuiInputBase
         // the recessed border. Top margin centres a single line of text within the
         // header height — templated rows that need different vertical layout should set
         // their own outer margin / heightMode.
-        double headerHeight = LayoutParameters.Height.FixedOrDefault(30);
+        double headerHeight = LayoutParameters.Height?.Resolve(null) ?? 30;
         double lineHeight = Font.MeasureHeight();
         double topMargin = Math.Max(0, (headerHeight - lineHeight) / 2.0);
 

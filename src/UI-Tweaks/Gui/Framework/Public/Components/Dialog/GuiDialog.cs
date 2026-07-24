@@ -127,8 +127,10 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
 
     public virtual void Resize(GuiComponentBounds bounds)
     {
-        double previousWidth = LayoutParameters.Width.Value;
-        double previousHeight = LayoutParameters.Height.Value;
+        double previousWidth = LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        double previousHeight = LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
         double newWidth = Math.Clamp(bounds.Width, MinWidth, MaxWidth);
         double newHeight = Math.Clamp(bounds.Height, MinHeight, MaxHeight);
