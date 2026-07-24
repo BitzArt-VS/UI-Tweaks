@@ -10,19 +10,19 @@ namespace BitzArt.UI.Tweaks.Gui;
 internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
 {
     private readonly GuiSurfaceRenderer _renderer;
-    private ComponentSlot? _ownerSlot;
+    private GuiSlot? _ownerSlot;
 
     // Frame buffer: filled during the blueprint phase, cleared at the start of each Run().
     private readonly List<TreeFrame> _frames = [];
 
     // Persistent storage for keyed slots. Key is a value-type struct — no frame allocation
     // needed just for identity.
-    private readonly Dictionary<ComponentSlotKey, ComponentSlot> _keyedSlots = [];
+    private readonly Dictionary<ComponentSlotKey, GuiSlot> _keyedSlots = [];
 
     // Ordered list of active slots, rebuilt each Run() to match the current frame order.
     // Used by arrange and paint walks to iterate children in declaration order.
-    private readonly List<ComponentSlot> _renderOrder = [];
-    private readonly IReadOnlyList<IGuiNodeSlot> _nodeSlots;
+    private readonly List<GuiSlot> _renderOrder = [];
+    private readonly IReadOnlyList<GuiSlot> _nodeSlots;
 
     // Reused scratch buffers — avoid allocating inside the hot path.
     private readonly HashSet<ComponentSlotKey> _seenKeys = [];
@@ -37,7 +37,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     // temporarily during this builder's blueprint phase for descendants declared inside the scope.
     internal CascadingValueChain? CascadeChain;
 
-    internal IReadOnlyList<IGuiNodeSlot> NodeSlots => _nodeSlots;
+    internal IReadOnlyList<GuiSlot> NodeSlots => _nodeSlots;
 
     internal GuiTreeBuilder(GuiSurfaceRenderer renderer)
     {
@@ -164,7 +164,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         _frames.Clear();
     }
 
-    private static void DisposeSlot(ComponentSlot slot)
+    private static void DisposeSlot(GuiSlot slot)
     {
         // Children first — the parent instance may rely on its subtree still existing
         // during its own Dispose (e.g. unsubscribing from child events).
@@ -173,17 +173,32 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     }
 
 
-    private ComponentSlot CreateSlot(TreeFrame frame)
+    private GuiSlot CreateSlot(TreeFrame frame)
     {
         var childBuilder = new GuiTreeBuilder(_renderer);
         var instance = frame.CreateInstance();
-        var slot = new ComponentSlot(_renderer, _ownerSlot, instance, childBuilder, frame);
+        GuiSlot slot = instance switch
+        {
+            IGuiComponent component => new GuiComponentSlot(
+                _renderer,
+                _ownerSlot,
+                component,
+                childBuilder,
+                frame),
+            _ => new GuiNodeSlot(
+                _renderer,
+                _ownerSlot,
+                instance,
+                childBuilder,
+                frame),
+        };
+
         childBuilder._ownerSlot = slot;
         instance.Attach(slot);
         return slot;
     }
 
-    private void ReconcileSlot(ComponentSlot slot, TreeFrame frame, bool isNew)
+    private void ReconcileSlot(GuiSlot slot, TreeFrame frame, bool isNew)
     {
         // Propagate the declaration-site cascade chain before any component callbacks run.
         // Configure/OnInitialized/OnParametersSet may all read cascading values from the
@@ -215,7 +230,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         slot.ChildTreeBuilder.Run(slot.Instance.TreeFragment);
     }
 
-    internal GuiComponentBounds? ArrangeRoot(bool layoutChanged = false)
+    internal void ArrangeRoot()
     {
         if (_ownerSlot is not null)
         {
@@ -229,7 +244,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 "A GUI tree must contain exactly one root node.");
         }
 
-        return _renderOrder[0].Arrange(layoutChanged);
+        _renderOrder[0].Arrange();
     }
 
     /// <summary>
@@ -430,7 +445,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     private bool TryRenderScrollableChildren(
         Context context,
         GuiContainer container,
-        ComponentSlot slot,
+        GuiSlot slot,
         GuiComponentBounds allocated,
         GuiComponentBounds childContent,
         GuiComponentLayoutParameters lp)
@@ -614,7 +629,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         return true;
     }
 
-    private void RegisterRegions(ComponentSlot slot, GuiComponentBounds bounds)
+    private void RegisterRegions(GuiSlot slot, GuiComponentBounds bounds)
     {
         if (slot.Instance is IGuiResizable resizable && resizable.SupportedResizeEdges != GuiResizeEdge.None)
         {
@@ -776,7 +791,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             };
         }
 
-        public void ApplyTo(ComponentSlot slot)
+        public void ApplyTo(GuiSlot slot)
         {
             slot.OnMouseDown = OnMouseDown;
             slot.OnMouseUp = OnMouseUp;
@@ -876,7 +891,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             }
         }
 
-        public override void ComposeSlotConfiguration(ComponentSlot slot)
+        public override void ComposeSlotConfiguration(GuiSlot slot)
         {
             SlotCallbacks.Combine(_ownCallbacks, _externalCallbacks).ApplyTo(slot);
         }
@@ -938,7 +953,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         public abstract void Reset();
         public abstract void ApplySlotConfiguration(IGuiNode instance);
         public abstract void ApplyConfiguration(IGuiNode instance);
-        public abstract void ComposeSlotConfiguration(ComponentSlot slot);
+        public abstract void ComposeSlotConfiguration(GuiSlot slot);
     }
 
     private readonly record struct ComponentSlotKey(Type ComponentType, int Key);

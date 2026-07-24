@@ -493,7 +493,7 @@ public static class GuiTreeBuilderExtensions
     /// Opens a cascading value scope: <paramref name="value"/> is made available to every
     /// component slot declared anywhere inside <paramref name="content"/> (at any nesting
     /// depth) via <see cref="GuiComponent.GetCascadingValue{T}()"/> /
-    /// <see cref="IGuiNodeSlot.TryGetCascadingValue{T}(out T)"/>.
+    /// <see cref="GuiSlot.TryGetCascadingValue{T}(out T)"/>.
     /// <para>
     /// Pass <paramref name="name"/> to distinguish multiple scopes of the same
     /// <typeparamref name="T"/> in the same ancestry; consumers must request the matching

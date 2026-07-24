@@ -18,7 +18,7 @@ public abstract class GuiNode : IGuiNode
 {
     public GuiTreeFragment TreeFragment { get; }
 
-    protected IGuiNodeSlot? Slot { get; private set; }
+    protected GuiSlot? Slot { get; private set; }
     protected ICoreClientAPI? ClientApi => Slot?.ClientApi;
 
     protected GuiNode()
@@ -26,7 +26,7 @@ public abstract class GuiNode : IGuiNode
         TreeFragment = builder => BuildComponentTree(builder);
     }
 
-    public void Attach(IGuiNodeSlot slot)
+    public void Attach(GuiSlot slot)
     {
         Slot = slot;
     }
@@ -130,7 +130,7 @@ public abstract class GuiNode : IGuiNode
     /// <param name="bounds">Node bounds defining the area available for rendering.</param>
     public virtual void RenderOverlay(Context context, GuiComponentBounds bounds) { }
 
-    protected IGuiNodeSlot GetAttachedSlot(string memberName)
+    protected GuiSlot GetAttachedSlot(string memberName)
     {
         if (Slot is null)
         {

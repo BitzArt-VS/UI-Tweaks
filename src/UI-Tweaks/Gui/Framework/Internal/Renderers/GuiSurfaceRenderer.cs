@@ -78,7 +78,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         {
             if (arrange)
             {
-                TreeBuilder.ArrangeRoot(layoutChanged: true);
+                TreeBuilder.ArrangeRoot();
                 TreeBuilder.Render(context, bounds);
             }
             else

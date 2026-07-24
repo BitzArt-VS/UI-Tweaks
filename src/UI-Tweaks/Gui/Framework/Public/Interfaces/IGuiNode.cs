@@ -6,7 +6,7 @@ public interface IGuiNode
 {
     public GuiTreeFragment TreeFragment { get; }
 
-    public void Attach(IGuiNodeSlot slot);
+    public void Attach(GuiSlot slot);
 
     public void OnInitialized() { }
 
