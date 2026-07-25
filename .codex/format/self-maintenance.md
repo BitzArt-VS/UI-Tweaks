@@ -45,7 +45,7 @@ And then:
 After listing this information, propose the suggested change and request user's feedback on how to proceed.
 Use the built-in `request_user_input` tool, not a normal chat question.
 
-Ask me exactly one structured question with the format below, preserving the wording provided and without omitting anything. The question must align closely with the proposed change. It must never cover multiple logical items simultaneously. You may have used complex language beforehand, but it is not allowed in the question block. The question block's wording must be designed as if you were speaking to an uninitiated user, so it must be concise and clear, and avoid any technical jargon or complex language. The options provided in the question block must be clear and descriptive enough for the user to understand the implications of each choice without needing further explanation. Complex/difficult/technical wording in the question block is extremely bad UX and must be avoided at all costs.
+Ask the user exactly one structured question with the format below, preserving the wording provided and without omitting anything. The question must align closely with the proposed change. It must never cover multiple logical items simultaneously. You may have used complex language beforehand, but it is not allowed in the question block.
 
 ```md
 - header: revalidation
@@ -57,10 +57,10 @@ Ask me exactly one structured question with the format below, preserving the wor
     - description: {brief description of the proposed change, 10-30 words}
   2.
     - label: Skip
-    - description: Irrelevant for now? I will skip this issue and not make any changes regarding it.
+    - description: Skip this finding and do not make any changes.
   3.
     - label: Ignore
-    - description: If this is not an important issue, let's mark it as such in the agent instructions for future agent iterations, so it won't be flagged again.
+    - description: Mark this item as ignored in the agent instructions for future agent iterations, so it won't be flagged again.
 ```
 
 `Ignore` is an option for the user to select and **not** an instruction for you to ignore this option.
@@ -68,7 +68,6 @@ If option 3 (`Ignore`) is selected, propose where and how it can be marked for f
 
 After the user answers, acknowledge the selected option.
 If the user provides a custom response instead of selecting one of the listed options, treat it as binding user direction. If the response supplies replacement wording or a modified scope, review the current target file again and apply that modified version. If the response asks for a concrete proposal first or is ambiguous, provide the requested clarification and ask a follow-up question before editing.
-If the `request_user_input` tool is not available, say that instead of emulating it in plain text.
 
 After receiving the user's answer, execute on their decision immediately before proceeding with any further tasks.
 

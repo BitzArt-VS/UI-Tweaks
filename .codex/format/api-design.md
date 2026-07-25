@@ -19,4 +19,4 @@ For every code block:
 - Include only enough unchanged code to locate and understand the affected API.
 - Do not use inline diff markers, they don't work properly in this environment.
 
-Briefly explain the reasoning behind this API design decision unless it is obvious from the snippets or was previsously discussed via chat or in a design doc.
+Briefly explain the reasoning behind this API design decision unless it is obvious from the snippets or was previously discussed via chat or in a design doc.

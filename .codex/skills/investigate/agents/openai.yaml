@@ -2,3 +2,5 @@ interface:
   display_name: "Investigate"
   short_description: "Investigate the codebase and persist findings."
   default_prompt: "Use $investigate to investigate the current or external codebase."
+policy:
+  allow_implicit_invocation: false
