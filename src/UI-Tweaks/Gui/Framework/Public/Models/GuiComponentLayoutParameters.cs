@@ -89,6 +89,80 @@ public sealed class GuiComponentLayoutParameters
         GuiComponentBounds availableBounds,
         GuiComponentBounds? innerContentBounds)
     {
+        GuiComponentBounds adjustedAvailableBounds =
+            availableBounds - Margin;
+        GuiSize? availableSize = adjustedAvailableBounds.Size;
+        GuiSize? innerContentSize = innerContentBounds?.Size;
+        bool isProvisional = innerContentBounds is null;
+
+        return new GuiComponentBounds(
+            adjustedAvailableBounds.Position,
+            new GuiSize(
+                ResolveLength(
+                    availableSize?.Width,
+                    innerContentSize?.Width,
+                    isProvisional,
+                    WidthMode,
+                    Padding.Horizontal,
+                    Width,
+                    MinimumWidth,
+                    MaximumWidth),
+                ResolveLength(
+                    availableSize?.Height,
+                    innerContentSize?.Height,
+                    isProvisional,
+                    HeightMode,
+                    Padding.Vertical,
+                    Height,
+                    MinimumHeight,
+                    MaximumHeight)));
+    }
+
+    private static double? ResolveLength(
+        double? availableLength,
+        double? innerContentLength,
+        bool isProvisional,
+        GuiSizeMode sizeMode,
+        double padding,
+        GuiLengthRule? explicitRule,
+        GuiLengthRule? minimumRule,
+        GuiLengthRule? maximumRule)
+    {
+        double? candidate = isProvisional
+            ? availableLength
+            : ResolveFinalCandidate(
+                availableLength,
+                innerContentLength,
+                sizeMode,
+                padding);
+
+        return GuiLengthRule.Resolve(
+            availableLength,
+            candidate,
+            explicitRule,
+            minimumRule,
+            maximumRule);
+    }
+
+    private static double? ResolveFinalCandidate(
+        double? availableLength,
+        double? innerContentLength,
+        GuiSizeMode sizeMode,
+        double padding)
+    {
+        double? contentLength = innerContentLength is null
+            ? null
+            : innerContentLength + padding;
+
+        return sizeMode switch
+        {
+            GuiSizeMode.FitContent => contentLength,
+            GuiSizeMode.Fill => availableLength ?? contentLength,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(sizeMode),
+                sizeMode,
+                "Unsupported GUI size mode."),
+        };
     }
 
     /// <summary>

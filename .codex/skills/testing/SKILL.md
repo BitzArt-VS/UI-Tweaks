@@ -12,7 +12,7 @@ This reference captures project testing conventions for future agents. Prefer si
 - Add new tests iteratively, one test at a time, so each test can be reviewed before the next one is written.
 - When working on a new test, make sure to have received explicit user approval for this iteration before proceeding. Consider any given approval to never apply to multiple iterations.
 - Whenever considering possible testing direction, prepare a list of possible candidates and propose them to the user via the `request_user_input` tool, and wait for the user to select one before proceeding.
-- After adding each test, pause and let the user review whether it matches this project's testing practices and the expected feature behavior. Ask the user to approve the new test via the `request_user_input` tool before proceeding to the next test.
+- After adding each test, if the actual implemented result differs from the original proposal in any way, explain the difference and ask for additional user approval via the `request_user_input` tool before proceeding to the next iteration.
 - Do not guess the desired testing direction when the intent is unclear. Ask the user what behavior, edge case, or layer they want covered before writing tests, and prefer using the `request_user_input` tool when it is available.
 - Try to propose the most simple, obvious, and direct continuation of the existing test suite, do not try inventing clever cases or complex scenarios while simpler cases remain untested.
 - Focus on proposing tests that cover the most critical path of the feature, and avoid adding tests that cover unimportant or unlikely edge cases unless the user explicitly requests them.
