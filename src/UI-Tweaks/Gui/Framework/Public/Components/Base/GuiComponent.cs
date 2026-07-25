@@ -26,22 +26,12 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         // bottom-up results, and dependency-sensitive layouts may involve repeated passes.
         var slot = (GuiComponentSlot)Slot!;
 
-        slot.Bounds = ResolveProvisionalBounds(slot);
-        ArrangeDescendants(slot);
+        slot.Bounds = LayoutParameters.ResolveBounds(
+            slot.LayoutParent?.Bounds);
+        slot.ArrangeChildren();
 
         return ResolveBounds(slot);
     }
-
-    private GuiComponentBounds ResolveProvisionalBounds(GuiComponentSlot slot)
-    {
-        // Layout parent's provisional bounds.
-        var parentBounds = slot.LayoutParent?.Bounds;
-
-        throw new NotImplementedException();
-    }
-
-    private void ArrangeDescendants(GuiComponentSlot slot)
-        => throw new NotImplementedException();
 
     private GuiComponentBounds ResolveBounds(GuiComponentSlot slot)
         => throw new NotImplementedException();

@@ -9,12 +9,12 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </summary>
 public readonly struct GuiLengthRule
 {
-    private readonly Kind _kind;
+    private readonly RuleKind _kind;
     private readonly double _fixedValue;
     private readonly double _fractionalValue;
 
     private GuiLengthRule(
-        Kind kind,
+        RuleKind kind,
         double fixedValue = 0,
         double fractionalValue = 0)
     {
@@ -24,7 +24,7 @@ public readonly struct GuiLengthRule
     }
 
     public static GuiLengthRule Fixed(double value)
-        => new(Kind.Fixed, fixedValue: value);
+        => new(RuleKind.Fixed, fixedValue: value);
 
     public static GuiLengthRule Fraction(double value)
     {
@@ -34,7 +34,7 @@ public readonly struct GuiLengthRule
         }
 
         return new GuiLengthRule(
-            Kind.Fraction,
+            RuleKind.Fraction,
             fractionalValue: value);
     }
 
@@ -53,27 +53,90 @@ public readonly struct GuiLengthRule
     }
 
     /// <summary>
-    /// Resolves this declaration to a logical-pixel value, or <c>null</c> when
-    /// a fractional declaration has no available length to resolve against.
+    /// Resolves this declaration to a logical-pixel value, or <see langword="null"/>
+    /// when a fractional rule has no available length.
     /// </summary>
     /// <param name="availableLength">
-    /// The available logical-pixel length, or <c>null</c> when the axis is unlimited.
+    /// Available logical-pixel length, or <see langword="null"/> when unavailable.
+    /// Fixed rules do not require a value.
     /// </param>
     public double? Resolve(double? availableLength)
     {
         return _kind switch
         {
-            Kind.Fixed => _fixedValue,
-            Kind.Fraction => availableLength * _fractionalValue,
+            RuleKind.Fixed => _fixedValue,
+            RuleKind.Fraction => availableLength is null
+                ? null
+                : availableLength.Value * _fractionalValue,
+
             _ => throw new UnreachableException(),
         };
+    }
+
+    /// <summary>
+    /// Resolves a provisional length using available space as the initial candidate.
+    /// </summary>
+    /// <returns>
+    /// Constrained logical-pixel length, or <see langword="null"/> when the length
+    /// remains unlimited.
+    /// </returns>
+    public static double? Resolve(
+        double? available,
+        GuiLengthRule? fixedRule,
+        GuiLengthRule? minimumRule,
+        GuiLengthRule? maximumRule)
+        => Resolve(
+            available,
+            candidate: available,
+            fixedRule,
+            minimumRule,
+            maximumRule);
+
+    /// <summary>
+    /// Resolves a candidate length, using available space as the basis for
+    /// fractional fixed, minimum, and maximum rules.
+    /// </summary>
+    /// <returns>
+    /// Constrained logical-pixel length, or <see langword="null"/> when the length
+    /// remains unlimited.
+    /// </returns>
+    public static double? Resolve(double? available, double? candidate, GuiLengthRule? fixedRule, GuiLengthRule? minimumRule, GuiLengthRule? maximumRule)
+    {
+        var value = fixedRule is not null
+            ? fixedRule.Value.Resolve(available)
+            : candidate;
+
+        var minimum = minimumRule?.Resolve(available);
+        var maximum = maximumRule?.Resolve(available);
+
+        return Clamp(value, minimum, maximum);
+    }
+
+    private static double? Clamp(double? value, double? min, double? max)
+    {
+        if (value is null)
+        {
+            return max;
+        }
+
+        if (min is not null && value < min)
+        {
+            return min;
+        }
+
+        if (max is not null && value > max)
+        {
+            return max;
+        }
+
+        return value;
     }
 
     public static implicit operator GuiLengthRule(int value) => Fixed(value);
     public static implicit operator GuiLengthRule(double value) => Fixed(value);
     public static implicit operator GuiLengthRule(string value) => Parse(value);
 
-    private enum Kind
+    private enum RuleKind
     {
         Fixed,
         Fraction,

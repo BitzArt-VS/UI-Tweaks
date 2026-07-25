@@ -77,6 +77,46 @@ public sealed class GuiComponentLayoutParameters
     /// </summary>
     public GuiVerticalAlignment VerticalAlignment { get; set; } = GuiVerticalAlignment.Top;
 
+    public GuiComponentBounds ResolveBounds(
+        GuiComponentBounds? availableBounds)
+    {
+        var candidateBounds = availableBounds
+            ?? new GuiComponentBounds(
+                Position: null,
+                Size: new GuiSize(Width: null, Height: null));
+
+        return ResolveBounds(availableBounds, candidateBounds);
+    }
+
+    public GuiComponentBounds ResolveBounds(
+        GuiComponentBounds? availableBounds,
+        GuiComponentBounds candidateBounds)
+    {
+        if (candidateBounds.Size is not GuiSize candidateSize)
+        {
+            return candidateBounds;
+        }
+
+        var availableSize = availableBounds?.Size;
+
+        return candidateBounds with
+        {
+            Size = new GuiSize(
+                GuiLengthRule.Resolve(
+                    availableSize?.Width,
+                    candidateSize.Width,
+                    Width,
+                    MinimumWidth,
+                    MaximumWidth),
+                GuiLengthRule.Resolve(
+                    availableSize?.Height,
+                    candidateSize.Height,
+                    Height,
+                    MinimumHeight,
+                    MaximumHeight))
+        };
+    }
+
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on
     /// reused component slots before applying the current pass's configuration actions so
