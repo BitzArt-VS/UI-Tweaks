@@ -58,7 +58,7 @@ public class GuiDialogCloseIcon : GuiComponent
     public override GuiLayoutSize Measure(GuiLayoutSize available)
         => new(CrossLineWidth * 2 + CrossSize, CrossLineWidth * 2 + CrossSize);
 
-    public override void Render(Context ctx, GuiComponentBounds b)
+    public override void Render(Context ctx, GuiBounds b)
     {
         if (Slot is null)
         {

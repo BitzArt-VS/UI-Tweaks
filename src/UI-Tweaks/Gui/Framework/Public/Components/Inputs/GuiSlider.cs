@@ -231,7 +231,7 @@ public sealed class GuiSlider : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         base.Render(ctx, bounds);
 
@@ -279,7 +279,7 @@ public sealed class GuiSlider : GuiInputBase
         }
     }
 
-    private double ComputeHandleCenterX(GuiComponentBounds bounds)
+    private double ComputeHandleCenterX(GuiBounds bounds)
     {
         int range = MaxValue - MinValue;
         double t = range <= 0 ? 0 : (double)(Value - MinValue) / range;

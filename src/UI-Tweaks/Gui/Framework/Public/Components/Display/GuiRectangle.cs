@@ -13,7 +13,7 @@ public class GuiRectangle : GuiComponent
     /// <summary>Fill colour. Defaults to <see cref="GuiColor.Transparent"/> — a no-op draw.</summary>
     public GuiColor Color { get; set; }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         if (Color.A <= 0)
         {

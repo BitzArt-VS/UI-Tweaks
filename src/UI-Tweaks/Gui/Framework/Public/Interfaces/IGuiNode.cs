@@ -24,13 +24,13 @@ public interface IGuiNode
     /// Called each frame to draw this node within the given bounds. Save and restore
     /// Cairo context state around any transforms.
     /// </summary>
-    public void Render(Context context, GuiComponentBounds bounds) { }
+    public void Render(Context context, GuiBounds bounds) { }
 
     /// <summary>
     /// Called after all children have rendered, before the next sibling slot draws.
     /// An overlay can still be obscured by a later sibling that overlaps the same area.
     /// Save and restore Cairo context state around any transforms.
     /// </summary>
-    public void RenderOverlay(Context context, GuiComponentBounds bounds) { }
+    public void RenderOverlay(Context context, GuiBounds bounds) { }
 
 }

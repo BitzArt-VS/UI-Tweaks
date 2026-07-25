@@ -125,7 +125,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
             .OnFocusChanged(HandleDialogFocusChanged);
     }
 
-    public virtual void Resize(GuiComponentBounds bounds)
+    public virtual void Resize(GuiBounds bounds)
     {
         double previousWidth = LayoutParameters.Width?.Resolve(null)
             ?? throw new InvalidOperationException("A dialog requires a fixed width.");

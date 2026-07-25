@@ -64,7 +64,7 @@ public sealed class GuiButton : GuiComponent
     // the release happened inside or outside — needed because OnMouseUp fires before
     // OnMouseClick, so the position must be checked manually rather than relying on the
     // framework's inside/outside routing.
-    private GuiComponentBounds _lastBounds;
+    private GuiBounds _lastBounds;
 
     public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
@@ -72,7 +72,7 @@ public sealed class GuiButton : GuiComponent
         return new GuiLayoutSize(ts.Width + HorizontalTextPadding * 2, ts.Height + VerticalTextPadding * 2);
     }
 
-    public override void Render(Context ctx, GuiComponentBounds b)
+    public override void Render(Context ctx, GuiBounds b)
     {
         _lastBounds = b;
         double emboss = EmbossHeight;

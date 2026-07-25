@@ -27,7 +27,7 @@ public sealed class OverlayHost
     private readonly DialogRenderer _renderer;
     private readonly FloatingLayerAnchor _anchor;
 
-    private GuiComponentBounds _activeBounds;
+    private GuiBounds _activeBounds;
 
     internal OverlayHost(FloatingLayerRenderer layer, DialogRenderer renderer)
     {
@@ -52,7 +52,7 @@ public sealed class OverlayHost
     /// <param name="content">The render fragment producing the overlay's content. Should
     /// be reference-stable across frames where the overlay's identity is unchanged so the
     /// renderer's reuse path skips per-frame closures.</param>
-    public void Show(object token, GuiComponentBounds dialogLocalBounds, GuiTreeFragment content)
+    public void Show(object token, GuiBounds dialogLocalBounds, GuiTreeFragment content)
     {
         _activeBounds = dialogLocalBounds;
 

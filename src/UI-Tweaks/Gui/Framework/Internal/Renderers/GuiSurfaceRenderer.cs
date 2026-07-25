@@ -72,7 +72,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         _physicalHeight = physH;
     }
 
-    protected void DrawSurfaceContents(GuiComponentBounds bounds, float scale, bool arrange)
+    protected void DrawSurfaceContents(GuiBounds bounds, float scale, bool arrange)
     {
         DrawSurfaceContents(bounds, scale, arrange, context =>
         {
@@ -88,7 +88,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         });
     }
 
-    private void DrawSurfaceContents(GuiComponentBounds bounds, float scale, bool arrange, Action<Context> draw)
+    private void DrawSurfaceContents(GuiBounds bounds, float scale, bool arrange, Action<Context> draw)
     {
         _context!.IdentityMatrix();
         _context.Operator = Operator.Source;

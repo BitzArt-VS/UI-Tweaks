@@ -16,8 +16,8 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     }
 
     /// <inheritdoc/>
-    public virtual GuiComponentBounds Arrange(
-        GuiComponentBounds availableBounds)
+    public virtual GuiBounds Arrange(
+        GuiBounds availableBounds)
     {
         // Arrangement recursively carries provisional constraints down from ancestors,
         // then carries resolved descendant results back up as each call returns. A layout
@@ -27,7 +27,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         // bottom-up results, and dependency-sensitive layouts may involve repeated passes.
         var slot = (GuiComponentSlot)Slot!;
 
-        GuiComponentBounds provisionalBounds =
+        GuiBounds provisionalBounds =
             LayoutParameters.ResolveBounds(availableBounds);
 
         slot.Bounds = provisionalBounds;

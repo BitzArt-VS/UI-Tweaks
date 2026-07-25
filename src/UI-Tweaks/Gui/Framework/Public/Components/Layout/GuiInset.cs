@@ -46,7 +46,7 @@ public sealed class GuiInset : GuiComponent
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         Draw(ctx, bounds, Depth, Brightness, Radius);
     }
@@ -64,7 +64,7 @@ public sealed class GuiInset : GuiComponent
     /// </para>
     /// </summary>
     internal static void Draw(
-        Context ctx, GuiComponentBounds bounds,
+        Context ctx, GuiBounds bounds,
         int depth, float brightness, double radius,
         bool raised = false)
     {

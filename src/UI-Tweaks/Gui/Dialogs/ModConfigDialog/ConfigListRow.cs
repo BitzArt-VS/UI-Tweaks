@@ -36,7 +36,7 @@ internal sealed class ConfigListRow : GuiComponent
             textSize.Height + DescriptionTopGap + descriptionSize.Height);
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         if (_isHovered)
         {

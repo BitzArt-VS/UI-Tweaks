@@ -94,7 +94,7 @@ public class GuiDialogTitleBar : GuiContainer
         });
     }
 
-    protected override void DrawBackground(Context ctx, GuiComponentBounds bounds)
+    protected override void DrawBackground(Context ctx, GuiBounds bounds)
     {
         double sw = StrokeWidth / RuntimeEnv.GUIScale;
 

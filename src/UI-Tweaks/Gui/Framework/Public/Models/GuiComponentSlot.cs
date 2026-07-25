@@ -18,7 +18,7 @@ public sealed class GuiComponentSlot : GuiSlot
     /// Reading this property does not initiate arrangement.
     /// </para>
     /// </remarks>
-    public GuiComponentBounds? Bounds { get; set; }
+    public GuiBounds? Bounds { get; set; }
 
     /// <summary>
     /// Current inner bounds available to descendants after applying padding.
@@ -26,7 +26,7 @@ public sealed class GuiComponentSlot : GuiSlot
     /// <remarks>
     /// This value is provisional while the slot is arranging and final afterward.
     /// </remarks>
-    public GuiComponentBounds? ContentBounds { get; set; }
+    public GuiBounds? ContentBounds { get; set; }
 
     internal GuiComponentSlot(
         GuiSurfaceRenderer renderer,
@@ -43,7 +43,7 @@ public sealed class GuiComponentSlot : GuiSlot
 
     private protected override void OnArrange()
     {
-        GuiComponentBounds availableBounds =
+        GuiBounds availableBounds =
             LayoutParent?.ContentBounds
             ?? throw new InvalidOperationException(
                 "Cannot arrange component without available parent content bounds.");

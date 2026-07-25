@@ -14,7 +14,7 @@ internal sealed class ConfigPanel : GuiContainer
 
     public GuiColor FillColor { get; set; } = GuiColor.FromRgba(0.13, 0.10, 0.07, 0.22);
 
-    protected override void DrawBackground(Context context, GuiComponentBounds bounds)
+    protected override void DrawBackground(Context context, GuiBounds bounds)
     {
         context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
         context.FillSolid(FillColor);

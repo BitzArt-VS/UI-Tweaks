@@ -528,7 +528,7 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         base.Render(ctx, bounds);
 
@@ -622,7 +622,7 @@ public sealed class GuiTextInput : GuiInputBase
     /// centre; hover and press state are layered as semi-transparent washes on top.
     /// Disabled inputs render with reduced alpha across the whole composition.
     /// </summary>
-    private void DrawSpinnerButtons(Context ctx, GuiComponentBounds b)
+    private void DrawSpinnerButtons(Context ctx, GuiBounds b)
     {
         double btnH = b.Height / 2.0;
         double x = b.Right - SpinnerGutterWidth;

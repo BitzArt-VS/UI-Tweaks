@@ -59,7 +59,7 @@ public sealed class GuiTooltip : GuiNode
         _host = GetCascadingValue<TooltipHost>();
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         // Register the trigger region with the host. The host's region table is reset at
         // the start of every paint walk, so a single AddRegion call here is enough — no

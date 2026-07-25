@@ -30,7 +30,7 @@ public sealed class GuiLabel : GuiComponent
         return Font.Measure(Text);
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         // DrawText handles the physical-pixel CTM dance required for vanilla-style hinting.
         context.DrawText(Text, Font, bounds.X, bounds.Y);

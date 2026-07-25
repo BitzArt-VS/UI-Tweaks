@@ -109,7 +109,7 @@ public abstract class GuiNode : IGuiNode
     /// </summary>
     /// <param name="context">Cairo context for drawing operations.</param>
     /// <param name="bounds">Node bounds defining the area available for rendering.</param>
-    public virtual void Render(Context context, GuiComponentBounds bounds) { }
+    public virtual void Render(Context context, GuiBounds bounds) { }
 
     /// <summary>
     /// Override this method to render overlays on top of this node's children.
@@ -118,6 +118,6 @@ public abstract class GuiNode : IGuiNode
     /// </summary>
     /// <param name="context">Cairo context for drawing operations.</param>
     /// <param name="bounds">Node bounds defining the area available for rendering.</param>
-    public virtual void RenderOverlay(Context context, GuiComponentBounds bounds) { }
+    public virtual void RenderOverlay(Context context, GuiBounds bounds) { }
 
 }

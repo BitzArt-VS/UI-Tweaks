@@ -50,7 +50,7 @@ public sealed class GuiShadow : GuiComponent
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         Draw(ctx, bounds.X, bounds.Y, bounds.Width, bounds.Height,
              Steps, Offset, Spread, Alpha, Radius);

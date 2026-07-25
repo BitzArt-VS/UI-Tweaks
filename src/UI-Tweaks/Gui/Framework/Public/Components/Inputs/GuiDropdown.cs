@@ -451,7 +451,7 @@ public class GuiDropdown<T> : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         // Capture LastBounds so popup positioning can use the actual header height on
         // subsequent reconciles (handles the case where the user customised Height
@@ -574,7 +574,7 @@ public class GuiDropdown<T> : GuiInputBase
         Close();
     }
 
-    private void DrawChevron(Context ctx, GuiComponentBounds b)
+    private void DrawChevron(Context ctx, GuiBounds b)
     {
         // Centred inside the right-edge chevron strip, ~6 logical pixels wide and
         // ~4 px tall — matches the visual weight of the header text.

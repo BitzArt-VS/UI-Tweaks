@@ -44,7 +44,7 @@ public abstract class GuiInputBase : GuiComponent
     /// <summary>The most recently arranged bounds, captured at the start of <see cref="Render"/>
     /// — exposed so subclasses don't need to thread bounds through their own state when
     /// reacting to mouse events that fire after layout.</summary>
-    protected GuiComponentBounds LastBounds { get; private set; }
+    protected GuiBounds LastBounds { get; private set; }
 
     /// <inheritdoc/>
     public override void OnParametersSet()
@@ -55,7 +55,7 @@ public abstract class GuiInputBase : GuiComponent
     }
 
     /// <inheritdoc/>
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         LastBounds = bounds;
     }

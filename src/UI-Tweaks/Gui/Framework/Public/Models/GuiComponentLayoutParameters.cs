@@ -77,23 +77,23 @@ public sealed class GuiComponentLayoutParameters
     /// </summary>
     public GuiVerticalAlignment VerticalAlignment { get; set; } = GuiVerticalAlignment.Top;
 
-    public GuiComponentBounds ResolveBounds(
-        GuiComponentBounds availableBounds)
+    public GuiBounds ResolveBounds(
+        GuiBounds availableBounds)
         => ResolveBounds(availableBounds, null);
 
     /// <summary>
     /// Resolves component bounds from the space supplied by its parent and the
     /// inner bounds produced by its descendants.
     /// </summary>
-    public GuiComponentBounds ResolveBounds(
-        GuiComponentBounds availableBounds,
-        GuiComponentBounds? innerContentBounds)
+    public GuiBounds ResolveBounds(
+        GuiBounds availableBounds,
+        GuiBounds? innerContentBounds)
     {
-        GuiComponentBounds adjustedAvailableBounds =
+        GuiBounds adjustedAvailableBounds =
             availableBounds - Margin;
 
-        GuiComponentBounds? paddedContentBounds =
-            innerContentBounds is GuiComponentBounds contentBounds
+        GuiBounds? paddedContentBounds =
+            innerContentBounds is GuiBounds contentBounds
                 ? contentBounds + Padding
                 : null;
 
@@ -101,7 +101,7 @@ public sealed class GuiComponentLayoutParameters
         GuiSize? contentSize = paddedContentBounds?.Size;
         bool isProvisional = innerContentBounds is null;
 
-        return new GuiComponentBounds(
+        return new GuiBounds(
             adjustedAvailableBounds.Position,
             new GuiSize(
                 ResolveLength(

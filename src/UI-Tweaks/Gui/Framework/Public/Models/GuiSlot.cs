@@ -19,7 +19,7 @@ public abstract class GuiSlot
 
     internal bool IsScrollable;
     public bool IsArranging { get; private set; }
-    internal GuiComponentBounds ScrollClipBounds;
+    internal GuiBounds ScrollClipBounds;
 
     internal GuiCallback<GuiMouseEventArgs> OnMouseDown;
     internal GuiCallback<GuiMouseEventArgs> OnMouseUp;
@@ -130,7 +130,7 @@ public abstract class GuiSlot
         }
     }
 
-    internal void SetScrollableBounds(GuiComponentBounds scrollClipBounds)
+    internal void SetScrollableBounds(GuiBounds scrollClipBounds)
     {
         IsScrollable = true;
         ScrollClipBounds = scrollClipBounds;

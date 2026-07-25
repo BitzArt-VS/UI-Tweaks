@@ -11,7 +11,7 @@ internal sealed class GuiResizeController
     private bool _useScreenBounds;
     private ResizeRegion _activeRegion;
     private GuiResizeEdge _activeEdge;
-    private GuiComponentBounds _startBounds;
+    private GuiBounds _startBounds;
     private GuiPoint _startPointer;
 
     internal bool IsResizing => _isResizing;
@@ -154,7 +154,7 @@ internal sealed class GuiResizeController
         return edge;
     }
 
-    private GuiComponentBounds CreateRequestedBounds(GuiPoint delta)
+    private GuiBounds CreateRequestedBounds(GuiPoint delta)
     {
         double left = _startBounds.X;
         double top = _startBounds.Y;
@@ -186,7 +186,7 @@ internal sealed class GuiResizeController
             Math.Abs(bottom - top));
     }
 
-    private static GuiComponentBounds ToScreenBounds(GuiComponentBounds surfaceBounds, GuiMouseEventArgs args)
+    private static GuiBounds ToScreenBounds(GuiBounds surfaceBounds, GuiMouseEventArgs args)
     {
         double surfaceScreenX = args.AbsolutePosition.X - args.Position.X;
         double surfaceScreenY = args.AbsolutePosition.Y - args.Position.Y;

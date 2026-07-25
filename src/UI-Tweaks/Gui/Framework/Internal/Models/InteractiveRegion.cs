@@ -2,7 +2,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal readonly struct InteractiveRegion
 {
-    public readonly GuiComponentBounds Bounds;
+    public readonly GuiBounds Bounds;
     public readonly object Token;
 
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseDown;
@@ -14,7 +14,7 @@ internal readonly struct InteractiveRegion
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseWheel;
 
     public InteractiveRegion(
-        GuiComponentBounds bounds,
+        GuiBounds bounds,
         object token,
         GuiCallback<GuiMouseEventArgs> onMouseDown,
         GuiCallback<GuiMouseEventArgs> onMouseUp,

@@ -10,12 +10,12 @@ public class GuiComponentLayoutParametersTests
         // Arrange
         var layoutParameters = new GuiComponentLayoutParameters();
         var availablePosition = new GuiPoint(10, 20);
-        var availableBounds = new GuiComponentBounds(
+        var availableBounds = new GuiBounds(
             availablePosition,
             new GuiSize(null, null));
 
         // Act
-        GuiComponentBounds result =
+        GuiBounds result =
             layoutParameters.ResolveBounds(availableBounds);
 
         // Assert
@@ -28,12 +28,12 @@ public class GuiComponentLayoutParametersTests
         // Arrange
         var layoutParameters = new GuiComponentLayoutParameters();
         var availableSize = new GuiSize(300, 200);
-        var availableBounds = new GuiComponentBounds(
+        var availableBounds = new GuiBounds(
             null,
             availableSize);
 
         // Act
-        GuiComponentBounds result =
+        GuiBounds result =
             layoutParameters.ResolveBounds(availableBounds);
 
         // Assert

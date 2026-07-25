@@ -11,5 +11,5 @@ public interface IGuiResizable : IGuiComponent
     /// <summary>
     /// Applies framework-suggested outer bounds for this resizable.
     /// </summary>
-    public void Resize(GuiComponentBounds bounds);
+    public void Resize(GuiBounds bounds);
 }

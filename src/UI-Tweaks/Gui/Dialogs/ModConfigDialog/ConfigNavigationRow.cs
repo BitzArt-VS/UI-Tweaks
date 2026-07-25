@@ -29,7 +29,7 @@ internal sealed class ConfigNavigationRow : GuiComponent
         return new(textSize.Width + TextLeftPadding * 2, textSize.Height);
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         if (IsSelected)
         {

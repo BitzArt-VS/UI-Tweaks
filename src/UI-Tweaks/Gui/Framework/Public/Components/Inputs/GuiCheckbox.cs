@@ -91,7 +91,7 @@ public sealed class GuiCheckbox : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         base.Render(ctx, bounds);
 

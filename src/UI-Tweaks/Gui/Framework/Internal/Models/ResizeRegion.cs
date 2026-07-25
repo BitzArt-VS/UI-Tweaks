@@ -2,11 +2,11 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal readonly struct ResizeRegion
 {
-    public readonly GuiComponentBounds Bounds;
+    public readonly GuiBounds Bounds;
     public readonly object Token;
     public readonly IGuiResizable Target;
 
-    public ResizeRegion(GuiComponentBounds bounds, object token, IGuiResizable target)
+    public ResizeRegion(GuiBounds bounds, object token, IGuiResizable target)
     {
         Bounds = bounds;
         Token = token;

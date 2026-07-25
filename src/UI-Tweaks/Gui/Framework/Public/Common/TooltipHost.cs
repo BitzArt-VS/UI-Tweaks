@@ -38,12 +38,12 @@ public sealed class TooltipHost
 
     private readonly struct Region
     {
-        public readonly GuiComponentBounds Bounds;
+        public readonly GuiBounds Bounds;
         public readonly object Token;
         public readonly GuiTreeFragment Content;
         public readonly Action<GuiTooltipBackground>? ConfigureBackground;
 
-        public Region(GuiComponentBounds bounds, object token, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
+        public Region(GuiBounds bounds, object token, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
         {
             Bounds = bounds;
             Token = token;
@@ -60,7 +60,7 @@ public sealed class TooltipHost
 
     internal void ResetFrame() => _regions.Clear();
 
-    internal void AddRegion(object token, GuiComponentBounds bounds, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
+    internal void AddRegion(object token, GuiBounds bounds, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
         => _regions.Add(new Region(bounds, token, content, configureBackground));
 
     /// <summary>

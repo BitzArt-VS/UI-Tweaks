@@ -11,6 +11,6 @@ public interface IGuiComponent : IGuiNode
     /// The arranged bounds. Individual bounds fields are <c>null</c> while
     /// their geometry is unresolved.
     /// </returns>
-    public GuiComponentBounds Arrange(
-        GuiComponentBounds availableBounds);
+    public GuiBounds Arrange(
+        GuiBounds availableBounds);
 }

@@ -257,7 +257,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     /// The parent's content area (already inset by the parent's padding).
     /// Relative children are stacked inside this area; absolute children are pinned to it.
     /// </param>
-    internal void Render(Context context, GuiComponentBounds contentBounds)
+    internal void Render(Context context, GuiBounds contentBounds)
     {
         double cursorX = contentBounds.X;
         double cursorY = contentBounds.Y;
@@ -278,13 +278,13 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     /// the wrapper's slots flow at the parent's level without the wrapper itself
     /// consuming any space.
     /// </summary>
-    private GuiComponentBounds? RenderInto(
+    private GuiBounds? RenderInto(
         Context context,
-        GuiComponentBounds contentBounds,
+        GuiBounds contentBounds,
         ref double cursorX,
         ref double cursorY)
     {
-        GuiComponentBounds? extent = null;
+        GuiBounds? extent = null;
 
         foreach (var slot in _renderOrder)
         {
@@ -299,9 +299,9 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             {
                 double startX = cursorX;
 
-                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, ref cursorX, ref cursorY);
+                GuiBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, ref cursorX, ref cursorY);
 
-                GuiComponentBounds wrapperBounds = childExtent
+                GuiBounds wrapperBounds = childExtent
                     ?? new GuiComponentBounds(startX, contentBounds.Y, cursorX - startX, contentBounds.Height);
 
                 slot.Instance.Render(context, wrapperBounds);
@@ -396,16 +396,16 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         return extent;
     }
 
-    private GuiComponentBounds? PaintInto(Context context)
+    private GuiBounds? PaintInto(Context context)
     {
-        GuiComponentBounds? extent = null;
+        GuiBounds? extent = null;
 
         foreach (GuiSlot slot in _renderOrder)
         {
             if (slot is not GuiComponentSlot componentSlot)
             {
-                GuiComponentBounds? childExtent = slot.ChildTreeBuilder.PaintInto(context);
-                if (childExtent is not GuiComponentBounds wrapperBounds)
+                GuiBounds? childExtent = slot.ChildTreeBuilder.PaintInto(context);
+                if (childExtent is not GuiBounds wrapperBounds)
                 {
                     continue;
                 }
@@ -416,7 +416,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 continue;
             }
 
-            if (componentSlot.Bounds is not GuiComponentBounds bounds)
+            if (componentSlot.Bounds is not GuiBounds bounds)
             {
                 continue;
             }
@@ -461,8 +461,8 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         Context context,
         GuiContainer container,
         GuiSlot slot,
-        GuiComponentBounds allocated,
-        GuiComponentBounds childContent,
+        GuiBounds allocated,
+        GuiBounds childContent,
         GuiComponentLayoutParameters lp)
     {
         // Effective axes: user-declared Scroll mask minus axes whose mode is FitContent
@@ -644,7 +644,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         return true;
     }
 
-    private void RegisterRegions(GuiSlot slot, GuiComponentBounds bounds)
+    private void RegisterRegions(GuiSlot slot, GuiBounds bounds)
     {
         if (slot.Instance is IGuiResizable resizable && resizable.SupportedResizeEdges != GuiResizeEdge.None)
         {
@@ -717,7 +717,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         };
     }
 
-    private static GuiComponentBounds Union(GuiComponentBounds first, GuiComponentBounds second)
+    private static GuiBounds Union(GuiBounds first, GuiBounds second)
     {
         double left = Math.Min(first.X, second.X);
         double top = Math.Min(first.Y, second.Y);
@@ -726,7 +726,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         return new GuiComponentBounds(left, top, right - left, bottom - top);
     }
 
-    private static GuiComponentBounds? Union(GuiComponentBounds? extent, GuiComponentBounds bounds)
+    private static GuiBounds? Union(GuiBounds? extent, GuiBounds bounds)
         => extent is null ? bounds : Union(extent.Value, bounds);
 
     private struct SlotCallbacks

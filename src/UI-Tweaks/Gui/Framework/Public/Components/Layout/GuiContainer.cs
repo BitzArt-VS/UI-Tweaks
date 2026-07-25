@@ -131,7 +131,7 @@ public class GuiContainer : GuiComponent
     /// Default: fills bounds with a solid <see cref="Background"/> when its alpha is
     /// greater than zero; otherwise no-op.
     /// </summary>
-    protected virtual void DrawBackground(Context context, GuiComponentBounds bounds)
+    protected virtual void DrawBackground(Context context, GuiBounds bounds)
     {
         if (Background.A <= 0)
         {
@@ -148,7 +148,7 @@ public class GuiContainer : GuiComponent
     /// Called after all children are rendered.
     /// Default: no-op.
     /// </summary>
-    protected virtual void DrawOverlay(Context context, GuiComponentBounds bounds) { }
+    protected virtual void DrawOverlay(Context context, GuiBounds bounds) { }
 
     // ── Framework wiring ──────────────────────────────────────────────────────
 
@@ -173,10 +173,10 @@ public class GuiContainer : GuiComponent
         InsetConfiguration?.Invoke(_inset);
     }
 
-    public sealed override void Render(Context context, GuiComponentBounds bounds)
+    public sealed override void Render(Context context, GuiBounds bounds)
         => DrawBackground(context, bounds);
 
-    public sealed override void RenderOverlay(Context context, GuiComponentBounds bounds)
+    public sealed override void RenderOverlay(Context context, GuiBounds bounds)
         => DrawOverlay(context, bounds);
 
     /// <summary>
@@ -193,7 +193,7 @@ public class GuiContainer : GuiComponent
     /// non-scrollable containers, or the inset region (allocated minus scrollbar gutter) for
     /// scrollable ones.
     /// </summary>
-    internal void DrawInsetBackground(Context context, GuiComponentBounds bounds)
+    internal void DrawInsetBackground(Context context, GuiBounds bounds)
     {
         if (!HasInset)
         {
@@ -393,12 +393,12 @@ public class GuiContainer : GuiComponent
     /// <summary>Vertical scrollbar track bounds (dialog-local logical px). Anchored
     /// against the container's allocated right edge, with the gap reserved between
     /// viewport and track on the inner side.</summary>
-    internal GuiComponentBounds GetVScrollbarTrackBounds()
+    internal GuiBounds GetVScrollbarTrackBounds()
         => new(_allocatedX + _allocatedW - _sbThickness, _viewportY, _sbThickness, _viewportH);
 
     /// <summary>Horizontal scrollbar track bounds (dialog-local logical px). Anchored
     /// against the container's allocated bottom edge.</summary>
-    internal GuiComponentBounds GetHScrollbarTrackBounds()
+    internal GuiBounds GetHScrollbarTrackBounds()
         => new(_viewportX, _allocatedY + _allocatedH - _sbThickness, _viewportW, _sbThickness);
 
     /// <summary>
@@ -408,7 +408,7 @@ public class GuiContainer : GuiComponent
     /// between the inset's emboss and the scrollbar track, so they don't read as one
     /// continuous dark strip.
     /// </summary>
-    internal GuiComponentBounds GetScrollInsetBounds()
+    internal GuiBounds GetScrollInsetBounds()
         => new(
             _allocatedX, _allocatedY,
             _allocatedW - (_showVScrollbar ? _sbThickness + ScrollbarGap : 0),
@@ -421,7 +421,7 @@ public class GuiContainer : GuiComponent
     /// </summary>
     internal double ScrollViewportClipInset => HasInset ? _inset.Depth / RuntimeEnv.GUIScale : 0;
 
-    private static void DrawScrollbarTrack(Context ctx, GuiComponentBounds b)
+    private static void DrawScrollbarTrack(Context ctx, GuiBounds b)
     {
         // Vanilla composer paints a recessed inset behind the scrollbar handle. Reuse the
         // shared GuiInset visual rather than approximating it — keeps the scrollbar look
@@ -432,7 +432,7 @@ public class GuiContainer : GuiComponent
             radius: GuiVanillaStyle.ElementBgRadius);
     }
 
-    private static void DrawScrollbarHandle(Context ctx, GuiComponentBounds b)
+    private static void DrawScrollbarHandle(Context ctx, GuiBounds b)
     {
         // Two-pass fill mirroring vanilla GuiElementScrollbar.RecomposeHandle:
         // 1) DialogHighlightColor base, 2) 40% black wash for depth.
