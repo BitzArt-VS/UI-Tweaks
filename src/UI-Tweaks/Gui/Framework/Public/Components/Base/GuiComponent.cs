@@ -26,13 +26,12 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         // bottom-up results, and dependency-sensitive layouts may involve repeated passes.
         var slot = (GuiComponentSlot)Slot!;
 
-        slot.Bounds = LayoutParameters.ResolveBounds(
-            slot.LayoutParent?.Bounds);
-        slot.ArrangeChildren();
+        var availableBounds = (slot.LayoutParent?.Bounds)
+            ?? throw new InvalidOperationException("Cannot arrange component without a layout parent.");
 
-        return ResolveBounds(slot);
+        slot.Bounds = LayoutParameters.ResolveBounds(availableBounds);
+        var contentBounds = slot.ArrangeChildren();
+
+        return LayoutParameters.ResolveBounds(availableBounds, contentBounds);
     }
-
-    private GuiComponentBounds ResolveBounds(GuiComponentSlot slot)
-        => throw new NotImplementedException();
 }

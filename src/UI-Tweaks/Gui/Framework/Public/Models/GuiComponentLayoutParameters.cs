@@ -78,43 +78,17 @@ public sealed class GuiComponentLayoutParameters
     public GuiVerticalAlignment VerticalAlignment { get; set; } = GuiVerticalAlignment.Top;
 
     public GuiComponentBounds ResolveBounds(
-        GuiComponentBounds? availableBounds)
-    {
-        var candidateBounds = availableBounds
-            ?? new GuiComponentBounds(
-                Position: null,
-                Size: new GuiSize(Width: null, Height: null));
+        GuiComponentBounds availableBounds)
+        => ResolveBounds(availableBounds, null);
 
-        return ResolveBounds(availableBounds, candidateBounds);
-    }
-
+    /// <summary>
+    /// Resolves component bounds from the space supplied by its parent and the
+    /// inner bounds produced by its descendants.
+    /// </summary>
     public GuiComponentBounds ResolveBounds(
-        GuiComponentBounds? availableBounds,
-        GuiComponentBounds candidateBounds)
+        GuiComponentBounds availableBounds,
+        GuiComponentBounds? innerContentBounds)
     {
-        if (candidateBounds.Size is not GuiSize candidateSize)
-        {
-            return candidateBounds;
-        }
-
-        var availableSize = availableBounds?.Size;
-
-        return candidateBounds with
-        {
-            Size = new GuiSize(
-                GuiLengthRule.Resolve(
-                    availableSize?.Width,
-                    candidateSize.Width,
-                    Width,
-                    MinimumWidth,
-                    MaximumWidth),
-                GuiLengthRule.Resolve(
-                    availableSize?.Height,
-                    candidateSize.Height,
-                    Height,
-                    MinimumHeight,
-                    MaximumHeight))
-        };
     }
 
     /// <summary>
