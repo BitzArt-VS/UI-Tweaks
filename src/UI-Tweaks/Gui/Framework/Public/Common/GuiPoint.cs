@@ -8,15 +8,21 @@ public readonly record struct GuiPoint(double X, double Y)
 {
     public static GuiPoint operator +(
         GuiPoint point,
+        GuiPoint other)
+        => new(point.X + other.X, point.Y + other.Y);
+
+    public static GuiPoint operator -(
+        GuiPoint point,
+        GuiPoint other)
+        => new(point.X - other.X, point.Y - other.Y);
+
+    public static GuiPoint operator +(
+        GuiPoint point,
         GuiThickness thickness)
-        => new(
-            point.X + thickness.Left,
-            point.Y + thickness.Top);
+        => new(point.X + thickness.Left, point.Y + thickness.Top);
 
     public static GuiPoint operator -(
         GuiPoint point,
         GuiThickness thickness)
-        => new(
-            point.X - thickness.Left,
-            point.Y - thickness.Top);
+        => new(point.X - thickness.Left, point.Y - thickness.Top);
 }
