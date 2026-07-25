@@ -91,8 +91,14 @@ public sealed class GuiComponentLayoutParameters
     {
         GuiComponentBounds adjustedAvailableBounds =
             availableBounds - Margin;
+
+        GuiComponentBounds? paddedContentBounds =
+            innerContentBounds is GuiComponentBounds contentBounds
+                ? contentBounds + Padding
+                : null;
+
         GuiSize? availableSize = adjustedAvailableBounds.Size;
-        GuiSize? innerContentSize = innerContentBounds?.Size;
+        GuiSize? contentSize = paddedContentBounds?.Size;
         bool isProvisional = innerContentBounds is null;
 
         return new GuiComponentBounds(
@@ -100,19 +106,17 @@ public sealed class GuiComponentLayoutParameters
             new GuiSize(
                 ResolveLength(
                     availableSize?.Width,
-                    innerContentSize?.Width,
+                    contentSize?.Width,
                     isProvisional,
                     WidthMode,
-                    Padding.Horizontal,
                     Width,
                     MinimumWidth,
                     MaximumWidth),
                 ResolveLength(
                     availableSize?.Height,
-                    innerContentSize?.Height,
+                    contentSize?.Height,
                     isProvisional,
                     HeightMode,
-                    Padding.Vertical,
                     Height,
                     MinimumHeight,
                     MaximumHeight)));
@@ -120,10 +124,9 @@ public sealed class GuiComponentLayoutParameters
 
     private static double? ResolveLength(
         double? availableLength,
-        double? innerContentLength,
+        double? contentLength,
         bool isProvisional,
         GuiSizeMode sizeMode,
-        double padding,
         GuiLengthRule? explicitRule,
         GuiLengthRule? minimumRule,
         GuiLengthRule? maximumRule)
@@ -132,9 +135,8 @@ public sealed class GuiComponentLayoutParameters
             ? availableLength
             : ResolveFinalCandidate(
                 availableLength,
-                innerContentLength,
-                sizeMode,
-                padding);
+                contentLength,
+                sizeMode);
 
         return GuiLengthRule.Resolve(
             availableLength,
@@ -146,15 +148,9 @@ public sealed class GuiComponentLayoutParameters
 
     private static double? ResolveFinalCandidate(
         double? availableLength,
-        double? innerContentLength,
-        GuiSizeMode sizeMode,
-        double padding)
-    {
-        double? contentLength = innerContentLength is null
-            ? null
-            : innerContentLength + padding;
-
-        return sizeMode switch
+        double? contentLength,
+        GuiSizeMode sizeMode)
+        => sizeMode switch
         {
             GuiSizeMode.FitContent => contentLength,
             GuiSizeMode.Fill => availableLength ?? contentLength,
@@ -163,7 +159,6 @@ public sealed class GuiComponentLayoutParameters
                 sizeMode,
                 "Unsupported GUI size mode."),
         };
-    }
 
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on

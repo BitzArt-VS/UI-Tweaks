@@ -59,4 +59,36 @@ public readonly record struct GuiComponentBounds(
             adjustedPosition,
             adjustedSize);
     }
+
+    /// <summary>
+    /// Consumes a horizontal length from the left side of these bounds.
+    /// </summary>
+    public GuiComponentBounds ConsumeLeft(double consumedWidth)
+    {
+        var consumedSpace = new GuiThickness(
+            Top: 0,
+            Right: 0,
+            Bottom: 0,
+            Left: consumedWidth);
+
+        return new GuiComponentBounds(
+            Position + consumedSpace,
+            Size - consumedSpace);
+    }
+
+    /// <summary>
+    /// Consumes a vertical length from the top side of these bounds.
+    /// </summary>
+    public GuiComponentBounds ConsumeTop(double consumedHeight)
+    {
+        var consumedSpace = new GuiThickness(
+            Top: consumedHeight,
+            Right: 0,
+            Bottom: 0,
+            Left: 0);
+
+        return new GuiComponentBounds(
+            Position + consumedSpace,
+            Size - consumedSpace);
+    }
 }

@@ -20,6 +20,14 @@ public sealed class GuiComponentSlot : GuiSlot
     /// </remarks>
     public GuiComponentBounds? Bounds { get; set; }
 
+    /// <summary>
+    /// Current inner bounds available to descendants after applying padding.
+    /// </summary>
+    /// <remarks>
+    /// This value is provisional while the slot is arranging and final afterward.
+    /// </remarks>
+    public GuiComponentBounds? ContentBounds { get; set; }
+
     internal GuiComponentSlot(
         GuiSurfaceRenderer renderer,
         GuiSlot? parent,
@@ -34,12 +42,14 @@ public sealed class GuiComponentSlot : GuiSlot
     internal IGuiComponent Component => _component;
 
     private protected override void OnArrange()
-        => Bounds = _component.Arrange();
-
-    internal void SetBounds(GuiComponentBounds bounds)
     {
-        IsScrollable = false;
-        Bounds = bounds;
-        ScrollClipBounds = default;
+        GuiComponentBounds availableBounds =
+            LayoutParent?.ContentBounds
+            ?? throw new InvalidOperationException(
+                "Cannot arrange component without available parent content bounds.");
+
+        Bounds = _component.Arrange(availableBounds);
+        ContentBounds =
+            Bounds - _component.LayoutParameters.Padding;
     }
 }

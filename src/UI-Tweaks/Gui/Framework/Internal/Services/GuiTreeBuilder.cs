@@ -366,7 +366,10 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 Math.Max(0, allocated.Height - lp.Padding.Vertical)
             );
 
-            componentSlot.SetBounds(allocated);
+            componentSlot.IsScrollable = false;
+            componentSlot.Bounds = allocated;
+            componentSlot.ContentBounds = childContent;
+            componentSlot.ScrollClipBounds = default;
             layoutComponent.Render(context, allocated);
             RegisterRegions(slot, allocated);
 

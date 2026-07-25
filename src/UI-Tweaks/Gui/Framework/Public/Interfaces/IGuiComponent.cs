@@ -5,12 +5,12 @@ public interface IGuiComponent : IGuiNode
     public GuiComponentLayoutParameters LayoutParameters { get; }
 
     /// <summary>
-    /// Attempts to arrange this component using layout context available through
-    /// its mounted slot.
+    /// Attempts to arrange this component within the supplied available bounds.
     /// </summary>
     /// <returns>
     /// The arranged bounds. Individual bounds fields are <c>null</c> while
     /// their geometry is unresolved.
     /// </returns>
-    public GuiComponentBounds Arrange();
+    public GuiComponentBounds Arrange(
+        GuiComponentBounds availableBounds);
 }
