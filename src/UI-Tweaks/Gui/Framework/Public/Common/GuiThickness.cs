@@ -19,4 +19,20 @@ public readonly record struct GuiThickness(double Top, double Right, double Bott
 
     /// <summary>Total vertical spacing (Top + Bottom).</summary>
     public double Vertical => Top + Bottom;
+
+    public static GuiThickness operator +(
+        GuiThickness thickness,
+        GuiThickness other)
+        => new(thickness.Top + other.Top,
+            thickness.Right + other.Right,
+            thickness.Bottom + other.Bottom,
+            thickness.Left + other.Left);
+
+    public static GuiThickness operator -(
+        GuiThickness thickness,
+        GuiThickness other)
+        => new(thickness.Top - other.Top,
+            thickness.Right - other.Right,
+            thickness.Bottom - other.Bottom,
+            thickness.Left - other.Left);
 }

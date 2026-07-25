@@ -9,12 +9,12 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </summary>
 public readonly struct GuiLengthRule
 {
-    private readonly RuleKind _kind;
+    private readonly Kind _kind;
     private readonly double _fixedValue;
     private readonly double _fractionalValue;
 
     private GuiLengthRule(
-        RuleKind kind,
+        Kind kind,
         double fixedValue = 0,
         double fractionalValue = 0)
     {
@@ -24,7 +24,7 @@ public readonly struct GuiLengthRule
     }
 
     public static GuiLengthRule Fixed(double value)
-        => new(RuleKind.Fixed, fixedValue: value);
+        => new(Kind.Fixed, fixedValue: value);
 
     public static GuiLengthRule Fraction(double value)
     {
@@ -34,7 +34,7 @@ public readonly struct GuiLengthRule
         }
 
         return new GuiLengthRule(
-            RuleKind.Fraction,
+            Kind.Fraction,
             fractionalValue: value);
     }
 
@@ -42,14 +42,14 @@ public readonly struct GuiLengthRule
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        string trimmed = value.Trim();
-        if (trimmed.EndsWith('%'))
+        value = value.Trim();
+        if (value.EndsWith('%'))
         {
-            string percent = trimmed[..^1].Trim();
+            string percent = value[..^1].Trim();
             return Fraction(double.Parse(percent, CultureInfo.InvariantCulture) / 100.0);
         }
 
-        return Fixed(double.Parse(trimmed, CultureInfo.InvariantCulture));
+        return Fixed(double.Parse(value, CultureInfo.InvariantCulture));
     }
 
     /// <summary>
@@ -64,8 +64,8 @@ public readonly struct GuiLengthRule
     {
         return _kind switch
         {
-            RuleKind.Fixed => _fixedValue,
-            RuleKind.Fraction => availableLength is null
+            Kind.Fixed => _fixedValue,
+            Kind.Fraction => availableLength is null
                 ? null
                 : availableLength.Value * _fractionalValue,
 
@@ -133,10 +133,11 @@ public readonly struct GuiLengthRule
     }
 
     public static implicit operator GuiLengthRule(int value) => Fixed(value);
+    public static implicit operator GuiLengthRule(float value) => Fixed(value);
     public static implicit operator GuiLengthRule(double value) => Fixed(value);
     public static implicit operator GuiLengthRule(string value) => Parse(value);
 
-    private enum RuleKind
+    private enum Kind
     {
         Fixed,
         Fraction,
