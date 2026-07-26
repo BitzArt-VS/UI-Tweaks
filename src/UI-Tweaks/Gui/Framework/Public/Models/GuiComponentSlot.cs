@@ -44,10 +44,13 @@ public sealed class GuiComponentSlot : GuiSlot
     private protected override GuiBounds? OnArrange(
         GuiBounds availableBounds)
     {
-        Bounds = _component.Arrange(availableBounds);
-        ContentBounds =
-            Bounds - _component.LayoutParameters.Padding;
+        GuiBounds arrangedBounds =
+            _component.Arrange(availableBounds);
 
-        return Bounds.Value;
+        Bounds = arrangedBounds;
+        ContentBounds =
+            arrangedBounds.ToContentBounds();
+
+        return arrangedBounds;
     }
 }

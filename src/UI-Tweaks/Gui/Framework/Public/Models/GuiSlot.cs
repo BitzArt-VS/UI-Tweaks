@@ -123,69 +123,54 @@ public abstract class GuiSlot
     /// Arranges each immediate child slot in declaration order.
     /// Transparent child slots recursively forward arrangement to their own children.
     /// </summary>
-    public GuiBounds? ArrangeChildren(
-        GuiBounds availableBounds)
+    public GuiBounds? ArrangeChildren(GuiBounds availableBounds)
     {
-        GuiBounds? extent = null;
+        var remainingVerticalBounds = availableBounds;
+        var remainingBounds = availableBounds;
+        GuiBounds? lineBounds = null;
+        GuiBounds? arrangedChildrenBounds = null;
 
-        foreach (GuiSlot child in Children)
+        foreach (var child in Children)
         {
-            GuiBounds? childBounds =
-                child.Arrange(availableBounds);
-
-            if (childBounds is GuiBounds bounds)
+            var childBounds = child.Arrange(remainingBounds);
+            if (childBounds is null)
             {
-                extent = extent is null
-                    ? bounds
-                    : Union(extent.Value, bounds);
+                continue;
             }
+
+            var marginBounds = childBounds.Value.ToMarginBounds();
+
+            if (lineBounds is not null
+                && marginBounds.Size?.Width > remainingBounds.Size?.Width)
+            {
+                remainingVerticalBounds =
+                    remainingVerticalBounds.SubtractVertical(lineBounds.Value);
+
+                remainingBounds = remainingVerticalBounds;
+                lineBounds = null;
+
+                childBounds = child.Arrange(remainingBounds);
+                if (childBounds is null)
+                {
+                    continue;
+                }
+
+                marginBounds = childBounds.Value.ToMarginBounds();
+            }
+
+            arrangedChildrenBounds = arrangedChildrenBounds is null
+                ? marginBounds
+                : arrangedChildrenBounds.Value.Union(marginBounds);
+
+            lineBounds = lineBounds is null
+                ? marginBounds
+                : lineBounds.Value.Union(marginBounds);
+
+            remainingBounds = remainingBounds.SubtractHorizontal(marginBounds);
         }
 
-        return extent;
+        return arrangedChildrenBounds;
     }
-
-    private static GuiBounds Union(
-        GuiBounds first,
-        GuiBounds second)
-    {
-        if (first.Position is not GuiPoint firstPosition
-            || second.Position is not GuiPoint secondPosition)
-        {
-            return new GuiBounds(null, null);
-        }
-
-        double left = Math.Min(firstPosition.X, secondPosition.X);
-        double top = Math.Min(firstPosition.Y, secondPosition.Y);
-
-        double? right =
-            GetEnd(firstPosition.X, first.Size?.Width)
-            is double firstRight
-            && GetEnd(secondPosition.X, second.Size?.Width)
-            is double secondRight
-                ? Math.Max(firstRight, secondRight)
-                : null;
-
-        double? bottom =
-            GetEnd(firstPosition.Y, first.Size?.Height)
-            is double firstBottom
-            && GetEnd(secondPosition.Y, second.Size?.Height)
-            is double secondBottom
-                ? Math.Max(firstBottom, secondBottom)
-                : null;
-
-        return new GuiBounds(
-            new GuiPoint(left, top),
-            new GuiSize(
-                right - left,
-                bottom - top));
-    }
-
-    private static double? GetEnd(
-        double start,
-        double? length)
-        => length is double resolvedLength
-            ? start + resolvedLength
-            : null;
 
     internal void SetScrollableBounds(GuiBounds scrollClipBounds)
     {

@@ -90,16 +90,18 @@ public sealed class GuiComponentLayoutParameters
         GuiBounds? innerContentBounds)
     {
         GuiBounds adjustedAvailableBounds =
-            availableBounds - Margin;
+            availableBounds.Consume(Margin);
 
-        GuiBounds? paddedContentBounds =
-            innerContentBounds is GuiBounds contentBounds
-                ? contentBounds + Padding
+        GuiSize? availableSize =
+            adjustedAvailableBounds.Size;
+
+        GuiSize? contentSize =
+            innerContentBounds?.Size is GuiSize innerContentSize
+                ? innerContentSize + Padding
                 : null;
 
-        GuiSize? availableSize = adjustedAvailableBounds.Size;
-        GuiSize? contentSize = paddedContentBounds?.Size;
-        bool isProvisional = innerContentBounds is null;
+        bool isProvisional =
+            innerContentBounds is null;
 
         return new GuiBounds(
             adjustedAvailableBounds.Position,
@@ -119,7 +121,9 @@ public sealed class GuiComponentLayoutParameters
                     HeightMode,
                     Height,
                     MinimumHeight,
-                    MaximumHeight)));
+                    MaximumHeight)),
+            Margin,
+            Padding);
     }
 
     private static double? ResolveLength(

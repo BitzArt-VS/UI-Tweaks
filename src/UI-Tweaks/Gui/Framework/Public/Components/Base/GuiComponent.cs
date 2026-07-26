@@ -32,7 +32,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
 
         slot.Bounds = provisionalBounds;
         slot.ContentBounds =
-            provisionalBounds - LayoutParameters.Padding;
+            provisionalBounds.ToContentBounds();
 
         GuiBounds? contentBounds =
             slot.ArrangeChildren(slot.ContentBounds.Value);
