@@ -8,6 +8,7 @@ internal sealed class GuiNodeSlot(
     GuiTreeBuilder.TreeFrame frame)
     : GuiSlot(renderer, parent, node, childTreeBuilder, frame)
 {
-    private protected override void OnArrange()
-        => ArrangeChildren();
+    private protected override GuiBounds? OnArrange(
+        GuiBounds availableBounds)
+        => ArrangeChildren(availableBounds);
 }

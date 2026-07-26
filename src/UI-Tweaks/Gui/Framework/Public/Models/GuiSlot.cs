@@ -97,7 +97,7 @@ public abstract class GuiSlot
         return chain.TryGet(name, out value);
     }
 
-    public void Arrange()
+    public GuiBounds? Arrange(GuiBounds availableBounds)
     {
         if (IsArranging)
         {
@@ -108,7 +108,7 @@ public abstract class GuiSlot
         IsArranging = true;
         try
         {
-            OnArrange();
+            return OnArrange(availableBounds);
         }
         finally
         {
@@ -116,19 +116,76 @@ public abstract class GuiSlot
         }
     }
 
-    private protected abstract void OnArrange();
+    private protected abstract GuiBounds? OnArrange(
+        GuiBounds availableBounds);
 
     /// <summary>
     /// Arranges each immediate child slot in declaration order.
     /// Transparent child slots recursively forward arrangement to their own children.
     /// </summary>
-    public void ArrangeChildren()
+    public GuiBounds? ArrangeChildren(
+        GuiBounds availableBounds)
     {
+        GuiBounds? extent = null;
+
         foreach (GuiSlot child in Children)
         {
-            child.Arrange();
+            GuiBounds? childBounds =
+                child.Arrange(availableBounds);
+
+            if (childBounds is GuiBounds bounds)
+            {
+                extent = extent is null
+                    ? bounds
+                    : Union(extent.Value, bounds);
+            }
         }
+
+        return extent;
     }
+
+    private static GuiBounds Union(
+        GuiBounds first,
+        GuiBounds second)
+    {
+        if (first.Position is not GuiPoint firstPosition
+            || second.Position is not GuiPoint secondPosition)
+        {
+            return new GuiBounds(null, null);
+        }
+
+        double left = Math.Min(firstPosition.X, secondPosition.X);
+        double top = Math.Min(firstPosition.Y, secondPosition.Y);
+
+        double? right =
+            GetEnd(firstPosition.X, first.Size?.Width)
+            is double firstRight
+            && GetEnd(secondPosition.X, second.Size?.Width)
+            is double secondRight
+                ? Math.Max(firstRight, secondRight)
+                : null;
+
+        double? bottom =
+            GetEnd(firstPosition.Y, first.Size?.Height)
+            is double firstBottom
+            && GetEnd(secondPosition.Y, second.Size?.Height)
+            is double secondBottom
+                ? Math.Max(firstBottom, secondBottom)
+                : null;
+
+        return new GuiBounds(
+            new GuiPoint(left, top),
+            new GuiSize(
+                right - left,
+                bottom - top));
+    }
+
+    private static double? GetEnd(
+        double start,
+        double? length)
+        => length is double resolvedLength
+            ? start + resolvedLength
+            : null;
 
     internal void SetScrollableBounds(GuiBounds scrollClipBounds)
     {

@@ -230,7 +230,8 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         slot.ChildTreeBuilder.Run(slot.Instance.TreeFragment);
     }
 
-    internal void ArrangeRoot()
+    internal void ArrangeRoot(
+        GuiBounds availableBounds)
     {
         if (_ownerSlot is not null)
         {
@@ -244,7 +245,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 "A GUI tree must contain exactly one root node.");
         }
 
-        _renderOrder[0].Arrange();
+        _renderOrder[0].Arrange(availableBounds);
     }
 
     /// <summary>

@@ -41,15 +41,13 @@ public sealed class GuiComponentSlot : GuiSlot
 
     internal IGuiComponent Component => _component;
 
-    private protected override void OnArrange()
+    private protected override GuiBounds? OnArrange(
+        GuiBounds availableBounds)
     {
-        GuiBounds availableBounds =
-            LayoutParent?.ContentBounds
-            ?? throw new InvalidOperationException(
-                "Cannot arrange component without available parent content bounds.");
-
         Bounds = _component.Arrange(availableBounds);
         ContentBounds =
             Bounds - _component.LayoutParameters.Padding;
+
+        return Bounds.Value;
     }
 }
