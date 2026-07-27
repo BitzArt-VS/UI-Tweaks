@@ -68,14 +68,19 @@ public sealed class GuiInset : GuiComponent
         int depth, float brightness, double radius,
         bool raised = false)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         if (!raised && brightness < 1f)
         {
             ctx.SetSourceRGBA(0, 0, 0, 1.0 - brightness);
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.Fill();
         }
 
-        DrawEmboss(ctx, bounds.X, bounds.Y, bounds.Width, bounds.Height, radius, depth, raised);
+        DrawEmboss(ctx, position.X, position.Y, width, height, radius, depth, raised);
     }
 
     // ── Emboss ─────────────────────────────────────────────────────────────────

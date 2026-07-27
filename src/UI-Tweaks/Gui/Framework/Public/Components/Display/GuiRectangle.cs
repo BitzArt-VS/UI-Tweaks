@@ -20,8 +20,13 @@ public class GuiRectangle : GuiComponent
             return;
         }
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         context.SetSourceRGBA(Color.R, Color.G, Color.B, Color.A);
-        context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+        context.Rectangle(position.X, position.Y, width, height);
         context.Fill();
     }
 }

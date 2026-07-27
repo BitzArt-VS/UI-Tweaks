@@ -45,7 +45,11 @@ public static class CairoContextExtensions
 
     /// <summary>Appends a rounded rectangle covering <paramref name="bounds"/> to the current path.</summary>
     public static void RoundRect(this Context ctx, GuiBounds bounds, double radius)
-        => ctx.RoundRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, radius);
+    {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        ctx.RoundRect(position.X, position.Y, size.Width!.Value, size.Height!.Value, radius);
+    }
 
     /// <summary>
     /// Appends an "open" rectangular path that omits one of the four sides — useful when

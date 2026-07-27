@@ -62,6 +62,11 @@ public class GuiDialogBackground : GuiContainer
             return;
         }
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         var capi = Slot.ClientApi;
 
         double sw = StrokeWidth / RuntimeEnv.GUIScale;
@@ -75,7 +80,7 @@ public class GuiDialogBackground : GuiContainer
         // stroke width.
 
         // 1. Solid fill — establishes the base colour the texture tints.
-        ctx.RoundRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, Radius);
+        ctx.RoundRect(position.X, position.Y, width, height, Radius);
         ctx.FillSolid(FillColor, preserve: true);
 
         // 2. Texture overlay — same path, source pattern, fill again on top of solid.

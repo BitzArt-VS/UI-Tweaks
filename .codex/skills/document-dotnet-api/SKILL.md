@@ -24,5 +24,5 @@ description: "Write and review concise, contextual C# XML documentation comments
 
 # Workflow
 
-- If this skill was invoked by user explicitly via `$document-dotnet-api` and used in conjunction with `$iterate`, before beginning to iterate, ask the user to establish a scope size for the iteration (a single signature, a single type, a single namespace) via the `request_user_input` tool, unless obvious from context.
+- If this skill was invoked explicitly by the user via `$document-dotnet-api` and used in conjunction with `$iterate`, before beginning to iterate, ask the user to establish a scope size for the iteration (a single signature, a single type, a single namespace) via the `request_user_input` tool, unless obvious from context.
 - If used in conjunction with `$iterate`, do not validate (project build, test, etc.) on every iteration.

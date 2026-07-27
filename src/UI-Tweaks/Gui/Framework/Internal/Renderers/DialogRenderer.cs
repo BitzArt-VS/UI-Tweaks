@@ -132,7 +132,8 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
 
     private void ValidateRootSize()
     {
-        if (!_dialog.LayoutParameters.Width.IsFixed || !_dialog.LayoutParameters.Height.IsFixed)
+        if (_dialog.LayoutParameters.Width?.Resolve(null) is null
+            || _dialog.LayoutParameters.Height?.Resolve(null) is null)
         {
             throw new InvalidOperationException("Dialog must have fixed width and height for rendering.");
         }
@@ -211,7 +212,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             _floatingLayers[i].OnFrameStart();
         }
 
-        var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
+        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
         DrawSurfaceContents(bounds, _currentScale, arrange: true);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
@@ -226,7 +227,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     {
         _tooltipHost.ResetFrame();
 
-        var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
+        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
         DrawSurfaceContents(bounds, _currentScale, arrange: false);
 
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);

@@ -348,16 +348,30 @@ public class GuiDropdown<T> : GuiInputBase
     // ── Framework wiring ─────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        // No intrinsic minimum width — fill the row. Height is controlled via
-        // LayoutParameters.Height (set by own-slot defaults).
-        // Include base child measurement so custom header templates can still participate
-        // when a dropdown is measured as FitContent or inside an unbounded scroll axis.
-        var content = base.Measure(available);
-        return new GuiLayoutSize(
-            Math.Max(content.Width, 120),
-            Math.Max(content.Height, LayoutParameters.Height?.Resolve(null) ?? 30));
+        GuiSize? descendantsSize =
+            descendantsBounds?.Size;
+
+        double measuredWidth =
+            Math.Max(
+                descendantsSize?.Width ?? 0,
+                120);
+
+        double measuredHeight =
+            Math.Max(
+                descendantsSize?.Height ?? 0,
+                Math.Max(
+                    0,
+                    LayoutParameters.Height?.Resolve(null) ?? 30));
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(measuredWidth, measuredHeight)));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)
@@ -458,6 +472,11 @@ public class GuiDropdown<T> : GuiInputBase
         // through Fill / FitContent rather than an explicit value).
         base.Render(ctx, bounds);
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         // Auto-close on focus loss — clicking outside the dialog or tabbing away
         // should dismiss the popup. The mouse-down dispatch path either re-claims
         // focus (popup item handler) or blurs us (click outside). We schedule a
@@ -475,7 +494,7 @@ public class GuiDropdown<T> : GuiInputBase
         // 2. Hover / focus wash — same faint flat fill the text input uses.
         if (Enabled && (IsHovered || IsFocused))
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
@@ -511,11 +530,8 @@ public class GuiDropdown<T> : GuiInputBase
         double popupHeight = overflow ? MaxPopupHeight : frame;
         _popupOverflow = overflow;
 
-        var popupBounds = new GuiComponentBounds(
-            bounds.X,
-            bounds.Bottom,
-            bounds.Width,
-            popupHeight);
+        var popupPosition = new GuiPoint(position.X, position.Y + height);
+        var popupBounds = new GuiBounds(popupPosition, new GuiSize(width, popupHeight));
 
         // Cache the fragment so its delegate identity is stable across frames — repeated
         // Show calls with the same fragment let the overlay layer's reuse path skip
@@ -581,8 +597,13 @@ public class GuiDropdown<T> : GuiInputBase
         const double chevronW = 8;
         const double chevronH = 5;
 
-        double cx = b.Right - ChevronAreaWidth / 2.0 - chevronW / 2.0;
-        double cy = b.Y + (b.Height - chevronH) / 2.0;
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double cx = position.X + width - ChevronAreaWidth / 2.0 - chevronW / 2.0;
+        double cy = position.Y + (height - chevronH) / 2.0;
 
         ctx.NewPath();
         if (IsOpen)

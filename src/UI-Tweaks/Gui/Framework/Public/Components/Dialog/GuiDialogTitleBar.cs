@@ -94,12 +94,34 @@ public class GuiDialogTitleBar : GuiContainer
         });
     }
 
+    public override GuiBounds Arrange(GuiBounds availableBounds)
+    {
+        if (_closeIcon is not null)
+        {
+            GuiBounds provisionalBounds = LayoutParameters.ResolveBounds(availableBounds);
+            double width = provisionalBounds.Size!.Value.Width!.Value;
+            double iconBox = _closeIcon.CrossLineWidth * 2 + _closeIcon.CrossSize;
+
+            _closeIcon.LayoutParameters.Margin = new GuiThickness(
+                Top: CloseIconTopPadding,
+                Right: 0,
+                Bottom: 0,
+                Left: width - iconBox - CloseIconRightPadding);
+        }
+
+        return base.Arrange(availableBounds);
+    }
+
     protected override void DrawBackground(Context ctx, GuiBounds bounds)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
         double sw = StrokeWidth / RuntimeEnv.GUIScale;
 
         // 1. Solid lighter fill — establishes the title bar's brighter tone vs. the body.
-        ctx.RoundRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, 0);
+        ctx.RoundRect(position.X, position.Y, width, height, 0);
         ctx.FillSolid(FillColor);
 
         // 2. Open 3-sided dark border (left + top + right; bottom open). Path is flush
@@ -107,31 +129,17 @@ public class GuiDialogTitleBar : GuiContainer
         //    edge is clipped by the dialog surface boundary, leaving the visible border
         //    at half the stroke width. This matches vanilla, where the equivalent clip
         //    happens against the dialog's own surface edge.
-        ctx.OpenRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, GuiSide.Bottom);
+        ctx.OpenRect(position.X, position.Y, width, height, GuiSide.Bottom);
         ctx.StrokeSolid(BorderColor, sw);
 
         // 3. Title text — vertically centred inside the bar, left-aligned with vanilla padding.
         if (!string.IsNullOrEmpty(Title))
         {
-            double textH = TitleFont.MeasureHeight();
-            double textY = bounds.Y + (bounds.Height - textH) / 2.0;
-            ctx.DrawText(Title, TitleFont, bounds.X + TitleLeftPadding, textY);
+            double textHeight = TitleFont.MeasureHeight();
+            double textY = position.Y + (height - textHeight) / 2.0;
+            ctx.DrawText(Title, TitleFont, position.X + TitleLeftPadding, textY);
         }
 
-        // 4. Anchor the close-icon child to the bar's right edge. We don't know the bar's
-        //    final width until the layout pass allocates our bounds, but DrawBackground runs
-        //    before this slot's children are laid out — so mutating the close icon's
-        //    LayoutParameters here is picked up immediately when the framework iterates our
-        //    child slots. Avoids needing a "right anchor" feature in the layout pass.
-        if (_closeIcon is not null)
-        {
-            double iconBox = _closeIcon.CrossLineWidth * 2 + _closeIcon.CrossSize;
-            _closeIcon.LayoutParameters.Margin = new GuiThickness(
-                Top: CloseIconTopPadding,
-                Right: 0,
-                Bottom: 0,
-                Left: bounds.Width - iconBox - CloseIconRightPadding);
-        }
     }
 
     protected override void BuildComponentTree(IGuiTreeBuilder builder)

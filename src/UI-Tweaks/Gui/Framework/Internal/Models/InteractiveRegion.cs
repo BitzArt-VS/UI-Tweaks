@@ -39,12 +39,37 @@ internal readonly struct InteractiveRegion
         OnMouseDown.HasHandler || OnMouseUp.HasHandler || OnMouseClick.HasHandler
         || OnMouseMove.HasHandler || OnMouseEnter.HasHandler || OnMouseLeave.HasHandler;
 
-    public bool Contains(double x, double y) =>
-        x >= Bounds.X && x < Bounds.X + Bounds.Width &&
-        y >= Bounds.Y && y < Bounds.Y + Bounds.Height;
+    public bool Contains(double x, double y)
+    {
+        var position = Bounds.Position!.Value;
+        var size = Bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
 
-    public InteractiveRegion Translated(double dx, double dy) => new(
-        new GuiComponentBounds(Bounds.X + dx, Bounds.Y + dy, Bounds.Width, Bounds.Height),
-        Token, OnMouseDown, OnMouseUp, OnMouseClick, OnMouseMove, OnMouseEnter, OnMouseLeave,
-        OnMouseWheel);
+        return x >= position.X && x < position.X + width
+            && y >= position.Y && y < position.Y + height;
+    }
+
+    public InteractiveRegion Translated(double dx, double dy)
+    {
+        var position = Bounds.Position!.Value;
+        var size = Bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        var translatedBounds = new GuiBounds(
+            new GuiPoint(position.X + dx, position.Y + dy),
+            new GuiSize(width, height));
+
+        return new(
+            translatedBounds,
+            Token,
+            OnMouseDown,
+            OnMouseUp,
+            OnMouseClick,
+            OnMouseMove,
+            OnMouseEnter,
+            OnMouseLeave,
+            OnMouseWheel);
+    }
 }

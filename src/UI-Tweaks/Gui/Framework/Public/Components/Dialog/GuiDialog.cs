@@ -132,13 +132,15 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
         double previousHeight = LayoutParameters.Height?.Resolve(null)
             ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
-        double newWidth = Math.Clamp(bounds.Width, MinWidth, MaxWidth);
-        double newHeight = Math.Clamp(bounds.Height, MinHeight, MaxHeight);
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double newWidth = Math.Clamp(size.Width!.Value, MinWidth, MaxWidth);
+        double newHeight = Math.Clamp(size.Height!.Value, MinHeight, MaxHeight);
 
         LayoutParameters.Width = newWidth;
         LayoutParameters.Height = newHeight;
 
-        ApplyScreenBounds(bounds.X, bounds.Y, newWidth, newHeight);
+        ApplyScreenBounds(position.X, position.Y, newWidth, newHeight);
 
         OnResizeUpdated(newWidth != previousWidth || newHeight != previousHeight);
     }

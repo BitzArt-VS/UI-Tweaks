@@ -95,8 +95,17 @@ public abstract class GuiInputBase : GuiComponent
     {
         bool wasPressed = IsPressed;
         IsPressed = false;
-        IsHovered = args.Position.X >= LastBounds.X && args.Position.X < LastBounds.Right
-                 && args.Position.Y >= LastBounds.Y && args.Position.Y < LastBounds.Bottom;
+
+        var position = LastBounds.Position!.Value;
+        var size = LastBounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double right = position.X + width;
+        double bottom = position.Y + height;
+
+        IsHovered = args.Position.X >= position.X && args.Position.X < right
+                 && args.Position.Y >= position.Y && args.Position.Y < bottom;
         if (wasPressed)
         {
             OnInputMouseUp(args);

@@ -27,7 +27,7 @@ public sealed class OverlayHost
     private readonly DialogRenderer _renderer;
     private readonly FloatingLayerAnchor _anchor;
 
-    private GuiBounds _activeBounds;
+    private GuiPoint _activePosition;
 
     internal OverlayHost(FloatingLayerRenderer layer, DialogRenderer renderer)
     {
@@ -54,15 +54,20 @@ public sealed class OverlayHost
     /// renderer's reuse path skips per-frame closures.</param>
     public void Show(object token, GuiBounds dialogLocalBounds, GuiTreeFragment content)
     {
-        _activeBounds = dialogLocalBounds;
+        var position = dialogLocalBounds.Position!.Value;
+        var size = dialogLocalBounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        _activePosition = position;
 
         var placement = new FloatingLayerPlacement
         {
             Anchor = _anchor,
-            FixedLogicalSize = new GuiLayoutSize(dialogLocalBounds.Width, dialogLocalBounds.Height),
+            FixedLogicalSize = new GuiSize(width, height),
             InputHost = _renderer,
-            InputRegionOffsetX = dialogLocalBounds.X,
-            InputRegionOffsetY = dialogLocalBounds.Y,
+            InputRegionOffsetX = position.X,
+            InputRegionOffsetY = position.Y,
             AutoClearWhenNotRefreshed = true,
             RewalkOnDialogWalk = true,
         };
@@ -81,6 +86,6 @@ public sealed class OverlayHost
     private (double posX, double posY) ComputeAnchor(double physicalWidth, double physicalHeight, float scale, ICoreClientAPI clientApi)
     {
         var (originX, originY) = _renderer.GetScreenOrigin();
-        return (originX + _activeBounds.X * scale, originY + _activeBounds.Y * scale);
+        return (originX + _activePosition.X * scale, originY + _activePosition.Y * scale);
     }
 }

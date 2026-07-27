@@ -134,11 +134,22 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        // The input doesn't shrink to its text — it's an interactive box. Returning a
-        // small minimum just keeps fit-content parents from collapsing to zero.
-        return new GuiLayoutSize(80, LayoutParameters.Height?.Resolve(null) ?? 30);
+        // The input doesn't shrink to its text or spinner descendants — it owns its
+        // interactive box. The fallback keeps fit-content layouts from collapsing it.
+        double measuredHeight =
+            Math.Max(
+                0,
+                LayoutParameters.Height?.Resolve(null) ?? 30);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(80, measuredHeight)));
     }
 
     /// <inheritdoc/>

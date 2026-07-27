@@ -103,11 +103,22 @@ public sealed class GuiSlider : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
         // The slider has no intrinsic minimum width — it expands to fill. Return a small
         // height-dominant size so fit-content parents don't collapse it to zero.
-        return new GuiLayoutSize(80, LayoutParameters.Height?.Resolve(null) ?? 24);
+        double measuredHeight =
+            Math.Max(
+                0,
+                LayoutParameters.Height?.Resolve(null) ?? 24);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(80, measuredHeight)));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)

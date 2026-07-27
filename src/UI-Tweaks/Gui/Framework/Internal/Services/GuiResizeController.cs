@@ -126,10 +126,12 @@ internal sealed class GuiResizeController
             return GuiResizeEdge.None;
         }
 
-        double localX = x - region.Bounds.X;
-        double localY = y - region.Bounds.Y;
-        double width = region.Bounds.Width;
-        double height = region.Bounds.Height;
+        var position = region.Bounds.Position!.Value;
+        var size = region.Bounds.Size!.Value;
+        double localX = x - position.X;
+        double localY = y - position.Y;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
 
         var edge = GuiResizeEdge.None;
 
@@ -156,10 +158,12 @@ internal sealed class GuiResizeController
 
     private GuiBounds CreateRequestedBounds(GuiPoint delta)
     {
-        double left = _startBounds.X;
-        double top = _startBounds.Y;
-        double right = _startBounds.Right;
-        double bottom = _startBounds.Bottom;
+        var position = _startBounds.Position!.Value;
+        var size = _startBounds.Size!.Value;
+        double left = position.X;
+        double top = position.Y;
+        double right = left + size.Width!.Value;
+        double bottom = top + size.Height!.Value;
 
         if ((_activeEdge & GuiResizeEdge.Left) != 0)
         {
@@ -179,11 +183,9 @@ internal sealed class GuiResizeController
             bottom += delta.Y;
         }
 
-        return new GuiComponentBounds(
-            Math.Min(left, right),
-            Math.Min(top, bottom),
-            Math.Abs(right - left),
-            Math.Abs(bottom - top));
+        var requestedPosition = new GuiPoint(Math.Min(left, right), Math.Min(top, bottom));
+        var requestedSize = new GuiSize(Math.Abs(right - left), Math.Abs(bottom - top));
+        return new GuiBounds(requestedPosition, requestedSize);
     }
 
     private static GuiBounds ToScreenBounds(GuiBounds surfaceBounds, GuiMouseEventArgs args)
@@ -191,11 +193,10 @@ internal sealed class GuiResizeController
         double surfaceScreenX = args.AbsolutePosition.X - args.Position.X;
         double surfaceScreenY = args.AbsolutePosition.Y - args.Position.Y;
 
-        return new GuiComponentBounds(
-            surfaceScreenX + surfaceBounds.X,
-            surfaceScreenY + surfaceBounds.Y,
-            surfaceBounds.Width,
-            surfaceBounds.Height);
+        var surfacePosition = surfaceBounds.Position!.Value;
+        var surfaceSize = surfaceBounds.Size!.Value;
+        var screenPosition = new GuiPoint(surfaceScreenX + surfacePosition.X, surfaceScreenY + surfacePosition.Y);
+        return new GuiBounds(screenPosition, surfaceSize);
     }
 
     private static string? CursorForEdge(GuiResizeEdge edge)

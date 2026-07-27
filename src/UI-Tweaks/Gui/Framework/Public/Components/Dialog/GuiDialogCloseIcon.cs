@@ -55,8 +55,19 @@ public class GuiDialogCloseIcon : GuiComponent
     /// The icon's natural size. Includes the 2-px line-width margin DrawCross adds around
     /// the visible cross (see remarks on the class doc).
     /// </summary>
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
-        => new(CrossLineWidth * 2 + CrossSize, CrossLineWidth * 2 + CrossSize);
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
+    {
+        double measuredSize =
+            Math.Max(0, CrossLineWidth * 2 + CrossSize);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(measuredSize, measuredSize)));
+    }
 
     public override void Render(Context ctx, GuiBounds b)
     {
@@ -66,6 +77,7 @@ public class GuiDialogCloseIcon : GuiComponent
         }
 
         var icons = Slot.ClientApi.Gui.Icons;
+        var position = b.Position!.Value;
 
         // CTM is logical pixels here; vanilla's IconUtil.DrawCross expects raw line-width
         // and cross-size values, so we pass them through unchanged.
@@ -75,7 +87,7 @@ public class GuiDialogCloseIcon : GuiComponent
         //    and within bounds at any scale.
         ctx.Operator = Operator.Over;
         ctx.SetSourceRGBA(ShadowColor.R, ShadowColor.G, ShadowColor.B, ShadowColor.A);
-        icons.DrawCross(ctx, b.X + 1, b.Y + 1, CrossLineWidth, CrossSize);
+        icons.DrawCross(ctx, position.X + 1, position.Y + 1, CrossLineWidth, CrossSize);
 
         // 2. Cross — colour swaps to HoverIconColor while hovered. This is the "no overlay"
         //    behaviour: same geometry as the idle icon, just a different stroke colour, so
@@ -83,7 +95,7 @@ public class GuiDialogCloseIcon : GuiComponent
         ctx.Operator = Operator.Source;
         var color = _isHovered ? HoverIconColor : IconColor;
         ctx.SetSourceRGBA(color.R, color.G, color.B, color.A);
-        icons.DrawCross(ctx, b.X, b.Y, CrossLineWidth, CrossSize);
+        icons.DrawCross(ctx, position.X, position.Y, CrossLineWidth, CrossSize);
 
         // Restore default operator so subsequent siblings paint with the framework's expected
         // blending mode.

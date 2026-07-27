@@ -23,31 +23,46 @@ internal sealed class ConfigNavigationRow : GuiComponent
     private bool _isHovered;
     private bool _isPressed;
 
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        var textSize = GuiFontStyle.MediumBold.Measure(Text);
-        return new(textSize.Width + TextLeftPadding * 2, textSize.Height);
+        GuiSize textSize = GuiFontStyle.MediumBold.Measure(Text);
+        var measuredSize = new GuiSize(
+            Math.Max(
+                0,
+                (textSize.Width ?? 0) + TextLeftPadding * 2),
+            Math.Max(0, textSize.Height ?? 0));
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(null, measuredSize));
     }
 
     public override void Render(Context context, GuiBounds bounds)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         if (IsSelected)
         {
-            context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            context.Rectangle(position.X, position.Y, width, height);
             context.FillSolid(SelectedBackground);
 
-            context.Rectangle(bounds.X, bounds.Y, AccentWidth, bounds.Height);
+            context.Rectangle(position.X, position.Y, AccentWidth, height);
             context.FillSolid(AccentColor);
         }
         else if (_isHovered)
         {
-            context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            context.Rectangle(position.X, position.Y, width, height);
             context.FillSolid(HoverBackground);
         }
 
         if (_isPressed)
         {
-            context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            context.Rectangle(position.X, position.Y, width, height);
             context.FillSolid(PressedBackground);
         }
 
@@ -57,10 +72,11 @@ internal sealed class ConfigNavigationRow : GuiComponent
                 ? ActiveTextColor
                 : GuiVanillaStyle.ButtonTextColor
         };
-        var textSize = font.Measure(Text);
-        context.DrawText(Text, font, bounds.X + TextLeftPadding, bounds.Y + (bounds.Height - textSize.Height) / 2.0);
+        GuiSize textSize = font.Measure(Text);
+        double textY = position.Y + (height - (textSize.Height ?? 0)) / 2.0;
+        context.DrawText(Text, font, position.X + TextLeftPadding, textY);
 
-        context.Rectangle(bounds.X, bounds.Bottom - SeparatorHeight, bounds.Width, SeparatorHeight);
+        context.Rectangle(position.X, position.Y + height - SeparatorHeight, width, SeparatorHeight);
         context.FillSolid(SeparatorColor);
     }
 

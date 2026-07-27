@@ -44,9 +44,17 @@ public sealed class GuiCheckbox : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override GuiLayoutSize Measure(GuiLayoutSize available)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        return new GuiLayoutSize(Size, Size);
+        double measuredSize = Math.Max(0, Size);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(measuredSize, measuredSize)));
     }
 
     /// <summary>Flips <see cref="Checked"/>, fires <see cref="OnCheckedChanged"/>, and
@@ -95,6 +103,11 @@ public sealed class GuiCheckbox : GuiInputBase
     {
         base.Render(ctx, bounds);
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         // 1. Emboss chrome — vanilla switch uses depth=1 (shallower than the text input's
         //    depth=2); the 20% black brightness overlay is identical across both. Using
         //    depth=1 here keeps the checkbox visually lighter and matches vanilla.
@@ -106,7 +119,7 @@ public sealed class GuiCheckbox : GuiInputBase
         //    feedback because Space / Enter visibly flips the mark.
         if (Enabled && IsHovered)
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
@@ -116,10 +129,10 @@ public sealed class GuiCheckbox : GuiInputBase
         //    (consistent with other framework components that drop vanilla's pattern fills).
         if (Checked)
         {
-            double mx = bounds.X + Padding;
-            double my = bounds.Y + Padding;
-            double mw = Math.Max(0, bounds.Width - 2 * Padding);
-            double mh = Math.Max(0, bounds.Height - 2 * Padding);
+            double mx = position.X + Padding;
+            double my = position.Y + Padding;
+            double mw = Math.Max(0, width - 2 * Padding);
+            double mh = Math.Max(0, height - 2 * Padding);
             ctx.RoundRect(mx, my, mw, mh, 1);
             var c = MarkColor;
             ctx.SetSourceRGBA(c.R, c.G, c.B, c.A * (Enabled ? 1.0 : 0.45));

@@ -52,8 +52,12 @@ public sealed class GuiShadow : GuiComponent
     /// <inheritdoc/>
     public override void Render(Context ctx, GuiBounds bounds)
     {
-        Draw(ctx, bounds.X, bounds.Y, bounds.Width, bounds.Height,
-             Steps, Offset, Spread, Alpha, Radius);
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        Draw(ctx, position.X, position.Y, width, height, Steps, Offset, Spread, Alpha, Radius);
     }
 
     /// <summary>

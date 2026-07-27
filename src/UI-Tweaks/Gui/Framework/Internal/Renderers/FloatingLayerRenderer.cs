@@ -5,7 +5,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal class FloatingLayerRenderer : GuiSurfaceRenderer
 {
-    protected GuiLayoutSize _measuredSize;
+    protected GuiSize _measuredSize;
 
     private object? _activeToken;
     private FloatingLayerPlacement _activePlacement;
@@ -14,6 +14,12 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
     protected GuiTreeFragment? ActiveFragment { get; set; }
 
     internal bool IsActive => ActiveFragment is not null;
+
+    private double MeasuredWidth =>
+        _measuredSize.Width ?? 0;
+
+    private double MeasuredHeight =>
+        _measuredSize.Height ?? 0;
 
     public FloatingLayerRenderer(ICoreClientAPI clientApi) : base(clientApi) { }
 
@@ -101,7 +107,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
         ReconcileAndMeasure();
 
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        if (MeasuredWidth <= 0 || MeasuredHeight <= 0)
         {
             return;
         }
@@ -121,10 +127,14 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         GuiLengthRule? width = null;
         GuiLengthRule? height = null;
 
-        if (_activePlacement.FixedLogicalSize is GuiLayoutSize fixedSize)
+        if (_activePlacement.FixedLogicalSize is GuiSize fixedSize)
         {
-            width = fixedSize.Width;
-            height = fixedSize.Height;
+            width = fixedSize.Width is double fixedWidth
+                ? fixedWidth
+                : null;
+            height = fixedSize.Height is double fixedHeight
+                ? fixedHeight
+                : null;
         }
 
         builder.Add<GuiContainer>(0)
@@ -138,14 +148,14 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void ReallocateSurfaceIfNeeded(float scale)
     {
-        int physW = (int)Math.Ceiling(_measuredSize.Width * scale);
-        int physH = (int)Math.Ceiling(_measuredSize.Height * scale);
+        int physW = (int)Math.Ceiling(MeasuredWidth * scale);
+        int physH = (int)Math.Ceiling(MeasuredHeight * scale);
         EnsureSurfaceSize(physW, physH);
     }
 
     private void DrawToSurface(float scale)
     {
-        var bounds = new GuiComponentBounds(0, 0, _measuredSize.Width, _measuredSize.Height);
+        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(MeasuredWidth, MeasuredHeight));
         DrawSurfaceContents(bounds, scale, arrange: true);
     }
 
@@ -156,7 +166,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        if (MeasuredWidth <= 0 || MeasuredHeight <= 0)
         {
             return;
         }
@@ -167,7 +177,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     public override bool ContainsScreenPoint(int x, int y)
     {
-        if (!IsActive || _measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        if (!IsActive || MeasuredWidth <= 0 || MeasuredHeight <= 0)
         {
             return false;
         }
@@ -198,26 +208,37 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         _activePlacement.InputHost.AddKeyboardRegion(region);
     }
 
-    protected virtual GuiLayoutSize ResolveLogicalSize()
+    protected virtual GuiSize ResolveLogicalSize()
     {
-        if (_activePlacement.FixedLogicalSize is GuiLayoutSize fixedSize)
+        if (_activePlacement.FixedLogicalSize is GuiSize fixedSize)
         {
             return fixedSize;
         }
 
-        double maxWidth = _activePlacement.MaxLogicalWidth > 0
-            ? _activePlacement.MaxLogicalWidth
-            : double.PositiveInfinity;
-        double maxHeight = _activePlacement.MaxLogicalHeight > 0
-            ? _activePlacement.MaxLogicalHeight
-            : double.PositiveInfinity;
+        double? maximumWidth =
+            _activePlacement.MaxLogicalWidth > 0
+                ? _activePlacement.MaxLogicalWidth
+                : null;
+        double? maximumHeight =
+            _activePlacement.MaxLogicalHeight > 0
+                ? _activePlacement.MaxLogicalHeight
+                : null;
 
         if (TreeBuilder.NodeSlots.Count == 0 || TreeBuilder.NodeSlots[0].Node is not IGuiComponent rootComponent)
         {
-            return default;
+            return new GuiSize(0, 0);
         }
 
-        return rootComponent.Measure(new GuiLayoutSize(maxWidth, maxHeight));
+        GuiBounds arrangedBounds =
+            rootComponent.Arrange(
+                new GuiBounds(
+                    new GuiPoint(0, 0),
+                    new GuiSize(
+                        maximumWidth,
+                        maximumHeight)));
+
+        return arrangedBounds.Size
+            ?? new GuiSize(0, 0);
     }
 
     protected virtual (double posX, double posY) GetScreenPosition(double physW, double physH, float scale) =>

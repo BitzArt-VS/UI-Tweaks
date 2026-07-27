@@ -64,13 +64,13 @@ public readonly record struct GuiBounds(
         var left = Math.Min(position.X, otherPosition.X);
         var top = Math.Min(position.Y, otherPosition.Y);
 
-        var right =
+        double? right =
             GetEnd(position.X, Size?.Width) is double rightEdge
             && GetEnd(otherPosition.X, other.Size?.Width) is double otherRightEdge
                 ? Math.Max(rightEdge, otherRightEdge)
                 : null;
 
-        var bottom =
+        double? bottom =
             GetEnd(position.Y, Size?.Height) is double bottomEdge
             && GetEnd(otherPosition.Y, other.Size?.Height) is double otherBottomEdge
                 ? Math.Max(bottomEdge, otherBottomEdge)
