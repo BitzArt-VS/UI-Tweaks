@@ -138,8 +138,15 @@ public class GuiContainer : GuiComponent
             return;
         }
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+
         context.SetSourceRGBA(Background.R, Background.G, Background.B, Background.A);
-        context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+        context.Rectangle(
+            position.X,
+            position.Y,
+            size.Width!.Value,
+            size.Height!.Value);
         context.Fill();
     }
 
@@ -375,18 +382,28 @@ public class GuiContainer : GuiComponent
         if (_showVScrollbar)
         {
             var track = GetVScrollbarTrackBounds();
+            var trackPosition = track.Position!.Value;
+            var trackSize = track.Size!.Value;
             DrawScrollbarTrack(ctx, track);
             var (handleY, handleH) = GetVHandleSpan();
-            DrawScrollbarHandle(ctx, new GuiComponentBounds(
-                track.X + HandleInset, handleY, track.Width - 2 * HandleInset, handleH));
+            DrawScrollbarHandle(
+                ctx,
+                new GuiBounds(
+                    new GuiPoint(trackPosition.X + HandleInset, handleY),
+                    new GuiSize(trackSize.Width - 2 * HandleInset, handleH)));
         }
         if (_showHScrollbar)
         {
             var track = GetHScrollbarTrackBounds();
+            var trackPosition = track.Position!.Value;
+            var trackSize = track.Size!.Value;
             DrawScrollbarTrack(ctx, track);
             var (handleX, handleW) = GetHHandleSpan();
-            DrawScrollbarHandle(ctx, new GuiComponentBounds(
-                handleX, track.Y + HandleInset, handleW, track.Height - 2 * HandleInset));
+            DrawScrollbarHandle(
+                ctx,
+                new GuiBounds(
+                    new GuiPoint(handleX, trackPosition.Y + HandleInset),
+                    new GuiSize(handleW, trackSize.Height - 2 * HandleInset)));
         }
     }
 
@@ -394,12 +411,24 @@ public class GuiContainer : GuiComponent
     /// against the container's allocated right edge, with the gap reserved between
     /// viewport and track on the inner side.</summary>
     internal GuiBounds GetVScrollbarTrackBounds()
-        => new(_allocatedX + _allocatedW - _sbThickness, _viewportY, _sbThickness, _viewportH);
+        => new(
+            new GuiPoint(
+                _allocatedX + _allocatedW - _sbThickness,
+                _viewportY),
+            new GuiSize(
+                _sbThickness,
+                _viewportH));
 
     /// <summary>Horizontal scrollbar track bounds (dialog-local logical px). Anchored
     /// against the container's allocated bottom edge.</summary>
     internal GuiBounds GetHScrollbarTrackBounds()
-        => new(_viewportX, _allocatedY + _allocatedH - _sbThickness, _viewportW, _sbThickness);
+        => new(
+            new GuiPoint(
+                _viewportX,
+                _allocatedY + _allocatedH - _sbThickness),
+            new GuiSize(
+                _viewportW,
+                _sbThickness));
 
     /// <summary>
     /// Bounds the inset background occupies when scrollbars are visible — the container's
@@ -410,9 +439,12 @@ public class GuiContainer : GuiComponent
     /// </summary>
     internal GuiBounds GetScrollInsetBounds()
         => new(
-            _allocatedX, _allocatedY,
-            _allocatedW - (_showVScrollbar ? _sbThickness + ScrollbarGap : 0),
-            _allocatedH - (_showHScrollbar ? _sbThickness + ScrollbarGap : 0));
+            new GuiPoint(
+                _allocatedX,
+                _allocatedY),
+            new GuiSize(
+                _allocatedW - (_showVScrollbar ? _sbThickness + ScrollbarGap : 0),
+                _allocatedH - (_showHScrollbar ? _sbThickness + ScrollbarGap : 0)));
 
     /// <summary>
     /// Per-side logical-pixel inset to apply to the scroll viewport clip region when
@@ -434,28 +466,33 @@ public class GuiContainer : GuiComponent
 
     private static void DrawScrollbarHandle(Context ctx, GuiBounds b)
     {
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         // Two-pass fill mirroring vanilla GuiElementScrollbar.RecomposeHandle:
         // 1) DialogHighlightColor base, 2) 40% black wash for depth.
         var hl = GuiVanillaStyle.DialogHighlightColor;
-        ctx.Rectangle(b.X, b.Y, b.Width, b.Height);
+        ctx.Rectangle(position.X, position.Y, width, height);
         ctx.SetSourceRGBA(hl.R, hl.G, hl.B, hl.A);
         ctx.Fill();
 
-        ctx.Rectangle(b.X, b.Y, b.Width, b.Height);
+        ctx.Rectangle(position.X, position.Y, width, height);
         ctx.SetSourceRGBA(0, 0, 0, 0.4);
         ctx.Fill();
 
         // Lightweight emboss: 1px top/left highlight + bottom/right shadow.
-        ctx.Rectangle(b.X, b.Y, b.Width - 1, 1);
+        ctx.Rectangle(position.X, position.Y, width - 1, 1);
         ctx.SetSourceRGBA(1, 1, 1, 0.18);
         ctx.Fill();
-        ctx.Rectangle(b.X, b.Y + 1, 1, b.Height - 1);
+        ctx.Rectangle(position.X, position.Y + 1, 1, height - 1);
         ctx.SetSourceRGBA(1, 1, 1, 0.18);
         ctx.Fill();
-        ctx.Rectangle(b.X + 1, b.Y + b.Height - 1, b.Width - 1, 1);
+        ctx.Rectangle(position.X + 1, position.Y + height - 1, width - 1, 1);
         ctx.SetSourceRGBA(0, 0, 0, 0.25);
         ctx.Fill();
-        ctx.Rectangle(b.X + b.Width - 1, b.Y, 1, b.Height - 1);
+        ctx.Rectangle(position.X + width - 1, position.Y, 1, height - 1);
         ctx.SetSourceRGBA(0, 0, 0, 0.25);
         ctx.Fill();
     }

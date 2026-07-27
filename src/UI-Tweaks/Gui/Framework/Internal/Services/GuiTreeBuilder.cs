@@ -248,156 +248,10 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         _renderOrder[0].Arrange(availableBounds);
     }
 
-    /// <summary>
-    /// Walks the current render order, running the layout pass for each child and then
-    /// calling <see cref="IGuiNode.Render"/> with its computed bounds, before recursing
-    /// into the child's own subtree.
-    /// </summary>
-    /// <param name="context">The Cairo context shared across the whole frame.</param>
-    /// <param name="contentBounds">
-    /// The parent's content area (already inset by the parent's padding).
-    /// Relative children are stacked inside this area; absolute children are pinned to it.
-    /// </param>
-    internal void Render(Context context, GuiBounds contentBounds)
-    {
-        double cursorX = contentBounds.X;
-        double cursorY = contentBounds.Y;
-        RenderInto(context, contentBounds, ref cursorX, ref cursorY);
-    }
+    internal void Paint(Context context, bool registerRegions)
+        => PaintInto(context, registerRegions);
 
-    internal void Paint(Context context)
-    {
-        PaintInto(context);
-    }
-
-    /// <summary>
-    /// Render core that operates on an externally-managed cursor. Used directly by
-    /// <see cref="Render"/> and recursively for layout-transparent wrappers (slots whose
-    /// instance does not implement <see cref="IGuiComponent"/>): the wrapper's child
-    /// builder calls back into this method with the <i>parent</i>'s
-    /// <paramref name="contentBounds"/> and cursor refs, so
-    /// the wrapper's slots flow at the parent's level without the wrapper itself
-    /// consuming any space.
-    /// </summary>
-    private GuiBounds? RenderInto(
-        Context context,
-        GuiBounds contentBounds,
-        ref double cursorX,
-        ref double cursorY)
-    {
-        GuiBounds? extent = null;
-
-        foreach (var slot in _renderOrder)
-        {
-            // Layout-transparent wrappers — slots whose instance is only IGuiNode and
-            // does not also implement IGuiComponent — inline their child builder at this
-            // level. They contribute no LayoutParameters; cursor advancement is driven
-            // entirely by the inner children. After children are placed, the wrapper's
-            // Render/Overlay are still called once with bounds spanning the cursor delta
-            // along the flow axis — so e.g. GuiTooltip can register its hover region
-            // against the union extent.
-            if (slot is not GuiComponentSlot componentSlot)
-            {
-                double startX = cursorX;
-
-                GuiBounds? childExtent = slot.ChildTreeBuilder.RenderInto(context, contentBounds, ref cursorX, ref cursorY);
-
-                GuiBounds wrapperBounds = childExtent
-                    ?? new GuiComponentBounds(startX, contentBounds.Y, cursorX - startX, contentBounds.Height);
-
-                slot.Instance.Render(context, wrapperBounds);
-
-                RegisterRegions(slot, wrapperBounds);
-
-                slot.Instance.RenderOverlay(context, wrapperBounds);
-                extent = Union(extent, wrapperBounds);
-                continue;
-            }
-
-            IGuiComponent layoutComponent = componentSlot.Component;
-            var lp = layoutComponent.LayoutParameters;
-
-            // Available space for measuring, after subtracting the slot's own margins AND
-            // the space already consumed by previous siblings in the flow direction.
-            // The cross-axis still sees the full content extent; only the flow axis shrinks.
-            // Without this, a Fill-mode child in a vertical/horizontal stack would claim the
-            // full container size and overflow the surface (visible as clipped strokes /
-            // missing bottom borders).
-            double consumedFlow = cursorX - contentBounds.X;
-            double availW = Math.Max(0, contentBounds.Width - consumedFlow - lp.Margin.Horizontal);
-            double availH = Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
-
-            var (slotW, slotH) = GuiComponentLayout.ResolveAllocatedSize(layoutComponent, new GuiLayoutSize(availW, availH));
-
-            // Determine origin. Absolute components are always pinned to the content-area origin;
-            // relative components are placed at the current cursor and advance it.
-            double slotX, slotY;
-            if (lp.Positioning == GuiComponentPositioning.Absolute)
-            {
-                slotX = contentBounds.X + lp.Margin.Left;
-                slotY = contentBounds.Y + lp.Margin.Top;
-                // Absolute components honour both alignment axes — they sit anywhere inside
-                // the parent's content area.
-                slotX += AlignOffsetH(lp.HorizontalAlignment, availW - slotW);
-                slotY += AlignOffsetV(lp.VerticalAlignment, availH - slotH);
-                // Absolute components do not participate in flow — cursor unchanged.
-            }
-            else
-            {
-                slotX = cursorX + lp.Margin.Left;
-                slotY = cursorY + lp.Margin.Top;
-
-                // Cross axis is Y — apply vertical alignment within the parent's
-                // cross-axis extent (content height minus this slot's vertical margin).
-                double crossAvail = Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
-                slotY += AlignOffsetV(lp.VerticalAlignment, crossAvail - slotH);
-                cursorX += lp.Margin.Left + slotW + lp.Margin.Right;
-            }
-
-            var allocated = new GuiComponentBounds(slotX, slotY, slotW, slotH);
-            extent = Union(extent, allocated);
-
-            // Inset by this component's own padding to produce the content area for its children.
-            // Clamp width/height at zero — padding can exceed the slot's allocated size when
-            // an explicit width/height is smaller than horizontal/vertical padding.
-            var childContent = new GuiComponentBounds(
-                allocated.X + lp.Padding.Left,
-                allocated.Y + lp.Padding.Top,
-                Math.Max(0, allocated.Width - lp.Padding.Horizontal),
-                Math.Max(0, allocated.Height - lp.Padding.Vertical)
-            );
-
-            componentSlot.IsScrollable = false;
-            componentSlot.Bounds = allocated;
-            componentSlot.ContentBounds = childContent;
-            componentSlot.ScrollClipBounds = default;
-            layoutComponent.Render(context, allocated);
-            RegisterRegions(slot, allocated);
-
-            // Branch for scrollable containers: clip rendering to the viewport, translate
-            // children by the current scroll offset, and emit scrollbar visuals + interactive
-            // regions. Falls through to the regular path when no axis is effectively active
-            // (e.g. user enabled Scroll but both dimensions are FitContent).
-            if (slot.Instance is GuiContainer scrollContainer
-                && TryRenderScrollableChildren(context, scrollContainer, slot, allocated, childContent, lp))
-            {
-                layoutComponent.RenderOverlay(context, allocated);
-                continue;
-            }
-
-            // Non-scrollable path: inset (when enabled) covers the full allocated bounds.
-            // Drawn after Render (background colour) and before children so it sits behind
-            // them like any other background.
-            (slot.Instance as GuiContainer)?.DrawInsetBackground(context, allocated);
-
-            slot.ChildTreeBuilder.Render(context, childContent);
-            layoutComponent.RenderOverlay(context, allocated);
-        }
-
-        return extent;
-    }
-
-    private GuiBounds? PaintInto(Context context)
+    private GuiBounds? PaintInto(Context context, bool registerRegions)
     {
         GuiBounds? extent = null;
 
@@ -405,13 +259,23 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         {
             if (slot is not GuiComponentSlot componentSlot)
             {
-                GuiBounds? childExtent = slot.ChildTreeBuilder.PaintInto(context);
+                GuiBounds? childExtent =
+                    slot.ChildTreeBuilder.PaintInto(
+                        context,
+                        registerRegions);
+
                 if (childExtent is not GuiBounds wrapperBounds)
                 {
                     continue;
                 }
 
                 slot.Instance.Render(context, wrapperBounds);
+
+                if (registerRegions)
+                {
+                    RegisterRegions(slot, wrapperBounds);
+                }
+
                 slot.Instance.RenderOverlay(context, wrapperBounds);
                 extent = Union(extent, wrapperBounds);
                 continue;
@@ -426,17 +290,29 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             extent = Union(extent, bounds);
             layoutComponent.Render(context, bounds);
 
+            if (registerRegions)
+            {
+                RegisterRegions(slot, bounds);
+            }
+
             if (componentSlot.IsScrollable && layoutComponent is GuiContainer scrollContainer)
             {
+                var clipPosition =
+                    componentSlot.ScrollClipBounds.Position!.Value;
+                var clipSize =
+                    componentSlot.ScrollClipBounds.Size!.Value;
+
                 scrollContainer.DrawInsetBackground(context, scrollContainer.GetScrollInsetBounds());
                 context.Save();
                 context.Rectangle(
-                    componentSlot.ScrollClipBounds.X,
-                    componentSlot.ScrollClipBounds.Y,
-                    componentSlot.ScrollClipBounds.Width,
-                    componentSlot.ScrollClipBounds.Height);
+                    clipPosition.X,
+                    clipPosition.Y,
+                    clipSize.Width!.Value,
+                    clipSize.Height!.Value);
                 context.Clip();
-                componentSlot.ChildTreeBuilder.PaintInto(context);
+                componentSlot.ChildTreeBuilder.PaintInto(
+                    context,
+                    registerRegions);
                 context.Restore();
                 scrollContainer.RenderScrollbars(context);
                 layoutComponent.RenderOverlay(context, bounds);
@@ -444,205 +320,13 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             }
 
             (layoutComponent as GuiContainer)?.DrawInsetBackground(context, bounds);
-            componentSlot.ChildTreeBuilder.PaintInto(context);
+            componentSlot.ChildTreeBuilder.PaintInto(
+                context,
+                registerRegions);
             layoutComponent.RenderOverlay(context, bounds);
         }
 
         return extent;
-    }
-
-    /// <summary>
-    /// Scrollable-container child render path. Returns false when no scroll axis is
-    /// effectively active so the caller can fall back to the default child render.
-    /// On success: measures inner content, decides scrollbar visibility, clips/translates
-    /// the child combined arrange/paint walk, draws scrollbars and registers their interactive regions
-    /// plus a wheel target for the viewport.
-    /// </summary>
-    private bool TryRenderScrollableChildren(
-        Context context,
-        GuiContainer container,
-        GuiSlot slot,
-        GuiBounds allocated,
-        GuiBounds childContent,
-        GuiComponentLayoutParameters lp)
-    {
-        // Effective axes: user-declared Scroll mask minus axes whose mode is FitContent
-        // (per spec — fit-to-content has no overflow). Recomputed each frame so toggling
-        // size mode at runtime takes effect immediately.
-        GuiScrollDirection eff = container.Scroll;
-        if (lp.WidthMode == GuiSizeMode.FitContent)
-        {
-            eff &= ~GuiScrollDirection.Horizontal;
-        }
-
-        if (lp.HeightMode == GuiSizeMode.FitContent)
-        {
-            eff &= ~GuiScrollDirection.Vertical;
-        }
-
-        container.EffectiveScroll = eff;
-        if (eff == GuiScrollDirection.None)
-        {
-            return false;
-        }
-
-        // Measure children at unbounded space on scroll-enabled axes so that Fill children
-        // report their true content size rather than collapsing to the viewport. FitContent
-        // children return their natural sizes as before. The PositiveInfinity sentinel
-        // propagates through component-owned measurement and triggers a FitContent fallback
-        // in ResolveAllocatedSize for any Fill-mode component on an unbounded axis.
-        double measureAvailW = (eff & GuiScrollDirection.Horizontal) != 0 ? double.PositiveInfinity : childContent.Width;
-        double measureAvailH = (eff & GuiScrollDirection.Vertical) != 0 ? double.PositiveInfinity : childContent.Height;
-        var measured = container.Measure(new GuiLayoutSize(measureAvailW, measureAvailH));
-
-        // Determine scrollbar visibility. An axis-scrollbar shows when:
-        //   (axis ∈ Scrollbar) AND (axis ∈ effective Scroll) AND
-        //   (content overflows  OR  axis ∈ AlwaysShowScrollbar).
-        const double sbThickness = GuiContainer.ScrollbarThickness;
-        const double sbGap = GuiContainer.ScrollbarGap;
-        bool wantV = (eff & GuiScrollDirection.Vertical) != 0 && (container.Scrollbar & GuiScrollDirection.Vertical) != 0;
-        bool wantH = (eff & GuiScrollDirection.Horizontal) != 0 && (container.Scrollbar & GuiScrollDirection.Horizontal) != 0;
-
-        bool overflowV = measured.Height > childContent.Height + 0.5;
-        bool overflowH = measured.Width > childContent.Width + 0.5;
-        bool forceV = (container.AlwaysShowScrollbar & GuiScrollDirection.Vertical) != 0;
-        bool forceH = (container.AlwaysShowScrollbar & GuiScrollDirection.Horizontal) != 0;
-
-        bool showV = wantV && (overflowV || forceV);
-        bool showH = wantH && (overflowH || forceH);
-
-        // Reserve gutter space + gap along the cross axis when a scrollbar is visible.
-        // Doing so can shrink the cross-axis viewport enough to make the other axis
-        // overflow — handle that by re-evaluating each axis's overflow once.
-        double vReserve = sbThickness + sbGap;
-        double hReserve = sbThickness + sbGap;
-        double vpW = childContent.Width - (showV ? vReserve : 0);
-        double vpH = childContent.Height - (showH ? hReserve : 0);
-        if (vpW < 0)
-        {
-            vpW = 0;
-        }
-
-        if (vpH < 0)
-        {
-            vpH = 0;
-        }
-
-        if (wantV && !showV && measured.Height > vpH + 0.5)
-        {
-            showV = true;
-        }
-
-        if (wantH && !showH && measured.Width > vpW + 0.5)
-        {
-            showH = true;
-        }
-        // Recompute viewport dimensions if visibility flipped.
-        vpW = childContent.Width - (showV ? vReserve : 0);
-        vpH = childContent.Height - (showH ? hReserve : 0);
-        if (vpW < 0)
-        {
-            vpW = 0;
-        }
-
-        if (vpH < 0)
-        {
-            vpH = 0;
-        }
-
-        // Push allocated + viewport + content sizes into the container so it can clamp the
-        // scroll offset before we read it back to translate children, and so scrollbar
-        // tracks anchor against the container's allocated edge (not the viewport).
-        container.UpdateScrollLayout(
-            allocated.X, allocated.Y, allocated.Width, allocated.Height,
-            childContent.X, childContent.Y, vpW, vpH,
-            measured.Width, measured.Height,
-            showV, showH, sbThickness);
-
-        // Inset background — fixed, not scrolled. Covers allocated bounds minus any
-        // scrollbar gutters, so the scrollbar sits flush against the container edge with
-        // a small gap between the inset's inner viewport and the scrollbar handle.
-        container.DrawInsetBackground(context, container.GetScrollInsetBounds());
-
-        // Translate child content area by (-scrollX, -scrollY); expand size along the
-        // active scroll axes to the measured content extent so children flow naturally
-        // and Fill children along the cross axis still see the viewport size.
-        double childW = (eff & GuiScrollDirection.Horizontal) != 0 ? Math.Max(vpW, measured.Width) : vpW;
-        double childH = (eff & GuiScrollDirection.Vertical) != 0 ? Math.Max(vpH, measured.Height) : vpH;
-        var scrolledChildBounds = new GuiComponentBounds(
-            childContent.X - container.ScrollX,
-            childContent.Y - container.ScrollY,
-            childW, childH);
-
-        // Clip drawing to the viewport so overflowing children do not bleed into adjacent
-        // siblings or scrollbar gutters. Cairo Save/Restore brackets the entire child walk
-        // (including any nested clips children may set up). Interactive regions are still
-        // registered at their translated positions — clipping affects pixels, not hit testing.
-        // When the container has an inset, shrink the clip inward by the emboss depth so
-        // scrolled content cannot paint over the emboss ring at the viewport edges.
-        context.Save();
-        double clipInset = container.ScrollViewportClipInset;
-        slot.SetScrollableBounds(
-            new GuiComponentBounds(
-                childContent.X + clipInset,
-                childContent.Y + clipInset,
-                Math.Max(0, vpW - 2 * clipInset),
-                Math.Max(0, vpH - 2 * clipInset)));
-        context.Rectangle(
-            slot.ScrollClipBounds.X,
-            slot.ScrollClipBounds.Y,
-            slot.ScrollClipBounds.Width,
-            slot.ScrollClipBounds.Height);
-        context.Clip();
-
-        slot.ChildTreeBuilder.Render(context, scrolledChildBounds);
-
-        context.Restore();
-
-        // Wheel target: the viewport. Registered first so any nested scrollable child
-        // pushes its own region on top and wins the reverse hit-test. Wheel-only regions
-        // have no click handlers, so HitTest skips them and they never consume click events.
-        _renderer.AddInteractiveRegion(new InteractiveRegion(
-            new GuiComponentBounds(childContent.X, childContent.Y, vpW, vpH),
-            container,
-            onMouseDown: default,
-            onMouseUp: default,
-            onMouseClick: default,
-            onMouseMove: default,
-            onMouseEnter: default,
-            onMouseLeave: default,
-            onMouseWheel: container.OnScrollWheel));
-
-        // Scrollbar visuals + interactive regions. Drawn outside the clip so they sit
-        // on top of children. Each axis registers its own region with stable per-container
-        // tokens so mouse-capture matching survives layout changes during a drag.
-        container.RenderScrollbars(context);
-
-        if (showV)
-        {
-            _renderer.AddInteractiveRegion(new InteractiveRegion(
-                container.GetVScrollbarTrackBounds(),
-                container.VScrollbarToken,
-                container.OnVScrollbarDown,
-                container.OnVScrollbarUp,
-                default,
-                container.OnVScrollbarMove,
-                default,
-                default));
-        }
-        if (showH)
-        {
-            _renderer.AddInteractiveRegion(new InteractiveRegion(
-                container.GetHScrollbarTrackBounds(),
-                container.HScrollbarToken,
-                container.OnHScrollbarDown,
-                container.OnHScrollbarUp,
-                default,
-                container.OnHScrollbarMove,
-                default,
-                default));
-        }
-        return true;
     }
 
     private void RegisterRegions(GuiSlot slot, GuiBounds bounds)
@@ -676,59 +360,10 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         }
     }
 
-    /// <summary>
-    /// Translates a <see cref="GuiHorizontalAlignment"/> into a pixel offset, given the
-    /// slack <paramref name="extra"/> (available cross-axis extent minus slot width).
-    /// Negative or zero slack collapses to zero — alignment never pulls a slot outside
-    /// its allotted space.
-    /// </summary>
-    private static double AlignOffsetH(GuiHorizontalAlignment alignment, double extra)
-    {
-        if (extra <= 0)
-        {
-            return 0;
-        }
-
-        return alignment switch
-        {
-            GuiHorizontalAlignment.Center => extra * 0.5,
-            GuiHorizontalAlignment.Right => extra,
-            _ => 0,
-        };
-    }
-
-    /// <summary>
-    /// Translates a <see cref="GuiVerticalAlignment"/> into a pixel offset, given the
-    /// slack <paramref name="extra"/> (available cross-axis extent minus slot height).
-    /// Negative or zero slack collapses to zero — alignment never pulls a slot outside
-    /// its allotted space.
-    /// </summary>
-    private static double AlignOffsetV(GuiVerticalAlignment alignment, double extra)
-    {
-        if (extra <= 0)
-        {
-            return 0;
-        }
-
-        return alignment switch
-        {
-            GuiVerticalAlignment.Center => extra * 0.5,
-            GuiVerticalAlignment.Bottom => extra,
-            _ => 0,
-        };
-    }
-
-    private static GuiBounds Union(GuiBounds first, GuiBounds second)
-    {
-        double left = Math.Min(first.X, second.X);
-        double top = Math.Min(first.Y, second.Y);
-        double right = Math.Max(first.Right, second.Right);
-        double bottom = Math.Max(first.Bottom, second.Bottom);
-        return new GuiComponentBounds(left, top, right - left, bottom - top);
-    }
-
     private static GuiBounds? Union(GuiBounds? extent, GuiBounds bounds)
-        => extent is null ? bounds : Union(extent.Value, bounds);
+        => extent is null
+            ? bounds
+            : extent.Value.Union(bounds);
 
     private struct SlotCallbacks
     {

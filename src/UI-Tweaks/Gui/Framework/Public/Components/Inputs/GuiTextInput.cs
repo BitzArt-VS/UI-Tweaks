@@ -333,7 +333,8 @@ public sealed class GuiTextInput : GuiInputBase
     {
         // Place caret near the click position. Walk character widths until we exceed the
         // click x — same logic as vanilla, simplified for single-line / no scrolling.
-        double localX = e.Position.X - LastBounds.X - TextPaddingX;
+        var position = LastBounds.Position!.Value;
+        double localX = e.Position.X - position.X - TextPaddingX;
         if (string.IsNullOrEmpty(Text) || localX <= 0)
         {
             _caret = 0;
@@ -346,7 +347,7 @@ public sealed class GuiTextInput : GuiInputBase
         double cumulative = 0;
         for (int i = 1; i <= Text.Length; i++)
         {
-            double w = Font.Measure(Text[..i]).Width;
+            double w = Font.Measure(Text[..i]).Width ?? 0;
             // Click closer to the left edge of this character → caret before it.
             double mid = (cumulative + w) / 2.0;
             if (localX < mid)
@@ -543,6 +544,11 @@ public sealed class GuiTextInput : GuiInputBase
     {
         base.Render(ctx, bounds);
 
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         // 1. Chrome — vanilla recipe: dark fill overlay + 2-deep emboss ring with corner
         //    radius 1. Matches GuiElementTextInput.ComposeTextElements visuals.
         GuiInset.Draw(ctx, bounds, depth: 2, brightness: 0.8f, radius: 1);
@@ -554,7 +560,7 @@ public sealed class GuiTextInput : GuiInputBase
         //    rather than the loud 20% the source code suggests.
         if (IsFocused && Enabled)
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
@@ -569,12 +575,12 @@ public sealed class GuiTextInput : GuiInputBase
         bool spinnerVisible = SpinnerButtonsVisible;
         double rightInset = spinnerVisible ? SpinnerGutterWidth + 1 : 1;
         ctx.Save();
-        ctx.Rectangle(bounds.X + 1, bounds.Y + 1, Math.Max(0, bounds.Width - 1 - rightInset), Math.Max(0, bounds.Height - 2));
+        ctx.Rectangle(position.X + 1, position.Y + 1, Math.Max(0, width - 1 - rightInset), Math.Max(0, height - 2));
         ctx.Clip();
 
         double lineHeight = Font.MeasureHeight();
-        double textY = bounds.Y + (bounds.Height - lineHeight) / 2.0;
-        double textX = bounds.X + TextPaddingX;
+        double textY = position.Y + (height - lineHeight) / 2.0;
+        double textX = position.X + TextPaddingX;
 
         if (string.IsNullOrEmpty(Text) && !IsFocused && !string.IsNullOrEmpty(Placeholder))
         {
@@ -604,7 +610,7 @@ public sealed class GuiTextInput : GuiInputBase
         //    in the visible blink phase. Width 1 logical pixel matches vanilla.
         if (IsFocused && Enabled && _caretBlinkOn)
         {
-            double caretAdvance = _caret == 0 ? 0 : Font.Measure(Text[.._caret]).Width;
+            double caretAdvance = _caret == 0 ? 0 : Font.Measure(Text[.._caret]).Width ?? 0;
             double cx = textX + caretAdvance;
             // Use a small inset on top/bottom so the caret sits inside the line height
             // rather than touching the chrome — matches vanilla's caret height.
@@ -635,10 +641,15 @@ public sealed class GuiTextInput : GuiInputBase
     /// </summary>
     private void DrawSpinnerButtons(Context ctx, GuiBounds b)
     {
-        double btnH = b.Height / 2.0;
-        double x = b.Right - SpinnerGutterWidth;
-        double upY = b.Y;
-        double downY = b.Y + btnH;
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double btnH = height / 2.0;
+        double x = position.X + width - SpinnerGutterWidth;
+        double upY = position.Y;
+        double downY = position.Y + btnH;
 
         DrawSpinnerButton(ctx, x, upY, SpinnerGutterWidth, btnH, arrowUp: true,
             hovered: _spinnerUpHovered, pressed: _spinnerUpPressed);
@@ -659,7 +670,9 @@ public sealed class GuiTextInput : GuiInputBase
 
         // Raised emboss (highlight on top-left, shadow on bottom-right). Depth 2 / radius 1
         // mirrors the input's recessed chrome at the same intensity, just inverted.
-        GuiInset.Draw(ctx, new GuiComponentBounds(x, y, w, h),
+        GuiInset.Draw(ctx, new GuiBounds(
+            new GuiPoint(x, y),
+            new GuiSize(w, h)),
             depth: 2, brightness: 1f, radius: 1, raised: true);
 
         // Hover / press washes — only meaningful while enabled.
