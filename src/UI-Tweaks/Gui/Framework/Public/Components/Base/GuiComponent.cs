@@ -34,9 +34,25 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         slot.ContentBounds =
             provisionalBounds.ToContentBounds();
 
-        GuiBounds? contentBounds =
+        GuiBounds? descendantsBounds =
             slot.ArrangeChildren(slot.ContentBounds.Value);
 
-        return LayoutParameters.ResolveBounds(availableBounds, contentBounds);
+        return ResolveFinalBounds(
+            availableBounds,
+            descendantsBounds);
     }
+
+    /// <summary>
+    /// Resolves this component's final bounds after its descendants have been arranged.
+    /// </summary>
+    /// <param name="availableBounds">Bounds supplied by the layout parent.</param>
+    /// <param name="descendantsBounds">
+    /// Combined final bounds of arranged descendants, or <c>null</c> when there are none.
+    /// </param>
+    protected virtual GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
+        => LayoutParameters.ResolveBounds(
+            availableBounds,
+            descendantsBounds);
 }
