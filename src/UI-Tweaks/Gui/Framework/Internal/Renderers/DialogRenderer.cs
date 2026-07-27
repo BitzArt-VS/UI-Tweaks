@@ -199,7 +199,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             (int)Math.Round(logicalWidth * scale),
             (int)Math.Round(logicalHeight * scale));
 
-        RequestRender();
+        RequestLayout();
     }
 
     private void ExecuteLayoutWalk()
