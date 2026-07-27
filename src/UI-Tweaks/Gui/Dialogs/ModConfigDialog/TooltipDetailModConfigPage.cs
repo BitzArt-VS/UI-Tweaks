@@ -390,7 +390,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                         .ConfigureLayout(layout =>
                         {
                             layout.Width = LabelColumnWidth;
-                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                            layout.VerticalAlignment = GuiAlignment.Center;
                         }));
 
                 builder.Add<GuiContainer>(1)

@@ -51,7 +51,15 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
 
             if (finalBounds == provisionalBounds)
             {
-                return finalBounds;
+                if (LayoutParameters.Position?.IsAbsolute == true)
+                {
+                    return finalBounds;
+                }
+
+                return finalBounds.MakePositionRelative(
+                    availableBounds.Position
+                        ?? throw new InvalidOperationException(
+                            "A relative component requires an available origin."));
             }
 
             previousBounds = finalBounds;

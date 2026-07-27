@@ -4,7 +4,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// A component's size and optional position in logical GUI coordinates.
 /// </summary>
 /// <param name="Position">
-/// The top-left reference point, or <c>null</c> when position is unresolved.
+/// Top-left position, or <c>null</c> when unresolved. A relative point is a transient
+/// arrangement result measured from bounds supplied by the parent. An absolute point
+/// is a resolved coordinate suitable for cached layout, rendering, and input.
 /// </param>
 /// <param name="Size">
 /// The arranged size, or <c>null</c> when size is unknown. A non-null size may
@@ -16,6 +18,48 @@ public readonly record struct GuiBounds(
     GuiThickness? Margin = null,
     GuiThickness? Padding = null)
 {
+    internal GuiBounds ResolveRelativePosition(
+        GuiPoint absoluteOrigin)
+    {
+        if (Position is null || Position.Value.IsAbsolute)
+        {
+            return this;
+        }
+
+        if (!absoluteOrigin.IsAbsolute)
+        {
+            throw new InvalidOperationException(
+                "A relative position requires an absolute origin.");
+        }
+
+        return this with
+        {
+            Position = absoluteOrigin + Position.Value,
+        };
+    }
+
+    internal GuiBounds MakePositionRelative(
+        GuiPoint absoluteOrigin)
+    {
+        if (Position is null)
+        {
+            return this;
+        }
+
+        if (!Position.Value.IsAbsolute || !absoluteOrigin.IsAbsolute)
+        {
+            throw new InvalidOperationException(
+                "Only an absolute position can be made relative to an absolute origin.");
+        }
+
+        return this with
+        {
+            Position = new GuiPoint(
+                Position.Value.X - absoluteOrigin.X,
+                Position.Value.Y - absoluteOrigin.Y),
+        };
+    }
+
     public GuiBounds ToMarginBounds(
         GuiThickness? resultMargin = null,
         GuiThickness? resultPadding = null)
@@ -77,7 +121,7 @@ public readonly record struct GuiBounds(
                 : null;
 
         return new(
-            new(left, top),
+            new(left, top, IsAbsolute: true),
             new(
                 right - left,
                 bottom - top));
@@ -117,13 +161,17 @@ public readonly record struct GuiBounds(
             throw new InvalidOperationException("Cannot subtract bounds with an unresolved size.");
         }
 
-        var consumedWidth =
-            (contentBounds.Size.Value.Width
-                ?? availableBounds.Size.Value.Width
-                ?? 0)
-            + (contentBounds.Margin?.Horizontal ?? 0);
+        var contentMarginBounds =
+            contentBounds.ToMarginBounds();
 
-        var remainingWidth = contentBounds.Size.Value.Width is null
+        var consumedWidth =
+            contentMarginBounds.Position!.Value.X
+            - availableBounds.Position.Value.X
+            + (contentMarginBounds.Size!.Value.Width
+                ?? availableBounds.Size.Value.Width
+                ?? 0);
+
+        var remainingWidth = contentMarginBounds.Size.Value.Width is null
             ? 0
             : (availableBounds.Size.Value - new GuiSize(consumedWidth, 0)).Width;
 
@@ -161,13 +209,17 @@ public readonly record struct GuiBounds(
             throw new InvalidOperationException("Cannot subtract bounds with an unresolved size.");
         }
 
-        var consumedHeight =
-            (contentBounds.Size.Value.Height
-                ?? availableBounds.Size.Value.Height
-                ?? 0)
-            + (contentBounds.Margin?.Vertical ?? 0);
+        var contentMarginBounds =
+            contentBounds.ToMarginBounds();
 
-        var remainingHeight = contentBounds.Size.Value.Height is null
+        var consumedHeight =
+            contentMarginBounds.Position!.Value.Y
+            - availableBounds.Position.Value.Y
+            + (contentMarginBounds.Size!.Value.Height
+                ?? availableBounds.Size.Value.Height
+                ?? 0);
+
+        var remainingHeight = contentMarginBounds.Size.Value.Height is null
             ? 0
             : (availableBounds.Size.Value - new GuiSize(0, consumedHeight)).Height;
 

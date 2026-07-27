@@ -78,6 +78,8 @@ public sealed class GuiTextInput : GuiInputBase
     private bool _spinnerDownHovered;
     private bool _spinnerUpPressed;
     private bool _spinnerDownPressed;
+    private GuiRectangle? _spinnerUpTarget;
+    private GuiRectangle? _spinnerDownTarget;
     private float _blinkAccumulator;
     private bool _caretBlinkOn = true;
 
@@ -134,6 +136,61 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
+    public override GuiBounds Arrange(GuiBounds availableBounds)
+    {
+        if (_spinnerUpTarget is not null
+            && _spinnerDownTarget is not null)
+        {
+            var provisionalBounds =
+                LayoutParameters.ResolveBounds(availableBounds);
+
+            var position =
+                provisionalBounds.Position
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved position.");
+
+            var size =
+                provisionalBounds.Size
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved size.");
+
+            var width =
+                size.Width
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved width.");
+
+            var height =
+                size.Height
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved height.");
+
+            var buttonHeight = height / 2;
+            var targetX =
+                position.X + width - SpinnerGutterWidth;
+
+            _spinnerUpTarget.LayoutParameters.Position =
+                new GuiPoint(
+                    targetX,
+                    position.Y,
+                    IsAbsolute: true);
+
+            _spinnerUpTarget.LayoutParameters.Height =
+                buttonHeight;
+
+            _spinnerDownTarget.LayoutParameters.Position =
+                new GuiPoint(
+                    targetX,
+                    position.Y + buttonHeight,
+                    IsAbsolute: true);
+
+            _spinnerDownTarget.LayoutParameters.Height =
+                buttonHeight;
+        }
+
+        return base.Arrange(availableBounds);
+    }
+
+    /// <inheritdoc/>
     protected override GuiBounds ResolveFinalBounds(
         GuiBounds availableBounds,
         GuiBounds? descendantsBounds)
@@ -163,6 +220,8 @@ public sealed class GuiTextInput : GuiInputBase
 
         if (!SpinnerButtonsVisible)
         {
+            _spinnerUpTarget = null;
+            _spinnerDownTarget = null;
             return;
         }
 
@@ -184,30 +243,20 @@ public sealed class GuiTextInput : GuiInputBase
     private void BuildSpinnerUpTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _spinnerUpTarget = rectangle)
             .ConfigureLayout(layout =>
-            {
-                layout.Width = SpinnerGutterWidth;
-                layout.Height = SpinnerButtonHeight;
-                layout.Positioning = GuiComponentPositioning.Absolute;
-                layout.HorizontalAlignment = GuiHorizontalAlignment.Right;
-                layout.VerticalAlignment = GuiVerticalAlignment.Top;
-            });
+                layout.Width = SpinnerGutterWidth);
     }
 
     private void BuildSpinnerDownTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _spinnerDownTarget = rectangle)
             .ConfigureLayout(layout =>
-            {
-                layout.Width = SpinnerGutterWidth;
-                layout.Height = SpinnerButtonHeight;
-                layout.Positioning = GuiComponentPositioning.Absolute;
-                layout.HorizontalAlignment = GuiHorizontalAlignment.Right;
-                layout.VerticalAlignment = GuiVerticalAlignment.Bottom;
-            });
+                layout.Width = SpinnerGutterWidth);
     }
-
-    private double SpinnerButtonHeight => (LayoutParameters.Height?.Resolve(null) ?? 30) / 2.0;
 
     private void SetSpinnerHovered(bool up, bool hovered)
     {
@@ -671,7 +720,7 @@ public sealed class GuiTextInput : GuiInputBase
         // Raised emboss (highlight on top-left, shadow on bottom-right). Depth 2 / radius 1
         // mirrors the input's recessed chrome at the same intensity, just inverted.
         GuiInset.Draw(ctx, new GuiBounds(
-            new GuiPoint(x, y),
+            new GuiPoint(x, y, IsAbsolute: true),
             new GuiSize(w, h)),
             depth: 2, brightness: 1f, radius: 1, raised: true);
 

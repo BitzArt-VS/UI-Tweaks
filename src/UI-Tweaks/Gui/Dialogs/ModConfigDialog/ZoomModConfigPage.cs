@@ -139,7 +139,7 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                         .ConfigureLayout(layout =>
                         {
                             layout.Width = LabelColumnWidth;
-                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                            layout.VerticalAlignment = GuiAlignment.Center;
                         }));
 
                 builder.Add<GuiContainer>(1)

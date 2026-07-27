@@ -58,7 +58,10 @@ internal readonly struct InteractiveRegion
         double height = size.Height!.Value;
 
         var translatedBounds = new GuiBounds(
-            new GuiPoint(position.X + dx, position.Y + dy),
+            new GuiPoint(
+                position.X + dx,
+                position.Y + dy,
+                IsAbsolute: true),
             new GuiSize(width, height));
 
         return new(

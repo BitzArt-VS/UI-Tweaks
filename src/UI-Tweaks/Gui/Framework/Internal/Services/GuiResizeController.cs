@@ -183,7 +183,10 @@ internal sealed class GuiResizeController
             bottom += delta.Y;
         }
 
-        var requestedPosition = new GuiPoint(Math.Min(left, right), Math.Min(top, bottom));
+        var requestedPosition = new GuiPoint(
+            Math.Min(left, right),
+            Math.Min(top, bottom),
+            IsAbsolute: true);
         var requestedSize = new GuiSize(Math.Abs(right - left), Math.Abs(bottom - top));
         return new GuiBounds(requestedPosition, requestedSize);
     }
@@ -195,7 +198,10 @@ internal sealed class GuiResizeController
 
         var surfacePosition = surfaceBounds.Position!.Value;
         var surfaceSize = surfaceBounds.Size!.Value;
-        var screenPosition = new GuiPoint(surfaceScreenX + surfacePosition.X, surfaceScreenY + surfacePosition.Y);
+        var screenPosition = new GuiPoint(
+            surfaceScreenX + surfacePosition.X,
+            surfaceScreenY + surfacePosition.Y,
+            IsAbsolute: true);
         return new GuiBounds(screenPosition, surfaceSize);
     }
 

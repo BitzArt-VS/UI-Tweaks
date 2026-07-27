@@ -346,7 +346,7 @@ public sealed class GuiSlider : GuiInputBase
         //    the handle reads as lifted off the recessed track. Depth 3 gives a chunkier
         //    bevel than the track's depth-2 recess so the asymmetry is visible.
         var handleBounds = new GuiBounds(
-            new GuiPoint(x, y),
+            new GuiPoint(x, y, IsAbsolute: true),
             new GuiSize(w, h));
         GuiInset.Draw(ctx, handleBounds, depth: 3, brightness: 1f, radius: 1, raised: true);
     }

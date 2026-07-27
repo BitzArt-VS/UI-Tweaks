@@ -530,7 +530,10 @@ public class GuiDropdown<T> : GuiInputBase
         double popupHeight = overflow ? MaxPopupHeight : frame;
         _popupOverflow = overflow;
 
-        var popupPosition = new GuiPoint(position.X, position.Y + height);
+        var popupPosition = new GuiPoint(
+            position.X,
+            position.Y + height,
+            IsAbsolute: true);
         var popupBounds = new GuiBounds(popupPosition, new GuiSize(width, popupHeight));
 
         // Cache the fragment so its delegate identity is stable across frames — repeated

@@ -388,7 +388,10 @@ public class GuiContainer : GuiComponent
             DrawScrollbarHandle(
                 ctx,
                 new GuiBounds(
-                    new GuiPoint(trackPosition.X + HandleInset, handleY),
+                    new GuiPoint(
+                        trackPosition.X + HandleInset,
+                        handleY,
+                        IsAbsolute: true),
                     new GuiSize(trackSize.Width - 2 * HandleInset, handleH)));
         }
         if (_showHScrollbar)
@@ -401,7 +404,10 @@ public class GuiContainer : GuiComponent
             DrawScrollbarHandle(
                 ctx,
                 new GuiBounds(
-                    new GuiPoint(handleX, trackPosition.Y + HandleInset),
+                    new GuiPoint(
+                        handleX,
+                        trackPosition.Y + HandleInset,
+                        IsAbsolute: true),
                     new GuiSize(handleW, trackSize.Height - 2 * HandleInset)));
         }
     }
@@ -413,7 +419,8 @@ public class GuiContainer : GuiComponent
         => new(
             new GuiPoint(
                 _allocatedX + _allocatedW - _sbThickness,
-                _viewportY),
+                _viewportY,
+                IsAbsolute: true),
             new GuiSize(
                 _sbThickness,
                 _viewportH));
@@ -424,7 +431,8 @@ public class GuiContainer : GuiComponent
         => new(
             new GuiPoint(
                 _viewportX,
-                _allocatedY + _allocatedH - _sbThickness),
+                _allocatedY + _allocatedH - _sbThickness,
+                IsAbsolute: true),
             new GuiSize(
                 _viewportW,
                 _sbThickness));
@@ -440,7 +448,8 @@ public class GuiContainer : GuiComponent
         => new(
             new GuiPoint(
                 _allocatedX,
-                _allocatedY),
+                _allocatedY,
+                IsAbsolute: true),
             new GuiSize(
                 _allocatedW - (_showVScrollbar ? _sbThickness + ScrollbarGap : 0),
                 _allocatedH - (_showHScrollbar ? _sbThickness + ScrollbarGap : 0)));

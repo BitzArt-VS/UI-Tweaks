@@ -16,8 +16,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </para>
 /// <para>
 /// The title text is painted directly by <see cref="DrawBackground"/> rather than as a
-/// child component, because vanilla centres the text vertically inside the bar — a
-/// capability the layout pass does not yet provide.
+/// child component so the title bar owns its text painting together with its background
+/// and border.
 /// </para>
 /// </summary>
 public class GuiDialogTitleBar : GuiContainer
@@ -78,10 +78,9 @@ public class GuiDialogTitleBar : GuiContainer
     private double _dragLastY;
     private bool _dragging;
 
-    // Captured at BuildComponentTree time (via Configure on the close-icon slot) so DrawBackground
-    // can update its absolute Margin.Left to anchor it to the bar's right edge once the bar's
-    // actual width is known. The reference is reset on every blueprint pass — Configure runs
-    // every rebuild and re-assigns it.
+    // Captured from their declarative slots so Arrange can supply resolved coordinates
+    // after the title bar's own content bounds are known.
+    private GuiRectangle? _dragTarget;
     private GuiDialogCloseIcon? _closeIcon;
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)
@@ -96,17 +95,44 @@ public class GuiDialogTitleBar : GuiContainer
 
     public override GuiBounds Arrange(GuiBounds availableBounds)
     {
+        var provisionalBounds =
+            LayoutParameters.ResolveBounds(availableBounds);
+
+        var contentBounds =
+            provisionalBounds.ToContentBounds();
+
+        var contentPosition =
+            contentBounds.Position
+            ?? throw new InvalidOperationException(
+                "Title-bar content requires a resolved position.");
+
+        if (_dragTarget is not null)
+        {
+            _dragTarget.LayoutParameters.Position =
+                contentPosition;
+        }
+
         if (_closeIcon is not null)
         {
-            GuiBounds provisionalBounds = LayoutParameters.ResolveBounds(availableBounds);
-            double width = provisionalBounds.Size!.Value.Width!.Value;
-            double iconBox = _closeIcon.CrossLineWidth * 2 + _closeIcon.CrossSize;
+            var contentSize =
+                contentBounds.Size
+                ?? throw new InvalidOperationException(
+                    "Title-bar content requires a resolved size.");
 
-            _closeIcon.LayoutParameters.Margin = new GuiThickness(
-                Top: CloseIconTopPadding,
-                Right: 0,
-                Bottom: 0,
-                Left: width - iconBox - CloseIconRightPadding);
+            var width =
+                contentSize.Width
+                ?? throw new InvalidOperationException(
+                    "Title-bar content requires a resolved width.");
+
+            var iconBox =
+                _closeIcon.CrossLineWidth * 2
+                + _closeIcon.CrossSize;
+
+            _closeIcon.LayoutParameters.Position =
+                new GuiPoint(
+                    contentPosition.X + width - iconBox - CloseIconRightPadding,
+                    contentPosition.Y + CloseIconTopPadding,
+                    IsAbsolute: true);
         }
 
         return base.Arrange(availableBounds);
@@ -164,15 +190,16 @@ public class GuiDialogTitleBar : GuiContainer
                 .OnMouseMove(HandleMouseMove)
                 .OnMouseUp(HandleMouseUp);
         }
+        else
+        {
+            _dragTarget = null;
+        }
 
-        // Close icon — absolute-positioned (Margin.Left is set to anchor it to the right edge
-        // by DrawBackground once the bar's allocated width is known; see the comment there).
-        // Configure runs every blueprint pass and captures the live instance so DrawBackground
-        // can mutate its layout each frame without needing a separate framework anchor mode.
+        // Configure captures the live close icon so Arrange can place it from the resolved
+        // title-bar content bounds.
         if (OnClose.HasHandler)
         {
             builder.Add<GuiDialogCloseIcon>(int.MaxValue)
-                .ConfigureLayout(layout => layout.Positioning = GuiComponentPositioning.Absolute)
                 .Configure(icon =>
                 {
                     icon.OnClick = OnClose;
@@ -185,14 +212,15 @@ public class GuiDialogTitleBar : GuiContainer
         }
     }
 
-    private static void BuildDragTargetContent(IGuiTreeBuilder builder)
+    private void BuildDragTargetContent(IGuiTreeBuilder builder)
     {
         builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _dragTarget = rectangle)
             .ConfigureLayout(layout =>
             {
                 layout.Width = GuiLengthRule.Fill;
                 layout.Height = GuiLengthRule.Fill;
-                layout.Positioning = GuiComponentPositioning.Absolute;
             });
     }
 

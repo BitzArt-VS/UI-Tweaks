@@ -212,7 +212,9 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             _floatingLayers[i].OnFrameStart();
         }
 
-        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
         DrawSurfaceContents(bounds, _currentScale, arrange: true);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
@@ -227,7 +229,9 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     {
         _tooltipHost.ResetFrame();
 
-        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
         DrawSurfaceContents(bounds, _currentScale, arrange: false);
 
         _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);

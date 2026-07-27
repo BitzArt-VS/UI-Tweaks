@@ -153,7 +153,7 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                         .ConfigureLayout(layout =>
                         {
                             layout.Width = LabelColumnWidth;
-                            layout.VerticalAlignment = GuiVerticalAlignment.Center;
+                            layout.VerticalAlignment = GuiAlignment.Center;
                         }));
 
                 // Control column — fills the rest of the row; the control inside should

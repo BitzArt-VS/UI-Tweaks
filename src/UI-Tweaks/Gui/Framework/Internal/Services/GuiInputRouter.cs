@@ -451,7 +451,13 @@ internal sealed class GuiInputRouter
     }
 
     private static GuiMouseEventArgs MakeMouseArgs(int physicalX, int physicalY, double logicalX, double logicalY, EnumMouseButton button)
-        => new(new(logicalX, logicalY), new(physicalX / RuntimeEnv.GUIScale, physicalY / RuntimeEnv.GUIScale), button);
+        => new(
+            new GuiPoint(logicalX, logicalY, IsAbsolute: true),
+            new GuiPoint(
+                physicalX / RuntimeEnv.GUIScale,
+                physicalY / RuntimeEnv.GUIScale,
+                IsAbsolute: true),
+            button);
 
     private int HitTest(double logicalX, double logicalY)
     {

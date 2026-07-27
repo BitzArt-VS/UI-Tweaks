@@ -8,8 +8,9 @@ public interface IGuiComponent : IGuiNode
     /// Attempts to arrange this component within the supplied available bounds.
     /// </summary>
     /// <returns>
-    /// The arranged bounds. Individual bounds fields are <c>null</c> while
-    /// their geometry is unresolved.
+    /// Arranged bounds relative to <paramref name="availableBounds"/> for flow placement,
+    /// or absolute bounds for independent placement. Individual bounds fields are
+    /// <c>null</c> while their geometry is unresolved.
     /// </returns>
     public GuiBounds Arrange(
         GuiBounds availableBounds);

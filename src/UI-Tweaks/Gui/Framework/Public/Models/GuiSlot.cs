@@ -97,7 +97,34 @@ public abstract class GuiSlot
         return chain.TryGet(name, out value);
     }
 
+    /// <summary>
+    /// Arranges this root slot within resolved available bounds.
+    /// </summary>
+    /// <returns>
+    /// Resolved arranged bounds, or <see langword="null"/> when the slot has no relative
+    /// layout extent.
+    /// </returns>
     public GuiBounds? Arrange(GuiBounds availableBounds)
+    {
+        var arrangedBounds =
+            Arrange(
+                availableBounds,
+                availableBounds);
+
+        if (arrangedBounds is null)
+        {
+            return null;
+        }
+
+        return arrangedBounds.Value.ResolveRelativePosition(
+            availableBounds.Position
+                ?? throw new InvalidOperationException(
+                    "Root arrangement requires an available origin."));
+    }
+
+    internal GuiBounds? Arrange(
+        GuiBounds availableBounds,
+        GuiBounds absoluteBounds)
     {
         if (IsArranging)
         {
@@ -108,7 +135,9 @@ public abstract class GuiSlot
         IsArranging = true;
         try
         {
-            return OnArrange(availableBounds);
+            return OnArrange(
+                availableBounds,
+                absoluteBounds);
         }
         finally
         {
@@ -117,13 +146,21 @@ public abstract class GuiSlot
     }
 
     private protected abstract GuiBounds? OnArrange(
-        GuiBounds availableBounds);
+        GuiBounds availableBounds,
+        GuiBounds absoluteBounds);
 
     /// <summary>
     /// Arranges each immediate child slot in declaration order.
     /// Transparent child slots recursively forward arrangement to their own children.
     /// </summary>
     public GuiBounds? ArrangeChildren(GuiBounds availableBounds)
+        => ArrangeChildren(
+            availableBounds,
+            availableBounds);
+
+    internal GuiBounds? ArrangeChildren(
+        GuiBounds availableBounds,
+        GuiBounds absoluteBounds)
     {
         var remainingVerticalBounds = availableBounds;
         var remainingBounds = availableBounds;
@@ -132,13 +169,27 @@ public abstract class GuiSlot
 
         foreach (var child in Children)
         {
-            var childBounds = child.Arrange(remainingBounds);
+            var childBounds = child.Arrange(
+                remainingBounds,
+                absoluteBounds);
             if (childBounds is null)
             {
                 continue;
             }
 
-            var marginBounds = childBounds.Value.ToMarginBounds();
+            if (childBounds.Value.Position?.IsAbsolute == true)
+            {
+                continue;
+            }
+
+            var resolvedChildBounds =
+                childBounds.Value.ResolveRelativePosition(
+                    remainingBounds.Position
+                        ?? throw new InvalidOperationException(
+                            "A relative child requires an available origin."));
+
+            var marginBounds =
+                resolvedChildBounds.ToMarginBounds();
 
             if (lineBounds is not null
                 && marginBounds.Size?.Width > remainingBounds.Size?.Width)
@@ -149,13 +200,27 @@ public abstract class GuiSlot
                 remainingBounds = remainingVerticalBounds;
                 lineBounds = null;
 
-                childBounds = child.Arrange(remainingBounds);
+                childBounds = child.Arrange(
+                    remainingBounds,
+                    absoluteBounds);
                 if (childBounds is null)
                 {
                     continue;
                 }
 
-                marginBounds = childBounds.Value.ToMarginBounds();
+                if (childBounds.Value.Position?.IsAbsolute == true)
+                {
+                    continue;
+                }
+
+                resolvedChildBounds =
+                    childBounds.Value.ResolveRelativePosition(
+                        remainingBounds.Position
+                            ?? throw new InvalidOperationException(
+                                "A relative child requires an available origin."));
+
+                marginBounds =
+                    resolvedChildBounds.ToMarginBounds();
             }
 
             arrangedChildrenBounds = arrangedChildrenBounds is null
@@ -169,7 +234,15 @@ public abstract class GuiSlot
             remainingBounds = remainingBounds.SubtractHorizontal(marginBounds);
         }
 
-        return arrangedChildrenBounds;
+        if (arrangedChildrenBounds is null)
+        {
+            return null;
+        }
+
+        return arrangedChildrenBounds.Value.MakePositionRelative(
+            availableBounds.Position
+                ?? throw new InvalidOperationException(
+                    "Arranged children require an available origin."));
     }
 
     internal void SetScrollableBounds(GuiBounds scrollClipBounds)

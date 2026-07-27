@@ -9,7 +9,7 @@ public class GuiComponentLayoutParametersTests
     {
         // Arrange
         var layoutParameters = new GuiComponentLayoutParameters();
-        var availablePosition = new GuiPoint(10, 20);
+        var availablePosition = new GuiPoint(10, 20, IsAbsolute: true);
         var availableBounds = new GuiBounds(
             availablePosition,
             new GuiSize(null, null));

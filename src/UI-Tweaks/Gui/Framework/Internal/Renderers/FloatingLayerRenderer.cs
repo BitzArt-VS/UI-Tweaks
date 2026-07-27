@@ -155,7 +155,9 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void DrawToSurface(float scale)
     {
-        var bounds = new GuiBounds(new GuiPoint(0, 0), new GuiSize(MeasuredWidth, MeasuredHeight));
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(MeasuredWidth, MeasuredHeight));
         DrawSurfaceContents(bounds, scale, arrange: true);
     }
 
@@ -232,7 +234,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         GuiBounds arrangedBounds =
             rootComponent.Arrange(
                 new GuiBounds(
-                    new GuiPoint(0, 0),
+                    new GuiPoint(0, 0, IsAbsolute: true),
                     new GuiSize(
                         maximumWidth,
                         maximumHeight)));

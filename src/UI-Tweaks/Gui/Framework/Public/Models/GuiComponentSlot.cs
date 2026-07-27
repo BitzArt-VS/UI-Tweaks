@@ -42,14 +42,28 @@ public sealed class GuiComponentSlot : GuiSlot
     internal IGuiComponent Component => _component;
 
     private protected override GuiBounds? OnArrange(
-        GuiBounds availableBounds)
+        GuiBounds availableBounds,
+        GuiBounds absoluteBounds)
     {
         GuiBounds arrangedBounds =
             _component.Arrange(availableBounds);
 
-        Bounds = arrangedBounds;
+        if (arrangedBounds.Position?.IsAbsolute == true
+            && availableBounds != absoluteBounds)
+        {
+            arrangedBounds =
+                _component.Arrange(absoluteBounds);
+        }
+
+        var resolvedBounds =
+            arrangedBounds.ResolveRelativePosition(
+                availableBounds.Position
+                    ?? throw new InvalidOperationException(
+                        "An arranged component requires an available origin."));
+
+        Bounds = resolvedBounds;
         ContentBounds =
-            arrangedBounds.ToContentBounds();
+            resolvedBounds.ToContentBounds();
 
         return arrangedBounds;
     }
