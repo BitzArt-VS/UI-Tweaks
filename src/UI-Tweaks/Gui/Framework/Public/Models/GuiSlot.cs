@@ -41,8 +41,6 @@ public abstract class GuiSlot
     {
         _renderer = renderer;
         Parent = parent;
-        LayoutParent = parent as GuiComponentSlot
-            ?? parent?.LayoutParent;
         Instance = instance;
         ChildTreeBuilder = childTreeBuilder;
         Frame = frame;
@@ -54,12 +52,6 @@ public abstract class GuiSlot
     /// Gets the immediate structural parent, or <c>null</c> for a root slot.
     /// </summary>
     public GuiSlot? Parent { get; }
-
-    /// <summary>
-    /// Gets the nearest ancestor whose node participates in layout, or <c>null</c>
-    /// when the slot has no component ancestor.
-    /// </summary>
-    public GuiComponentSlot? LayoutParent { get; }
 
     public IGuiNode Node => Instance;
     public IReadOnlyList<GuiSlot> Children => ChildTreeBuilder.NodeSlots;
@@ -192,7 +184,7 @@ public abstract class GuiSlot
                 resolvedChildBounds.ToMarginBounds();
 
             if (lineBounds is not null
-                && marginBounds.Size?.Width > remainingBounds.Size?.Width)
+                && ExceedsAvailableWidth(marginBounds, remainingBounds))
             {
                 remainingVerticalBounds =
                     remainingVerticalBounds.SubtractVertical(lineBounds.Value);
@@ -243,6 +235,22 @@ public abstract class GuiSlot
             availableBounds.Position
                 ?? throw new InvalidOperationException(
                     "Arranged children require an available origin."));
+    }
+
+    private static bool ExceedsAvailableWidth(
+        GuiBounds contentBounds,
+        GuiBounds availableBounds)
+    {
+        if (contentBounds.Position is not GuiPoint contentPosition
+            || contentBounds.Size?.Width is not double contentWidth
+            || availableBounds.Position is not GuiPoint availablePosition
+            || availableBounds.Size?.Width is not double availableWidth)
+        {
+            return false;
+        }
+
+        return contentPosition.X + contentWidth
+            > availablePosition.X + availableWidth;
     }
 
 }

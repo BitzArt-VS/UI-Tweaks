@@ -97,6 +97,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     private void DrawSurfaceContents(GuiBounds bounds, float scale, bool arrange, Action<Context> draw)
     {
+        ClearInvalidationRequests(arrange);
         _context!.IdentityMatrix();
         _context.Operator = Operator.Source;
         _context.SetSourceRGBA(0, 0, 0, 0);
@@ -107,7 +108,6 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         _surface!.Flush();
         _clientApi.Gui.LoadOrUpdateCairoTexture(_surface, true, ref _texture);
         _currentScale = scale;
-        ClearInvalidationRequests(arrange);
     }
 
     protected void ClearInvalidationRequests(bool arranged)

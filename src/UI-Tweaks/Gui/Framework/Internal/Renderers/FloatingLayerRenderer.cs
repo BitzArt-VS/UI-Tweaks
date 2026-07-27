@@ -29,7 +29,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         ActiveFragment = content;
         _activePlacement = placement;
         _refreshedThisFrame = true;
-        RequestArrange();
+        RequestReconcile();
     }
 
     public void Hide(object token)
@@ -62,21 +62,16 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         // even an unchanged layer must re-walk so its regions get re-registered.
         if (ActiveFragment is not null)
         {
-            RequestArrange();
+            RequestReconcile();
         }
         Update();
     }
 
     public void Render()
     {
-        // RewalkOnDialogWalk layers already updated in RunWalk; others (which are not
-        // tied to the dialog's walk cadence — e.g. tooltips driven by mouse events)
-        // reconcile here so changes between walks still take effect.
-        if (!_activePlacement.RewalkOnDialogWalk)
-        {
-            Update();
-        }
-
+        // RunWalk handles dialog-driven arrangement, while this also drains invalidations
+        // requested independently by nodes inside the floating layer.
+        Update();
         Blit();
     }
 
@@ -105,21 +100,29 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        ReconcileAndArrange();
+        bool arrange = _arrangeRequested || scale != _currentScale;
+        if (_reconcileRequested)
+        {
+            TreeBuilder.Run(BuildRootFragment);
+        }
+
+        if (arrange)
+        {
+            _arrangedSize = ResolveLogicalSize();
+        }
 
         if (ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
+            _currentScale = scale;
+            ClearInvalidationRequests(arrange);
             return;
         }
 
-        ReallocateSurfaceIfNeeded(scale);
-        DrawToSurface(scale);
-    }
-
-    private void ReconcileAndArrange()
-    {
-        TreeBuilder.Run(BuildRootFragment);
-        _arrangedSize = ResolveLogicalSize();
+        if (arrange)
+        {
+            ReallocateSurfaceIfNeeded(scale);
+        }
+        DrawToSurface(scale, arrange);
     }
 
     private void BuildRootFragment(IGuiTreeBuilder builder)
@@ -153,12 +156,12 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         EnsureSurfaceSize(physW, physH);
     }
 
-    private void DrawToSurface(float scale)
+    private void DrawToSurface(float scale, bool arrange)
     {
         var bounds = new GuiBounds(
             new GuiPoint(0, 0, IsAbsolute: true),
             new GuiSize(ArrangedWidth, ArrangedHeight));
-        DrawSurfaceContents(bounds, scale, arrange: true);
+        DrawSurfaceContents(bounds, scale, arrange);
     }
 
     private void Blit()
