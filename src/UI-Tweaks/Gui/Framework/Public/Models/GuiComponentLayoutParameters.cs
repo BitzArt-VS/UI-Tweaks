@@ -70,8 +70,18 @@ public sealed class GuiComponentLayoutParameters
         GuiBounds availableBounds)
         => ResolveBounds(
             availableBounds,
-            innerContentBounds: null,
-            isContentMeasured: false);
+            candidateSize: null,
+            useAvailableSize: true);
+
+    internal GuiBounds ResolveProvisionalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? previousBounds)
+        => previousBounds is null
+            ? ResolveBounds(availableBounds)
+            : ResolveBounds(
+                availableBounds,
+                previousBounds.Value.Size,
+                useAvailableSize: false);
 
     /// <summary>
     /// Resolves final component bounds from measured descendant margin bounds.
@@ -84,13 +94,13 @@ public sealed class GuiComponentLayoutParameters
         GuiBounds? innerContentBounds)
         => ResolveBounds(
             availableBounds,
-            innerContentBounds,
-            isContentMeasured: true);
+            (innerContentBounds?.Size ?? new GuiSize(0, 0)) + Padding,
+            useAvailableSize: false);
 
     private GuiBounds ResolveBounds(
         GuiBounds availableBounds,
-        GuiBounds? innerContentBounds,
-        bool isContentMeasured)
+        GuiSize? candidateSize,
+        bool useAvailableSize)
     {
         GuiBounds adjustedAvailableBounds =
             availableBounds.Consume(Margin);
@@ -98,24 +108,23 @@ public sealed class GuiComponentLayoutParameters
         GuiSize? availableSize =
             adjustedAvailableBounds.Size;
 
-        GuiSize? contentSize = isContentMeasured
-            ? (innerContentBounds?.Size ?? new GuiSize(0, 0)) + Padding
-            : null;
+        if (useAvailableSize)
+        {
+            candidateSize = availableSize;
+        }
 
         return new GuiBounds(
             adjustedAvailableBounds.Position,
             new GuiSize(
                 ResolveLength(
                     availableSize?.Width,
-                    contentSize?.Width,
-                    isContentMeasured,
+                    candidateSize?.Width,
                     Width,
                     MinimumWidth,
                     MaximumWidth),
                 ResolveLength(
                     availableSize?.Height,
-                    contentSize?.Height,
-                    isContentMeasured,
+                    candidateSize?.Height,
                     Height,
                     MinimumHeight,
                     MaximumHeight)),
@@ -125,23 +134,16 @@ public sealed class GuiComponentLayoutParameters
 
     private static double? ResolveLength(
         double? availableLength,
-        double? contentLength,
-        bool isContentMeasured,
+        double? candidateLength,
         GuiLengthRule? explicitRule,
         GuiLengthRule? minimumRule,
         GuiLengthRule? maximumRule)
-    {
-        double? candidate = isContentMeasured
-            ? contentLength
-            : availableLength;
-
-        return GuiLengthRule.Resolve(
+        => GuiLengthRule.Resolve(
             availableLength,
-            candidate,
+            candidateLength,
             explicitRule,
             minimumRule,
             maximumRule);
-    }
 
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on

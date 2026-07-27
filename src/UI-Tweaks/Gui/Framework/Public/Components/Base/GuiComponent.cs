@@ -8,6 +8,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </summary>
 public abstract class GuiComponent : GuiNode, IGuiComponent
 {
+    private const int MaximumArrangementPasses = 10;
+
     public GuiComponentLayoutParameters LayoutParameters { get; }
 
     protected GuiComponent()
@@ -26,20 +28,37 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         // explicit rules can share a top-down constraint envelope while producing different
         // bottom-up results, and dependency-sensitive layouts may involve repeated passes.
         var slot = (GuiComponentSlot)Slot!;
+        GuiBounds? previousBounds = null;
 
-        GuiBounds provisionalBounds =
-            LayoutParameters.ResolveBounds(availableBounds);
+        for (var pass = 1; pass <= MaximumArrangementPasses; pass++)
+        {
+            var provisionalBounds =
+                LayoutParameters.ResolveProvisionalBounds(
+                    availableBounds,
+                    previousBounds);
 
-        slot.Bounds = provisionalBounds;
-        slot.ContentBounds =
-            provisionalBounds.ToContentBounds();
+            slot.Bounds = provisionalBounds;
+            slot.ContentBounds =
+                provisionalBounds.ToContentBounds();
 
-        GuiBounds? descendantsBounds =
-            slot.ArrangeChildren(slot.ContentBounds.Value);
+            GuiBounds? descendantsBounds =
+                slot.ArrangeChildren(slot.ContentBounds.Value);
 
-        return ResolveFinalBounds(
-            availableBounds,
-            descendantsBounds);
+            var finalBounds =
+                ResolveFinalBounds(
+                    availableBounds,
+                    descendantsBounds);
+
+            if (finalBounds == provisionalBounds)
+            {
+                return finalBounds;
+            }
+
+            previousBounds = finalBounds;
+        }
+
+        throw new InvalidOperationException(
+            $"Arrangement did not stabilize for {GetType().Name} after {MaximumArrangementPasses} passes.");
     }
 
     /// <summary>
