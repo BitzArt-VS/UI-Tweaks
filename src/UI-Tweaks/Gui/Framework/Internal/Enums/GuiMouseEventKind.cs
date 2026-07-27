@@ -8,4 +8,5 @@ internal enum GuiMouseEventKind
     Move,
     Enter,
     Leave,
+    Wheel,
 }

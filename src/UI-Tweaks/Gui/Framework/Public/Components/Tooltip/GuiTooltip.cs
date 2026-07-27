@@ -9,7 +9,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// anywhere over this component's allocated bounds.
 /// <para>
 /// <b>Layout-transparent</b>: <see cref="GuiTooltip"/> implements only <see cref="IGuiNode"/>
-/// (not <see cref="IGuiComponent"/>), so the layout pass treats it as invisible. Its
+/// (not <see cref="IGuiComponent"/>), so it is transparent to arrangement. Its
 /// <see cref="Content"/> children flow at the wrapper's declaration site as if they had
 /// been declared directly there. The wrapper's bounds — used for hover hit-testing — are
 /// derived from the union of those children's allocated rectangles along the parent's
@@ -30,10 +30,10 @@ namespace BitzArt.UI.Tweaks.Gui;
 public sealed class GuiTooltip : GuiNode
 {
     /// <summary>The wrapped content — laid out at the wrapper's declaration site.</summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <summary>The render fragment shown inside the floating tooltip surface.</summary>
-    public GuiRenderFragment? TooltipContent { get; set; }
+    public GuiTreeFragment? TooltipContent { get; set; }
 
     /// <summary>
     /// Optional configuration applied to the automatic <see cref="GuiTooltipBackground"/>
@@ -44,7 +44,7 @@ public sealed class GuiTooltip : GuiNode
 
     private TooltipHost? _host;
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Inline wrapped content. Because GuiTooltip is layout-transparent (IGuiNode only),
         // the renderer splices these slots into the parent's flow rather than allocating
@@ -59,7 +59,7 @@ public sealed class GuiTooltip : GuiNode
         _host = GetCascadingValue<TooltipHost>();
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         // Register the trigger region with the host. The host's region table is reset at
         // the start of every paint walk, so a single AddRegion call here is enough — no

@@ -2,7 +2,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal readonly struct InteractiveRegion
 {
-    public readonly GuiComponentBounds Bounds;
+    public readonly GuiBounds Bounds;
+    public readonly GuiBounds? ClipBounds;
     public readonly object Token;
 
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseDown;
@@ -14,7 +15,7 @@ internal readonly struct InteractiveRegion
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseWheel;
 
     public InteractiveRegion(
-        GuiComponentBounds bounds,
+        GuiBounds bounds,
         object token,
         GuiCallback<GuiMouseEventArgs> onMouseDown,
         GuiCallback<GuiMouseEventArgs> onMouseUp,
@@ -22,9 +23,11 @@ internal readonly struct InteractiveRegion
         GuiCallback<GuiMouseEventArgs> onMouseMove,
         GuiCallback<GuiMouseEventArgs> onMouseEnter,
         GuiCallback<GuiMouseEventArgs> onMouseLeave,
-        GuiCallback<GuiMouseEventArgs> onMouseWheel = default)
+        GuiCallback<GuiMouseEventArgs> onMouseWheel = default,
+        GuiBounds? clipBounds = null)
     {
         Bounds = bounds;
+        ClipBounds = clipBounds;
         Token = token;
         OnMouseDown = onMouseDown;
         OnMouseUp = onMouseUp;
@@ -39,12 +42,46 @@ internal readonly struct InteractiveRegion
         OnMouseDown.HasHandler || OnMouseUp.HasHandler || OnMouseClick.HasHandler
         || OnMouseMove.HasHandler || OnMouseEnter.HasHandler || OnMouseLeave.HasHandler;
 
-    public bool Contains(double x, double y) =>
-        x >= Bounds.X && x < Bounds.X + Bounds.Width &&
-        y >= Bounds.Y && y < Bounds.Y + Bounds.Height;
+    public bool Contains(double x, double y)
+    {
+        var point =
+            new GuiPoint(
+                x,
+                y,
+                IsAbsolute: true);
 
-    public InteractiveRegion Translated(double dx, double dy) => new(
-        new GuiComponentBounds(Bounds.X + dx, Bounds.Y + dy, Bounds.Width, Bounds.Height),
-        Token, OnMouseDown, OnMouseUp, OnMouseClick, OnMouseMove, OnMouseEnter, OnMouseLeave,
-        OnMouseWheel);
+        return Bounds.Contains(point)
+            && (ClipBounds is not GuiBounds clipBounds
+                || clipBounds.Contains(point));
+    }
+
+    public InteractiveRegion Translated(double dx, double dy)
+    {
+        return new(
+            Translate(Bounds, dx, dy),
+            Token,
+            OnMouseDown,
+            OnMouseUp,
+            OnMouseClick,
+            OnMouseMove,
+            OnMouseEnter,
+            OnMouseLeave,
+            OnMouseWheel,
+            ClipBounds is GuiBounds clipBounds
+                ? Translate(clipBounds, dx, dy)
+                : null);
+    }
+
+    private static GuiBounds Translate(GuiBounds bounds, double dx, double dy)
+    {
+        var position = bounds.Position!.Value;
+
+        return bounds with
+        {
+            Position = new GuiPoint(
+                position.X + dx,
+                position.Y + dy,
+                IsAbsolute: true),
+        };
+    }
 }

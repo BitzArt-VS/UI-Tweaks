@@ -7,9 +7,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </summary>
 public sealed class GuiMouseTarget : GuiNode
 {
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         Content?.Invoke(builder);
     }

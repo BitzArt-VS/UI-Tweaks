@@ -22,31 +22,58 @@ internal sealed class ConfigListRow : GuiComponent
     private bool _isHovered;
     private bool _isPressed;
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        var textSize = GuiFontStyle.MediumBold.Measure(Text);
-        if (string.IsNullOrEmpty(Description))
+        GuiSize textSize = GuiFontStyle.MediumBold.Measure(Text);
+        double measuredWidth =
+            (textSize.Width ?? 0) + TextLeftPadding * 2;
+        double measuredHeight =
+            textSize.Height ?? 0;
+
+        if (!string.IsNullOrEmpty(Description))
         {
-            return new(textSize.Width + TextLeftPadding * 2, textSize.Height);
+            GuiSize descriptionSize =
+                GuiFontStyle.Small.Measure(Description);
+
+            measuredWidth =
+                Math.Max(
+                    textSize.Width ?? 0,
+                    descriptionSize.Width ?? 0)
+                + TextLeftPadding * 2;
+
+            measuredHeight =
+                (textSize.Height ?? 0)
+                + DescriptionTopGap
+                + (descriptionSize.Height ?? 0);
         }
 
-        var descriptionSize = GuiFontStyle.Small.Measure(Description);
-        return new(
-            Math.Max(textSize.Width, descriptionSize.Width) + TextLeftPadding * 2,
-            textSize.Height + DescriptionTopGap + descriptionSize.Height);
+        var measuredSize = new GuiSize(
+            Math.Max(0, measuredWidth),
+            Math.Max(0, measuredHeight));
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(null, measuredSize));
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         if (_isHovered)
         {
-            context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            context.Rectangle(position.X, position.Y, width, height);
             context.FillSolid(HoverBackground);
         }
 
         if (_isPressed)
         {
-            context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            context.Rectangle(position.X, position.Y, width, height);
             context.FillSolid(PressedBackground);
         }
 
@@ -54,23 +81,28 @@ internal sealed class ConfigListRow : GuiComponent
         {
             Color = _isHovered ? ActiveTextColor : GuiVanillaStyle.ButtonTextColor
         };
-        var textSize = font.Measure(Text);
+        GuiSize textSize = font.Measure(Text);
+        double textHeight = textSize.Height ?? 0;
+
         if (string.IsNullOrEmpty(Description))
         {
-            context.DrawText(Text, font, bounds.X + TextLeftPadding, bounds.Y + (bounds.Height - textSize.Height) / 2.0);
+            double textY = position.Y + (height - textHeight) / 2.0;
+            context.DrawText(Text, font, position.X + TextLeftPadding, textY);
         }
         else
         {
             var descriptionFont = GuiFontStyle.Small with { Color = DescriptionTextColor };
-            var descriptionSize = descriptionFont.Measure(Description);
-            double blockHeight = textSize.Height + DescriptionTopGap + descriptionSize.Height;
-            double titleY = bounds.Y + (bounds.Height - blockHeight) / 2.0;
+            GuiSize descriptionSize = descriptionFont.Measure(Description);
+            double descriptionHeight = descriptionSize.Height ?? 0;
+            double blockHeight = textHeight + DescriptionTopGap + descriptionHeight;
+            double titleY = position.Y + (height - blockHeight) / 2.0;
+            double descriptionY = titleY + textHeight + DescriptionTopGap;
 
-            context.DrawText(Text, font, bounds.X + TextLeftPadding, titleY);
-            context.DrawText(Description, descriptionFont, bounds.X + TextLeftPadding, titleY + textSize.Height + DescriptionTopGap);
+            context.DrawText(Text, font, position.X + TextLeftPadding, titleY);
+            context.DrawText(Description, descriptionFont, position.X + TextLeftPadding, descriptionY);
         }
 
-        context.Rectangle(bounds.X, bounds.Bottom - SeparatorHeight, bounds.Width, SeparatorHeight);
+        context.Rectangle(position.X, position.Y + height - SeparatorHeight, width, SeparatorHeight);
         context.FillSolid(SeparatorColor);
     }
 
@@ -88,13 +120,13 @@ internal sealed class ConfigListRow : GuiComponent
     {
         _isPressed = true;
         ClientApi?.Gui.PlaySound("menubutton_down");
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs args)
     {
         _isPressed = false;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs args)
@@ -106,12 +138,12 @@ internal sealed class ConfigListRow : GuiComponent
     {
         _isHovered = true;
         ClientApi?.Gui.PlaySound("menubutton");
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs args)
     {
         _isHovered = false;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 }

@@ -43,8 +43,8 @@ public abstract class GuiInputBase : GuiComponent
 
     /// <summary>The most recently arranged bounds, captured at the start of <see cref="Render"/>
     /// — exposed so subclasses don't need to thread bounds through their own state when
-    /// reacting to mouse events that fire after layout.</summary>
-    protected GuiComponentBounds LastBounds { get; private set; }
+    /// reacting to mouse events that fire after arrangement.</summary>
+    protected GuiBounds LastBounds { get; private set; }
 
     /// <inheritdoc/>
     public override void OnParametersSet()
@@ -55,7 +55,7 @@ public abstract class GuiInputBase : GuiComponent
     }
 
     /// <inheritdoc/>
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
         LastBounds = bounds;
     }
@@ -88,15 +88,24 @@ public abstract class GuiInputBase : GuiComponent
         IsPressed = true;
         FocusManager?.RequestFocus(this);
         OnInputMouseDown(args);
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs args)
     {
         bool wasPressed = IsPressed;
         IsPressed = false;
-        IsHovered = args.Position.X >= LastBounds.X && args.Position.X < LastBounds.Right
-                 && args.Position.Y >= LastBounds.Y && args.Position.Y < LastBounds.Bottom;
+
+        var position = LastBounds.Position!.Value;
+        var size = LastBounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double right = position.X + width;
+        double bottom = position.Y + height;
+
+        IsHovered = args.Position.X >= position.X && args.Position.X < right
+                 && args.Position.Y >= position.Y && args.Position.Y < bottom;
         if (wasPressed)
         {
             OnInputMouseUp(args);
@@ -104,7 +113,7 @@ public abstract class GuiInputBase : GuiComponent
 
         if (wasPressed || IsHovered)
         {
-            RequestPaint();
+            Slot!.RequestRender();
         }
     }
 
@@ -136,22 +145,22 @@ public abstract class GuiInputBase : GuiComponent
         }
 
         OnInputMouseMove(args);
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseEnter(GuiMouseEventArgs args)
     {
         IsHovered = true;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs args)
     {
         IsHovered = false;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
-    private void HandleFocusChanged(bool focused) => RequestPaint();
+    private void HandleFocusChanged(bool focused) => Slot!.RequestRender();
 
     /// <summary>Hook invoked on left-button mouse-down inside the input. Default: no-op.</summary>
     protected virtual void OnInputMouseDown(GuiMouseEventArgs e) { }

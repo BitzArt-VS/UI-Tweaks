@@ -1,0 +1,6 @@
+interface:
+  display_name: "Iterate"
+  short_description: "Review and approve every task iteration"
+  default_prompt: "Use $iterate to complete this task one reviewed and approved iteration at a time."
+policy:
+  allow_implicit_invocation: false

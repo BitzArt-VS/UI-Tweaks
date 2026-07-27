@@ -9,13 +9,13 @@ namespace BitzArt.UI.Tweaks;
 /// </summary>
 internal sealed class ModConfigPageNavigator
 {
-    private sealed record PageEntry(string Name, GuiRenderFragment Content);
+    private sealed record PageEntry(string Name, GuiTreeFragment Content);
 
     private readonly List<PageEntry> _stack = [];
     private readonly Action _stateChanged;
     private string[]? _cachedPreviousNames;
 
-    public ModConfigPageNavigator(Action stateChanged, string initialName, GuiRenderFragment initialContent)
+    public ModConfigPageNavigator(Action stateChanged, string initialName, GuiTreeFragment initialContent)
     {
         _stateChanged = stateChanged;
         _stack.Add(new(initialName, initialContent));
@@ -24,11 +24,11 @@ internal sealed class ModConfigPageNavigator
     public string CurrentPageName => _stack[^1].Name;
     public string RootPageName => _stack[0].Name;
     public string[]? BreadcrumbPreviousItems => _cachedPreviousNames;
-    public GuiRenderFragment CurrentContent => _stack[^1].Content;
+    public GuiTreeFragment CurrentContent => _stack[^1].Content;
 
     public bool IsAtRoot(string name) => _stack.Count == 1 && _stack[0].Name == name;
 
-    public void NavigateToRoot(string name, GuiRenderFragment content)
+    public void NavigateToRoot(string name, GuiTreeFragment content)
     {
         _stack.Clear();
         _stack.Add(new(name, content));
@@ -36,7 +36,7 @@ internal sealed class ModConfigPageNavigator
         _stateChanged();
     }
 
-    public void Push(string name, GuiRenderFragment content)
+    public void Push(string name, GuiTreeFragment content)
     {
         _stack.Add(new(name, content));
         RebuildPreviousNamesCache();

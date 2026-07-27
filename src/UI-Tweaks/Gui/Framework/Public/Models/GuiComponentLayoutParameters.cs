@@ -1,13 +1,19 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// Carries the layout and spacing configuration for a single slot in the render tree.
-/// Created by <see cref="GuiRenderTreeBuilder"/> when a component is declared, then mutated
-/// in place through the fluent <see cref="IGuiComponentBuilder"/> API; consumed by the layout pass.
+/// Carries placement, sizing, and spacing configuration for a <see cref="GuiComponent"/>.
+/// The component owns this mutable state; tree declarations configure it through
+/// <see cref="IGuiTreeBuilder"/>, and arrangement consumes it.
 /// </summary>
 public sealed class GuiComponentLayoutParameters
 {
-    public GuiComponentPositioning Positioning { get; set; } = GuiComponentPositioning.Relative;
+    /// <summary>
+    /// Optional component placement. A relative point offsets the aligned position and
+    /// participates in sibling flow. An absolute point is the resolved border position and
+    /// does not participate in sibling flow. A <see langword="null"/> value preserves the
+    /// aligned position and participates in flow.
+    /// </summary>
+    public GuiPoint? Position { get; set; }
 
     /// <summary>Space outside the component's border, separating it from siblings and the parent edge.</summary>
     public GuiThickness Margin { get; set; } = GuiThickness.Zero;
@@ -16,49 +22,242 @@ public sealed class GuiComponentLayoutParameters
     public GuiThickness Padding { get; set; } = GuiThickness.Zero;
 
     /// <summary>
-    /// Explicit width override. When <see cref="GuiSize.Auto"/> the size is determined by <see cref="WidthMode"/>.
-    /// Takes priority over <see cref="WidthMode"/> when set.
+    /// Optional minimum width constraint.
     /// </summary>
-    public GuiSize Width { get; set; } = GuiSize.Auto;
+    public GuiLengthRule? MinimumWidth { get; set; }
 
     /// <summary>
-    /// Explicit height override. When <see cref="GuiSize.Auto"/> the size is determined by <see cref="HeightMode"/>.
-    /// Takes priority over <see cref="HeightMode"/> when set.
+    /// Explicit width, or <see langword="null"/> to fit descendant margin bounds plus
+    /// horizontal <see cref="Padding"/>.
     /// </summary>
-    public GuiSize Height { get; set; } = GuiSize.Auto;
+    public GuiLengthRule? Width { get; set; }
 
     /// <summary>
-    /// How to resolve width when <see cref="Width"/> is <see cref="GuiSize.Auto"/>.
-    /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> shrinks to children's combined width plus padding.
+    /// Optional maximum width constraint.
     /// </summary>
-    public GuiSizeMode WidthMode { get; set; } = GuiSizeMode.FitContent;
+    public GuiLengthRule? MaximumWidth { get; set; }
 
     /// <summary>
-    /// How to resolve height when <see cref="Height"/> is <see cref="GuiSize.Auto"/>.
-    /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> shrinks to children's combined height plus padding.
+    /// Optional minimum height constraint.
     /// </summary>
-    public GuiSizeMode HeightMode { get; set; } = GuiSizeMode.FitContent;
-
-    /// <summary>Direction in which this component stacks its children.</summary>
-    public GuiDirection Direction { get; set; } = GuiDirection.Vertical;
+    public GuiLengthRule? MinimumHeight { get; set; }
 
     /// <summary>
-    /// Horizontal alignment of this slot within the available cross-axis space. Applies on
-    /// the cross axis of relative slots whose parent stacks vertically, and on both axes of
-    /// absolute slots. Has no effect when <see cref="WidthMode"/> is <see cref="GuiSizeMode.Fill"/>
-    /// (no slack to align against). See <see cref="GuiHorizontalAlignment"/>.
+    /// Explicit height, or <see langword="null"/> to fit descendant margin bounds plus
+    /// vertical <see cref="Padding"/>.
     /// </summary>
-    public GuiHorizontalAlignment HorizontalAlignment { get; set; } = GuiHorizontalAlignment.Left;
+    public GuiLengthRule? Height { get; set; }
 
     /// <summary>
-    /// Vertical alignment of this slot within the available cross-axis space. Applies on
-    /// the cross axis of relative slots whose parent stacks horizontally, and on both axes
-    /// of absolute slots. Has no effect when <see cref="HeightMode"/> is <see cref="GuiSizeMode.Fill"/>
-    /// (no slack to align against). See <see cref="GuiVerticalAlignment"/>.
+    /// Optional maximum height constraint.
     /// </summary>
-    public GuiVerticalAlignment VerticalAlignment { get; set; } = GuiVerticalAlignment.Top;
+    public GuiLengthRule? MaximumHeight { get; set; }
+
+    /// <summary>
+    /// Horizontal alignment within the available width. Has no effect when
+    /// <see cref="Width"/> consumes all available width.
+    /// </summary>
+    public GuiAlignment HorizontalAlignment { get; set; } = GuiAlignment.Start;
+
+    /// <summary>
+    /// Vertical alignment within the available height. Has no effect when
+    /// <see cref="Height"/> consumes all available height.
+    /// </summary>
+    public GuiAlignment VerticalAlignment { get; set; } = GuiAlignment.Start;
+
+    /// <summary>
+    /// Resolves provisional component bounds used to arrange descendants.
+    /// </summary>
+    public GuiBounds ResolveBounds(
+        GuiBounds availableBounds)
+        => ResolveBounds(
+            availableBounds,
+            candidateSize: null,
+            useAvailableSize: true);
+
+    internal GuiBounds ResolveProvisionalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? previousBounds)
+        => previousBounds is null
+            ? ResolveBounds(availableBounds)
+            : ResolveBounds(
+                availableBounds,
+                previousBounds.Value.Size,
+                useAvailableSize: false);
+
+    /// <summary>
+    /// Resolves final component bounds from arranged descendant margin bounds.
+    /// </summary>
+    /// <param name="innerContentBounds">
+    /// Arranged descendant margin bounds, or <see langword="null"/> for empty content.
+    /// </param>
+    public GuiBounds ResolveBounds(
+        GuiBounds availableBounds,
+        GuiBounds? innerContentBounds)
+        => ResolveBounds(
+            availableBounds,
+            ResolveContentExtent(innerContentBounds) + Padding,
+            useAvailableSize: false);
+
+    private static GuiSize ResolveContentExtent(
+        GuiBounds? contentBounds)
+    {
+        var contentSize =
+            contentBounds?.Size
+            ?? new GuiSize(0, 0);
+
+        if (contentBounds?.Position is not GuiPoint position
+            || position.IsAbsolute)
+        {
+            return contentSize;
+        }
+
+        return new GuiSize(
+            position.X + contentSize.Width,
+            position.Y + contentSize.Height);
+    }
+
+    private GuiBounds ResolveBounds(
+        GuiBounds availableBounds,
+        GuiSize? candidateSize,
+        bool useAvailableSize)
+    {
+        GuiBounds adjustedAvailableBounds =
+            availableBounds.Consume(Margin);
+
+        GuiSize? availableSize =
+            adjustedAvailableBounds.Size;
+
+        if (useAvailableSize)
+        {
+            candidateSize = availableSize;
+        }
+
+        var resolvedSize = new GuiSize(
+            ResolveLength(
+                availableSize?.Width,
+                candidateSize?.Width,
+                Width,
+                MinimumWidth,
+                MaximumWidth),
+            ResolveLength(
+                availableSize?.Height,
+                candidateSize?.Height,
+                Height,
+                MinimumHeight,
+                MaximumHeight));
+
+        return new GuiBounds(
+            ResolvePosition(
+                adjustedAvailableBounds,
+                resolvedSize),
+            resolvedSize,
+            Margin,
+            Padding);
+    }
+
+    private GuiPoint? ResolvePosition(
+        GuiBounds availableBounds,
+        GuiSize resolvedSize)
+    {
+        var alignedPosition =
+            ResolveAlignedPosition(
+                availableBounds,
+                resolvedSize);
+
+        if (Position is null)
+        {
+            return alignedPosition;
+        }
+
+        if (Position.Value.IsAbsolute)
+        {
+            return Position;
+        }
+
+        if (alignedPosition is null)
+        {
+            return null;
+        }
+
+        return alignedPosition.Value + Position.Value;
+    }
+
+    private GuiPoint? ResolveAlignedPosition(
+        GuiBounds availableBounds,
+        GuiSize resolvedSize)
+    {
+        if (availableBounds.Position is null)
+        {
+            return null;
+        }
+
+        var horizontalOffset = ResolveAlignmentOffset(
+            availableBounds.Size?.Width,
+            resolvedSize.Width,
+            HorizontalAlignment);
+
+        var verticalOffset = ResolveAlignmentOffset(
+            availableBounds.Size?.Height,
+            resolvedSize.Height,
+            VerticalAlignment);
+
+        if (horizontalOffset is null || verticalOffset is null)
+        {
+            return null;
+        }
+
+        return availableBounds.Position.Value
+            + new GuiPoint(
+                horizontalOffset.Value,
+                verticalOffset.Value);
+    }
+
+    private static double? ResolveAlignmentOffset(
+        double? availableLength,
+        double? resolvedLength,
+        GuiAlignment alignment)
+    {
+        if (alignment is not GuiAlignment.Start
+            and not GuiAlignment.Center
+            and not GuiAlignment.End)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(alignment),
+                alignment,
+                "Unknown GUI alignment.");
+        }
+
+        if (alignment == GuiAlignment.Start)
+        {
+            return 0;
+        }
+
+        if (availableLength is null || resolvedLength is null)
+        {
+            return null;
+        }
+
+        var remainingLength =
+            availableLength.Value - resolvedLength.Value;
+
+        return alignment == GuiAlignment.Center
+            ? remainingLength / 2
+            : remainingLength;
+    }
+
+    private static double? ResolveLength(
+        double? availableLength,
+        double? candidateLength,
+        GuiLengthRule? explicitRule,
+        GuiLengthRule? minimumRule,
+        GuiLengthRule? maximumRule)
+        => GuiLengthRule.Resolve(
+            availableLength,
+            candidateLength,
+            explicitRule,
+            minimumRule,
+            maximumRule);
 
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on
@@ -68,15 +267,16 @@ public sealed class GuiComponentLayoutParameters
     /// </summary>
     internal void Reset()
     {
-        Positioning = GuiComponentPositioning.Relative;
+        Position = null;
         Margin = GuiThickness.Zero;
         Padding = GuiThickness.Zero;
-        Width = GuiSize.Auto;
-        Height = GuiSize.Auto;
-        WidthMode = GuiSizeMode.FitContent;
-        HeightMode = GuiSizeMode.FitContent;
-        Direction = GuiDirection.Vertical;
-        HorizontalAlignment = GuiHorizontalAlignment.Left;
-        VerticalAlignment = GuiVerticalAlignment.Top;
+        MinimumWidth = null;
+        Width = null;
+        MaximumWidth = null;
+        MinimumHeight = null;
+        Height = null;
+        MaximumHeight = null;
+        HorizontalAlignment = GuiAlignment.Start;
+        VerticalAlignment = GuiAlignment.Start;
     }
 }

@@ -5,25 +5,31 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal class FloatingLayerRenderer : GuiSurfaceRenderer
 {
-    protected GuiMeasuredSize _measuredSize;
+    protected GuiSize _arrangedSize;
 
     private object? _activeToken;
     private FloatingLayerPlacement _activePlacement;
     private bool _refreshedThisFrame;
 
-    protected GuiRenderFragment? ActiveFragment { get; set; }
+    protected GuiTreeFragment? ActiveFragment { get; set; }
 
     internal bool IsActive => ActiveFragment is not null;
 
+    private double ArrangedWidth =>
+        _arrangedSize.Width ?? 0;
+
+    private double ArrangedHeight =>
+        _arrangedSize.Height ?? 0;
+
     public FloatingLayerRenderer(ICoreClientAPI clientApi) : base(clientApi) { }
 
-    public void Show(object token, GuiRenderFragment content, in FloatingLayerPlacement placement)
+    public void Show(object token, GuiTreeFragment content, in FloatingLayerPlacement placement)
     {
         _activeToken = token;
         ActiveFragment = content;
         _activePlacement = placement;
         _refreshedThisFrame = true;
-        RequestArrange();
+        RequestReconcile();
     }
 
     public void Hide(object token)
@@ -56,21 +62,16 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         // even an unchanged layer must re-walk so its regions get re-registered.
         if (ActiveFragment is not null)
         {
-            RequestArrange();
+            RequestReconcile();
         }
         Update();
     }
 
     public void Render()
     {
-        // RewalkOnDialogWalk layers already updated in RunWalk; others (which are not
-        // tied to the dialog's walk cadence — e.g. tooltips driven by mouse events)
-        // reconcile here so changes between walks still take effect.
-        if (!_activePlacement.RewalkOnDialogWalk)
-        {
-            Update();
-        }
-
+        // RunWalk handles dialog-driven arrangement, while this also drains invalidations
+        // requested independently by nodes inside the floating layer.
+        Update();
         Blit();
     }
 
@@ -99,34 +100,68 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        ReconcileAndMeasure();
-
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        bool arrange = _arrangeRequested || scale != _currentScale;
+        if (_reconcileRequested)
         {
+            TreeBuilder.Run(BuildRootFragment);
+        }
+
+        if (arrange)
+        {
+            _arrangedSize = ResolveLogicalSize();
+        }
+
+        if (ArrangedWidth <= 0 || ArrangedHeight <= 0)
+        {
+            _currentScale = scale;
+            ClearInvalidationRequests(arrange);
             return;
         }
 
-        ReallocateSurfaceIfNeeded(scale);
-        DrawToSurface(scale);
+        if (arrange)
+        {
+            ReallocateSurfaceIfNeeded(scale);
+        }
+        DrawToSurface(scale, arrange);
     }
 
-    private void ReconcileAndMeasure()
+    private void BuildRootFragment(IGuiTreeBuilder builder)
     {
-        Builder.Run(ActiveFragment!);
-        _measuredSize = ResolveLogicalSize();
+        GuiLengthRule? width = null;
+        GuiLengthRule? height = null;
+
+        if (_activePlacement.FixedLogicalSize is GuiSize fixedSize)
+        {
+            width = fixedSize.Width is double fixedWidth
+                ? fixedWidth
+                : null;
+            height = fixedSize.Height is double fixedHeight
+                ? fixedHeight
+                : null;
+        }
+
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = ActiveFragment)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = width;
+                layout.Height = height;
+            });
     }
 
     private void ReallocateSurfaceIfNeeded(float scale)
     {
-        int physW = (int)Math.Ceiling(_measuredSize.Width * scale);
-        int physH = (int)Math.Ceiling(_measuredSize.Height * scale);
+        int physW = (int)Math.Ceiling(ArrangedWidth * scale);
+        int physH = (int)Math.Ceiling(ArrangedHeight * scale);
         EnsureSurfaceSize(physW, physH);
     }
 
-    private void DrawToSurface(float scale)
+    private void DrawToSurface(float scale, bool arrange)
     {
-        var bounds = new GuiComponentBounds(0, 0, _measuredSize.Width, _measuredSize.Height);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, scale, arrange: true);
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(ArrangedWidth, ArrangedHeight));
+        DrawSurfaceContents(bounds, scale, arrange);
     }
 
     private void Blit()
@@ -136,7 +171,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        if (ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
             return;
         }
@@ -147,7 +182,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     public override bool ContainsScreenPoint(int x, int y)
     {
-        if (!IsActive || _measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        if (!IsActive || ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
             return false;
         }
@@ -178,21 +213,37 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         _activePlacement.InputHost.AddKeyboardRegion(region);
     }
 
-    protected virtual GuiMeasuredSize ResolveLogicalSize()
+    protected virtual GuiSize ResolveLogicalSize()
     {
-        if (_activePlacement.FixedLogicalSize is GuiMeasuredSize fixedSize)
+        if (_activePlacement.FixedLogicalSize is GuiSize fixedSize)
         {
             return fixedSize;
         }
 
-        double maxWidth = _activePlacement.MaxLogicalWidth > 0
-            ? _activePlacement.MaxLogicalWidth
-            : double.PositiveInfinity;
-        double maxHeight = _activePlacement.MaxLogicalHeight > 0
-            ? _activePlacement.MaxLogicalHeight
-            : double.PositiveInfinity;
+        double? maximumWidth =
+            _activePlacement.MaxLogicalWidth > 0
+                ? _activePlacement.MaxLogicalWidth
+                : null;
+        double? maximumHeight =
+            _activePlacement.MaxLogicalHeight > 0
+                ? _activePlacement.MaxLogicalHeight
+                : null;
 
-        return Builder.MeasureChildren(maxWidth, maxHeight, GuiDirection.Vertical);
+        if (TreeBuilder.NodeSlots.Count == 0 || TreeBuilder.NodeSlots[0].Node is not IGuiComponent rootComponent)
+        {
+            return new GuiSize(0, 0);
+        }
+
+        GuiBounds arrangedBounds =
+            rootComponent.Arrange(
+                new GuiBounds(
+                    new GuiPoint(0, 0, IsAbsolute: true),
+                    new GuiSize(
+                        maximumWidth,
+                        maximumHeight)));
+
+        return arrangedBounds.Size
+            ?? new GuiSize(0, 0);
     }
 
     protected virtual (double posX, double posY) GetScreenPosition(double physW, double physH, float scale) =>

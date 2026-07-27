@@ -6,7 +6,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// Mouse event payload delivered to interactive component handlers.
 /// <para>
 /// <see cref="Position"/> is in <b>logical (unscaled) pixels</b>, relative to the dialog's
-/// render surface — the same coordinate space the layout pass operates in.
+/// render surface — the same coordinate space used for arrangement.
 /// </para>
 /// <para>
 /// <see cref="AbsolutePosition"/> is in <b>logical (unscaled) pixels</b> from the top-left

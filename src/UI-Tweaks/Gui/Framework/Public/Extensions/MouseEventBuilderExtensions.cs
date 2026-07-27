@@ -2,7 +2,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Slot-level mouse-event registration extensions. Attach a handler to any component slot
-/// during <c>BuildRenderTree</c>. Handlers receive a <see cref="GuiMouseEventArgs"/> in
+/// during <c>BuildComponentTree</c>. Handlers receive a <see cref="GuiMouseEventArgs"/> in
 /// dialog-local logical coordinates and are wired to the slot's allocated bounds — there is
 /// no need to scan child trees or forward events manually.
 /// <para>
@@ -28,6 +28,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 ///   slot's bounds. Basis for hover overlays and tooltips.</item>
 ///   <item><c>OnMouseLeave</c> fires once when the cursor leaves the slot's bounds (or the
 ///   dialog entirely) after a previous <c>OnMouseEnter</c>. Always paired with Enter.</item>
+///   <item><c>OnMouseWheel</c> fires on the last matching wheel-enabled slot under the
+///   pointer.</item>
 /// </list>
 /// </para>
 /// </summary>
@@ -114,6 +116,20 @@ public static class MouseEventBuilderExtensions
         where TBuilder : IGuiSlotBuilder
     {
         builder.AddMouseHandler(GuiMouseEventKind.Leave, handler);
+        return builder;
+    }
+
+    public static TBuilder OnMouseWheel<TBuilder>(this TBuilder builder, Action<GuiMouseEventArgs> handler)
+        where TBuilder : IGuiSlotBuilder
+    {
+        builder.AddMouseHandler(GuiMouseEventKind.Wheel, handler);
+        return builder;
+    }
+
+    public static TBuilder OnMouseWheel<TBuilder>(this TBuilder builder, Func<GuiMouseEventArgs, Task> handler)
+        where TBuilder : IGuiSlotBuilder
+    {
+        builder.AddMouseHandler(GuiMouseEventKind.Wheel, handler);
         return builder;
     }
 }

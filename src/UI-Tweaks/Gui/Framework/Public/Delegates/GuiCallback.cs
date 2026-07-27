@@ -91,7 +91,8 @@ public readonly struct GuiCallback
         if (_isAsync)
         {
             return ((Func<Task>)_handler).Invoke();
-        } ((Action)_handler).Invoke();
+        }
+        ((Action)_handler).Invoke();
         return Task.CompletedTask;
     }
 }
@@ -164,7 +165,8 @@ public readonly struct GuiCallback<T>
         if (_isAsync)
         {
             return ((Func<T, Task>)_handler).Invoke(arg);
-        } ((Action<T>)_handler).Invoke(arg);
+        }
+        ((Action<T>)_handler).Invoke(arg);
         return Task.CompletedTask;
     }
 }

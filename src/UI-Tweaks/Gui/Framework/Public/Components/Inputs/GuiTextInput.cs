@@ -78,6 +78,8 @@ public sealed class GuiTextInput : GuiInputBase
     private bool _spinnerDownHovered;
     private bool _spinnerUpPressed;
     private bool _spinnerDownPressed;
+    private GuiRectangle? _spinnerUpTarget;
+    private GuiRectangle? _spinnerDownTarget;
     private float _blinkAccumulator;
     private bool _caretBlinkOn = true;
 
@@ -99,7 +101,7 @@ public sealed class GuiTextInput : GuiInputBase
         builder.ConfigureLayout(layout =>
         {
             layout.Height = 30;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 
@@ -129,29 +131,97 @@ public sealed class GuiTextInput : GuiInputBase
         Text = text;
         _caret = Math.Min(_caret, Text.Length);
         OnTextChanged.Invoke(Text);
-        RequestPaint();
+        Slot!.RequestRender();
         return true;
     }
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiBounds Arrange(GuiBounds availableBounds)
     {
-        // The input doesn't shrink to its text — it's an interactive box. Returning a
-        // small minimum just keeps fit-content parents from collapsing to zero.
-        return new GuiMeasuredSize(80, LayoutParameters.Height.FixedOrDefault(30));
+        if (_spinnerUpTarget is not null
+            && _spinnerDownTarget is not null)
+        {
+            var provisionalBounds =
+                LayoutParameters.ResolveBounds(availableBounds);
+
+            var position =
+                provisionalBounds.Position
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved position.");
+
+            var size =
+                provisionalBounds.Size
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved size.");
+
+            var width =
+                size.Width
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved width.");
+
+            var height =
+                size.Height
+                ?? throw new InvalidOperationException(
+                    "Text-input spinner targets require a resolved height.");
+
+            var buttonHeight = height / 2;
+            var targetX =
+                position.X + width - SpinnerGutterWidth;
+
+            _spinnerUpTarget.LayoutParameters.Position =
+                new GuiPoint(
+                    targetX,
+                    position.Y,
+                    IsAbsolute: true);
+
+            _spinnerUpTarget.LayoutParameters.Height =
+                buttonHeight;
+
+            _spinnerDownTarget.LayoutParameters.Position =
+                new GuiPoint(
+                    targetX,
+                    position.Y + buttonHeight,
+                    IsAbsolute: true);
+
+            _spinnerDownTarget.LayoutParameters.Height =
+                buttonHeight;
+        }
+
+        return base.Arrange(availableBounds);
     }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
+    {
+        // The input doesn't shrink to its text or spinner descendants — it owns its
+        // interactive box. The fallback keeps fit-content layouts from collapsing it.
+        double measuredHeight =
+            Math.Max(
+                0,
+                LayoutParameters.Height?.Resolve(null) ?? 30);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(80, measuredHeight)));
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Base declares the full-fill mouse-capture container at key 0. The spinner
         // buttons are added afterwards as separately-keyed absolute-positioned slots,
         // so they are appended to the interactive-region table after the base container
         // and win the topmost-wins reverse hit-test for any pixel inside the gutter.
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
         if (!SpinnerButtonsVisible)
         {
+            _spinnerUpTarget = null;
+            _spinnerDownTarget = null;
             return;
         }
 
@@ -170,27 +240,23 @@ public sealed class GuiTextInput : GuiInputBase
             .OnMouseLeave(_ => SetSpinnerHovered(up: false, hovered: false));
     }
 
-    private void BuildSpinnerUpTargetContent(IGuiRenderTreeBuilder builder)
+    private void BuildSpinnerUpTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0,
-            width: SpinnerGutterWidth,
-            height: SpinnerButtonHeight,
-            positioning: GuiComponentPositioning.Absolute,
-            horizontalAlignment: GuiHorizontalAlignment.Right,
-            verticalAlignment: GuiVerticalAlignment.Top);
+        builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _spinnerUpTarget = rectangle)
+            .ConfigureLayout(layout =>
+                layout.Width = SpinnerGutterWidth);
     }
 
-    private void BuildSpinnerDownTargetContent(IGuiRenderTreeBuilder builder)
+    private void BuildSpinnerDownTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0,
-            width: SpinnerGutterWidth,
-            height: SpinnerButtonHeight,
-            positioning: GuiComponentPositioning.Absolute,
-            horizontalAlignment: GuiHorizontalAlignment.Right,
-            verticalAlignment: GuiVerticalAlignment.Bottom);
+        builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _spinnerDownTarget = rectangle)
+            .ConfigureLayout(layout =>
+                layout.Width = SpinnerGutterWidth);
     }
-
-    private double SpinnerButtonHeight => LayoutParameters.Height.FixedOrDefault(30) / 2.0;
 
     private void SetSpinnerHovered(bool up, bool hovered)
     {
@@ -213,7 +279,7 @@ public sealed class GuiTextInput : GuiInputBase
             _spinnerDownHovered = hovered;
         }
 
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void SetSpinnerPressed(bool up, bool pressed)
@@ -237,7 +303,7 @@ public sealed class GuiTextInput : GuiInputBase
             _spinnerDownPressed = pressed;
         }
 
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleSpinnerMouseDown(GuiMouseEventArgs e, int direction)
@@ -309,14 +375,15 @@ public sealed class GuiTextInput : GuiInputBase
         Text = nextText;
         _caret = Text.Length;
         OnTextChanged.Invoke(Text);
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     protected override void OnInputMouseDown(GuiMouseEventArgs e)
     {
         // Place caret near the click position. Walk character widths until we exceed the
         // click x — same logic as vanilla, simplified for single-line / no scrolling.
-        double localX = e.Position.X - LastBounds.X - TextPaddingX;
+        var position = LastBounds.Position!.Value;
+        double localX = e.Position.X - position.X - TextPaddingX;
         if (string.IsNullOrEmpty(Text) || localX <= 0)
         {
             _caret = 0;
@@ -329,7 +396,7 @@ public sealed class GuiTextInput : GuiInputBase
         double cumulative = 0;
         for (int i = 1; i <= Text.Length; i++)
         {
-            double w = Font.Measure(Text[..i]).Width;
+            double w = Font.Measure(Text[..i]).Width ?? 0;
             // Click closer to the left edge of this character → caret before it.
             double mid = (cumulative + w) / 2.0;
             if (localX < mid)
@@ -406,7 +473,7 @@ public sealed class GuiTextInput : GuiInputBase
         // vanilla GuiElementEditableTextBase.OnKeyDownInternal which marks args.Handled
         // for everything except Tab / Enter / Escape.
         args.Handled = true;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleKeyPress(GuiKeyEventArgs args)
@@ -432,7 +499,7 @@ public sealed class GuiTextInput : GuiInputBase
         _caret++;
         OnTextChanged.Invoke(Text);
         ResetCaretBlink();
-        RequestPaint();
+        Slot!.RequestRender();
         args.Handled = true;
     }
 
@@ -452,7 +519,7 @@ public sealed class GuiTextInput : GuiInputBase
 
         _blinkAccumulator -= BlinkPeriodSeconds;
         _caretBlinkOn = !_caretBlinkOn;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleFocusChanged(bool focused) => ResetCaretBlink();
@@ -522,9 +589,14 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         base.Render(ctx, bounds);
+
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
 
         // 1. Chrome — vanilla recipe: dark fill overlay + 2-deep emboss ring with corner
         //    radius 1. Matches GuiElementTextInput.ComposeTextElements visuals.
@@ -537,7 +609,7 @@ public sealed class GuiTextInput : GuiInputBase
         //    rather than the loud 20% the source code suggests.
         if (IsFocused && Enabled)
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
@@ -552,12 +624,12 @@ public sealed class GuiTextInput : GuiInputBase
         bool spinnerVisible = SpinnerButtonsVisible;
         double rightInset = spinnerVisible ? SpinnerGutterWidth + 1 : 1;
         ctx.Save();
-        ctx.Rectangle(bounds.X + 1, bounds.Y + 1, Math.Max(0, bounds.Width - 1 - rightInset), Math.Max(0, bounds.Height - 2));
+        ctx.Rectangle(position.X + 1, position.Y + 1, Math.Max(0, width - 1 - rightInset), Math.Max(0, height - 2));
         ctx.Clip();
 
         double lineHeight = Font.MeasureHeight();
-        double textY = bounds.Y + (bounds.Height - lineHeight) / 2.0;
-        double textX = bounds.X + TextPaddingX;
+        double textY = position.Y + (height - lineHeight) / 2.0;
+        double textX = position.X + TextPaddingX;
 
         if (string.IsNullOrEmpty(Text) && !IsFocused && !string.IsNullOrEmpty(Placeholder))
         {
@@ -587,7 +659,7 @@ public sealed class GuiTextInput : GuiInputBase
         //    in the visible blink phase. Width 1 logical pixel matches vanilla.
         if (IsFocused && Enabled && _caretBlinkOn)
         {
-            double caretAdvance = _caret == 0 ? 0 : Font.Measure(Text[.._caret]).Width;
+            double caretAdvance = _caret == 0 ? 0 : Font.Measure(Text[.._caret]).Width ?? 0;
             double cx = textX + caretAdvance;
             // Use a small inset on top/bottom so the caret sits inside the line height
             // rather than touching the chrome — matches vanilla's caret height.
@@ -616,12 +688,17 @@ public sealed class GuiTextInput : GuiInputBase
     /// centre; hover and press state are layered as semi-transparent washes on top.
     /// Disabled inputs render with reduced alpha across the whole composition.
     /// </summary>
-    private void DrawSpinnerButtons(Context ctx, GuiComponentBounds b)
+    private void DrawSpinnerButtons(Context ctx, GuiBounds b)
     {
-        double btnH = b.Height / 2.0;
-        double x = b.Right - SpinnerGutterWidth;
-        double upY = b.Y;
-        double downY = b.Y + btnH;
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double btnH = height / 2.0;
+        double x = position.X + width - SpinnerGutterWidth;
+        double upY = position.Y;
+        double downY = position.Y + btnH;
 
         DrawSpinnerButton(ctx, x, upY, SpinnerGutterWidth, btnH, arrowUp: true,
             hovered: _spinnerUpHovered, pressed: _spinnerUpPressed);
@@ -642,7 +719,9 @@ public sealed class GuiTextInput : GuiInputBase
 
         // Raised emboss (highlight on top-left, shadow on bottom-right). Depth 2 / radius 1
         // mirrors the input's recessed chrome at the same intensity, just inverted.
-        GuiInset.Draw(ctx, new GuiComponentBounds(x, y, w, h),
+        GuiInset.Draw(ctx, new GuiBounds(
+            new GuiPoint(x, y, IsAbsolute: true),
+            new GuiSize(w, h)),
             depth: 2, brightness: 1f, radius: 1, raised: true);
 
         // Hover / press washes — only meaningful while enabled.

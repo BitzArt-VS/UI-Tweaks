@@ -79,7 +79,7 @@ public sealed class GuiSlider : GuiInputBase
             // 24 is a touch taller than vanilla's 20 so the bevelled handle has more presence
             // without the wood-pattern fill we deliberately drop here.
             layout.Height = 24;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 
@@ -99,15 +99,26 @@ public sealed class GuiSlider : GuiInputBase
 
         Value = snapped;
         OnValueChanged.Invoke(Value);
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
         // The slider has no intrinsic minimum width — it expands to fill. Return a small
         // height-dominant size so fit-content parents don't collapse it to zero.
-        return new GuiMeasuredSize(80, LayoutParameters.Height.FixedOrDefault(24));
+        double measuredHeight =
+            Math.Max(
+                0,
+                LayoutParameters.Height?.Resolve(null) ?? 24);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(80, measuredHeight)));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)
@@ -130,7 +141,7 @@ public sealed class GuiSlider : GuiInputBase
             {
                 Value = next;
                 OnValueChanged.Invoke(Value);
-                RequestPaint();
+                Slot!.RequestRender();
             }
             args.Handled = true;
             return;
@@ -187,13 +198,17 @@ public sealed class GuiSlider : GuiInputBase
 
     private void UpdateValueFromMouse(double mouseX)
     {
-        double sliderSpan = LastBounds.Width - 2 * Padding - HandleWidth;
+        var position = LastBounds.Position!.Value;
+        var size = LastBounds.Size!.Value;
+        double width = size.Width!.Value;
+
+        double sliderSpan = width - 2 * Padding - HandleWidth;
         if (sliderSpan <= 0)
         {
             return;
         }
 
-        double localX = mouseX - LastBounds.X - Padding - HandleWidth / 2.0;
+        double localX = mouseX - position.X - Padding - HandleWidth / 2.0;
         double t = Math.Clamp(localX / sliderSpan, 0.0, 1.0);
         double raw = MinValue + (MaxValue - MinValue) * t;
         int snapped = Snap((int)Math.Round(raw));
@@ -209,7 +224,7 @@ public sealed class GuiSlider : GuiInputBase
             OnValueChanged.Invoke(Value);
         }
 
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     /// <summary>Snap <paramref name="value"/> to the nearest allowed step inside
@@ -231,9 +246,14 @@ public sealed class GuiSlider : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         base.Render(ctx, bounds);
+
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
 
         // 1. Track chrome — emboss + dark fill, same recipe as GuiTextInput / GuiCheckbox
         //    so all three input chromes look like siblings.
@@ -244,11 +264,11 @@ public sealed class GuiSlider : GuiInputBase
         //    accent) so the wide flat region tints the dark track rather than reading as
         //    a loud orange stripe — see SliderFillColor's doc for the rationale.
         double handleCenterX = ComputeHandleCenterX(bounds);
-        double fillRight = Math.Min(handleCenterX, bounds.X + bounds.Width - Padding);
-        double fillLeft = bounds.X + Padding;
+        double fillRight = Math.Min(handleCenterX, position.X + width - Padding);
+        double fillLeft = position.X + Padding;
         if (fillRight > fillLeft)
         {
-            ctx.RoundRect(fillLeft, bounds.Y + Padding, fillRight - fillLeft, bounds.Height - 2 * Padding, 1);
+            ctx.RoundRect(fillLeft, position.Y + Padding, fillRight - fillLeft, height - 2 * Padding, 1);
             var fc = GuiVanillaStyle.SliderFillColor;
             ctx.SetSourceRGBA(fc.R, fc.G, fc.B, fc.A * (Enabled ? 1.0 : 0.45));
             ctx.Fill();
@@ -257,16 +277,16 @@ public sealed class GuiSlider : GuiInputBase
         // 3. Focus / hover wash on the track — subtle, matches GuiTextInput.
         if (Enabled && (IsHovered || IsFocused))
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
 
         // 4. Handle — button-style bevelled rectangle centred vertically on the track.
         double hx = handleCenterX - HandleWidth / 2.0;
-        double hy = bounds.Y;
+        double hy = position.Y;
         double hw = HandleWidth;
-        double hh = bounds.Height;
+        double hh = height;
         DrawHandle(ctx, hx, hy, hw, hh, Enabled);
 
         // 5. Floating value tooltip — only while the user is touching the slider. Drawn
@@ -275,16 +295,20 @@ public sealed class GuiSlider : GuiInputBase
         //    for an initial implementation, matches vanilla without TooltipExceedClipBounds.
         if (Enabled && (IsPressed || IsHovered))
         {
-            DrawValueTooltip(ctx, handleCenterX, bounds.Y);
+            DrawValueTooltip(ctx, handleCenterX, position.Y);
         }
     }
 
-    private double ComputeHandleCenterX(GuiComponentBounds bounds)
+    private double ComputeHandleCenterX(GuiBounds bounds)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+
         int range = MaxValue - MinValue;
         double t = range <= 0 ? 0 : (double)(Value - MinValue) / range;
-        double sliderSpan = bounds.Width - 2 * Padding - HandleWidth;
-        return bounds.X + Padding + HandleWidth / 2.0 + t * sliderSpan;
+        double sliderSpan = width - 2 * Padding - HandleWidth;
+        return position.X + Padding + HandleWidth / 2.0 + t * sliderSpan;
     }
 
     private static void DrawHandle(Context ctx, double x, double y, double w, double h, bool enabled)
@@ -321,7 +345,9 @@ public sealed class GuiSlider : GuiInputBase
         // 4. Raised emboss — same recipe as GuiInset but with highlight/shadow swapped so
         //    the handle reads as lifted off the recessed track. Depth 3 gives a chunkier
         //    bevel than the track's depth-2 recess so the asymmetry is visible.
-        var handleBounds = new GuiComponentBounds(x, y, w, h);
+        var handleBounds = new GuiBounds(
+            new GuiPoint(x, y, IsAbsolute: true),
+            new GuiSize(w, h));
         GuiInset.Draw(ctx, handleBounds, depth: 3, brightness: 1f, radius: 1, raised: true);
     }
 
@@ -339,8 +365,8 @@ public sealed class GuiSlider : GuiInputBase
         const double radius = 1;
 
         var ts = TooltipFont.Measure(text);
-        double w = ts.Width + 2 * padX;
-        double h = ts.Height + 2 * padY;
+        double w = (ts.Width ?? 0) + 2 * padX;
+        double h = (ts.Height ?? 0) + 2 * padY;
         double x = anchorX - w / 2.0;
         double y = trackTop - gap - h;
 

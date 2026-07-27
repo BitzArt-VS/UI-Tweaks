@@ -16,8 +16,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </para>
 /// <para>
 /// The title text is painted directly by <see cref="DrawBackground"/> rather than as a
-/// child component, because vanilla centres the text vertically inside the bar — a
-/// capability the layout pass does not yet provide.
+/// child component so the title bar owns its text painting together with its background
+/// and border.
 /// </para>
 /// </summary>
 public class GuiDialogTitleBar : GuiContainer
@@ -78,18 +78,76 @@ public class GuiDialogTitleBar : GuiContainer
     private double _dragLastY;
     private bool _dragging;
 
-    // Captured at BuildRenderTree time (via Configure on the close-icon slot) so DrawBackground
-    // can update its absolute Margin.Left to anchor it to the bar's right edge once the bar's
-    // actual width is known. The reference is reset on every blueprint pass — Configure runs
-    // every rebuild and re-assigns it.
+    // Captured from their declarative slots so Arrange can supply resolved coordinates
+    // after the title bar's own content bounds are known.
+    private GuiRectangle? _dragTarget;
     private GuiDialogCloseIcon? _closeIcon;
 
-    protected override void DrawBackground(Context ctx, GuiComponentBounds bounds)
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
+        base.ConfigureSlot(builder);
+        builder.ConfigureLayout(layout =>
+        {
+            layout.Height = GuiVanillaStyle.TitleBarHeight;
+            layout.Width = GuiLengthRule.Fill;
+        });
+    }
+
+    public override GuiBounds Arrange(GuiBounds availableBounds)
+    {
+        var provisionalBounds =
+            LayoutParameters.ResolveBounds(availableBounds);
+
+        var contentBounds =
+            provisionalBounds.ToContentBounds();
+
+        var contentPosition =
+            contentBounds.Position
+            ?? throw new InvalidOperationException(
+                "Title-bar content requires a resolved position.");
+
+        if (_dragTarget is not null)
+        {
+            _dragTarget.LayoutParameters.Position =
+                contentPosition;
+        }
+
+        if (_closeIcon is not null)
+        {
+            var contentSize =
+                contentBounds.Size
+                ?? throw new InvalidOperationException(
+                    "Title-bar content requires a resolved size.");
+
+            var width =
+                contentSize.Width
+                ?? throw new InvalidOperationException(
+                    "Title-bar content requires a resolved width.");
+
+            var iconBox =
+                _closeIcon.CrossLineWidth * 2
+                + _closeIcon.CrossSize;
+
+            _closeIcon.LayoutParameters.Position =
+                new GuiPoint(
+                    contentPosition.X + width - iconBox - CloseIconRightPadding,
+                    contentPosition.Y + CloseIconTopPadding,
+                    IsAbsolute: true);
+        }
+
+        return base.Arrange(availableBounds);
+    }
+
+    protected override void DrawBackground(Context ctx, GuiBounds bounds)
+    {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
         double sw = StrokeWidth / RuntimeEnv.GUIScale;
 
         // 1. Solid lighter fill — establishes the title bar's brighter tone vs. the body.
-        ctx.RoundRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, 0);
+        ctx.RoundRect(position.X, position.Y, width, height, 0);
         ctx.FillSolid(FillColor);
 
         // 2. Open 3-sided dark border (left + top + right; bottom open). Path is flush
@@ -97,37 +155,23 @@ public class GuiDialogTitleBar : GuiContainer
         //    edge is clipped by the dialog surface boundary, leaving the visible border
         //    at half the stroke width. This matches vanilla, where the equivalent clip
         //    happens against the dialog's own surface edge.
-        ctx.OpenRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, GuiSide.Bottom);
+        ctx.OpenRect(position.X, position.Y, width, height, GuiSide.Bottom);
         ctx.StrokeSolid(BorderColor, sw);
 
         // 3. Title text — vertically centred inside the bar, left-aligned with vanilla padding.
         if (!string.IsNullOrEmpty(Title))
         {
-            double textH = TitleFont.MeasureHeight();
-            double textY = bounds.Y + (bounds.Height - textH) / 2.0;
-            ctx.DrawText(Title, TitleFont, bounds.X + TitleLeftPadding, textY);
+            double textHeight = TitleFont.MeasureHeight();
+            double textY = position.Y + (height - textHeight) / 2.0;
+            ctx.DrawText(Title, TitleFont, position.X + TitleLeftPadding, textY);
         }
 
-        // 4. Anchor the close-icon child to the bar's right edge. We don't know the bar's
-        //    final width until the layout pass allocates our bounds, but DrawBackground runs
-        //    before this slot's children are laid out — so mutating the close icon's
-        //    LayoutParameters here is picked up immediately when the framework iterates our
-        //    child slots. Avoids needing a "right anchor" feature in the layout pass.
-        if (_closeIcon is not null)
-        {
-            double iconBox = _closeIcon.CrossLineWidth * 2 + _closeIcon.CrossSize;
-            _closeIcon.LayoutParameters.Margin = new GuiThickness(
-                Top: CloseIconTopPadding,
-                Right: 0,
-                Bottom: 0,
-                Left: bounds.Width - iconBox - CloseIconRightPadding);
-        }
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Render any user-supplied content first (matches the GuiContainer contract).
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
         // Drag click-target — only emitted when an OnDrag handler is attached. An absolute,
         // fill-mode container covers the title bar's entire content area without participating
@@ -146,14 +190,16 @@ public class GuiDialogTitleBar : GuiContainer
                 .OnMouseMove(HandleMouseMove)
                 .OnMouseUp(HandleMouseUp);
         }
+        else
+        {
+            _dragTarget = null;
+        }
 
-        // Close icon — absolute-positioned (Margin.Left is set to anchor it to the right edge
-        // by DrawBackground once the bar's allocated width is known; see the comment there).
-        // Configure runs every blueprint pass and captures the live instance so DrawBackground
-        // can mutate its layout each frame without needing a separate framework anchor mode.
+        // Configure captures the live close icon so Arrange can place it from the resolved
+        // title-bar content bounds.
         if (OnClose.HasHandler)
         {
-            builder.Add<GuiDialogCloseIcon>(int.MaxValue, positioning: GuiComponentPositioning.Absolute)
+            builder.Add<GuiDialogCloseIcon>(int.MaxValue)
                 .Configure(icon =>
                 {
                     icon.OnClick = OnClose;
@@ -166,9 +212,16 @@ public class GuiDialogTitleBar : GuiContainer
         }
     }
 
-    private static void BuildDragTargetContent(IGuiRenderTreeBuilder builder)
+    private void BuildDragTargetContent(IGuiTreeBuilder builder)
     {
-        builder.Add<GuiRectangle>(0, fill: true, positioning: GuiComponentPositioning.Absolute);
+        builder.Add<GuiRectangle>(0)
+            .Configure(rectangle =>
+                _dragTarget = rectangle)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = GuiLengthRule.Fill;
+                layout.Height = GuiLengthRule.Fill;
+            });
     }
 
     private void HandleMouseDown(GuiMouseEventArgs e)

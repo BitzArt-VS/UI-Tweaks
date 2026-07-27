@@ -4,8 +4,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// A leaf component that renders a single line of text using <see cref="GuiFontStyle"/>.
-/// Overrides <see cref="Measure"/> to return the text's intrinsic dimensions, combining
-/// with the <see cref="GuiSizeMode.FitContent"/> default to size the component naturally.
+/// Resolves its final bounds from the text's intrinsic dimensions.
 /// </summary>
 public sealed class GuiLabel : GuiComponent
 {
@@ -20,19 +19,25 @@ public sealed class GuiLabel : GuiComponent
 
     // ── IGuiComponent ─────────────────────────────────────────────────────
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        if (string.IsNullOrEmpty(Text))
-        {
-            return default;
-        }
+        GuiSize measuredSize =
+            string.IsNullOrEmpty(Text)
+                ? new GuiSize(0, 0)
+                : Font.Measure(Text);
 
-        return Font.Measure(Text);
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(null, measuredSize));
     }
 
-    public override void Render(Context context, GuiComponentBounds bounds)
+    public override void Render(Context context, GuiBounds bounds)
     {
+        var position = bounds.Position!.Value;
+
         // DrawText handles the physical-pixel CTM dance required for vanilla-style hinting.
-        context.DrawText(Text, Font, bounds.X, bounds.Y);
+        context.DrawText(Text, Font, position.X, position.Y);
     }
 }

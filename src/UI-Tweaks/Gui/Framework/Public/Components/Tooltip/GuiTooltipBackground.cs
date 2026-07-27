@@ -37,7 +37,7 @@ public class GuiTooltipBackground : GuiContainer
     /// <summary>Corner radius in logical pixels. Default 1 — vanilla tooltip radius.</summary>
     public double Radius { get; set; } = GuiVanillaStyle.ElementBgRadius;
 
-    protected override void DrawBackground(Context ctx, GuiComponentBounds bounds)
+    protected override void DrawBackground(Context ctx, GuiBounds bounds)
     {
         double sw = BorderWidth / RuntimeEnv.GUIScale;
 

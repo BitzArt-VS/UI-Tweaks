@@ -55,17 +55,29 @@ public class GuiDialogCloseIcon : GuiComponent
     /// The icon's natural size. Includes the 2-px line-width margin DrawCross adds around
     /// the visible cross (see remarks on the class doc).
     /// </summary>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
-        => new(CrossLineWidth * 2 + CrossSize, CrossLineWidth * 2 + CrossSize);
-
-    public override void Render(Context ctx, GuiComponentBounds b)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        if (RenderHandle is null)
+        double measuredSize =
+            Math.Max(0, CrossLineWidth * 2 + CrossSize);
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(measuredSize, measuredSize)));
+    }
+
+    public override void Render(Context ctx, GuiBounds b)
+    {
+        if (Slot is null)
         {
             return;
         }
 
-        var icons = RenderHandle.ClientApi.Gui.Icons;
+        var icons = Slot.ClientApi.Gui.Icons;
+        var position = b.Position!.Value;
 
         // CTM is logical pixels here; vanilla's IconUtil.DrawCross expects raw line-width
         // and cross-size values, so we pass them through unchanged.
@@ -75,7 +87,7 @@ public class GuiDialogCloseIcon : GuiComponent
         //    and within bounds at any scale.
         ctx.Operator = Operator.Over;
         ctx.SetSourceRGBA(ShadowColor.R, ShadowColor.G, ShadowColor.B, ShadowColor.A);
-        icons.DrawCross(ctx, b.X + 1, b.Y + 1, CrossLineWidth, CrossSize);
+        icons.DrawCross(ctx, position.X + 1, position.Y + 1, CrossLineWidth, CrossSize);
 
         // 2. Cross — colour swaps to HoverIconColor while hovered. This is the "no overlay"
         //    behaviour: same geometry as the idle icon, just a different stroke colour, so
@@ -83,7 +95,7 @@ public class GuiDialogCloseIcon : GuiComponent
         ctx.Operator = Operator.Source;
         var color = _isHovered ? HoverIconColor : IconColor;
         ctx.SetSourceRGBA(color.R, color.G, color.B, color.A);
-        icons.DrawCross(ctx, b.X, b.Y, CrossLineWidth, CrossSize);
+        icons.DrawCross(ctx, position.X, position.Y, CrossLineWidth, CrossSize);
 
         // Restore default operator so subsequent siblings paint with the framework's expected
         // blending mode.
@@ -102,13 +114,13 @@ public class GuiDialogCloseIcon : GuiComponent
     private void HandleMouseEnter(GuiMouseEventArgs e)
     {
         _isHovered = true;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs e)
     {
         _isHovered = false;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e) => OnClick.Invoke();

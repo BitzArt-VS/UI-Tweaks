@@ -35,25 +35,28 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
         _navigator = GetCascadingValue<ModConfigPageNavigator>();
     }
 
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
-        builder.AddContainer(0,
-            widthMode: GuiSizeMode.Fill,
-            content: column =>
+        builder.Add<GuiContainer>(0)
+            .Configure(container => container.Content = column =>
             {
                 for (int i = 0; i < PredefinedTooltips.Length; i++)
                 {
                     int index = i;
-                    column.Add<ConfigListRow>(index,
-                        height: ListItemHeight,
-                        widthMode: GuiSizeMode.Fill)
+                    column.Add<ConfigListRow>(index)
+                        .ConfigureLayout(layout =>
+                        {
+                            layout.Height = ListItemHeight;
+                            layout.Width = GuiLengthRule.Fill;
+                        })
                         .Configure(row =>
                         {
                             row.Text = Lang.Get(PredefinedTooltips[index].LangKey);
                             row.OnClick = (Action)(() => OpenTooltip(index));
                         });
                 }
-            });
+            })
+            .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill);
     }
 
     private void OpenTooltip(int index)
@@ -62,7 +65,8 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
         var tooltipName = Lang.Get(entry.LangKey);
         var options = entry.Resolve(_context!.Config.Hud.Tooltips);
         _navigator!.Push(tooltipName,
-            builder => builder.Add<TooltipDetailModConfigPage>(0, widthMode: GuiSizeMode.Fill)
+            builder => builder.Add<TooltipDetailModConfigPage>(0)
+                .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill)
                 .Configure(c => c.Options = options));
     }
 }

@@ -1,90 +1,41 @@
-using System.Globalization;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
-public readonly struct GuiSize
+/// <summary>
+/// Width/height pair used by layout arrangement, in logical pixels.
+/// A <c>null</c> dimension is unlimited along that axis.
+/// </summary>
+public readonly record struct GuiSize(double? Width, double? Height)
 {
-    private readonly GuiSizeKind _kind;
+    public static GuiSize operator +(
+        GuiSize size,
+        GuiSize other)
+        => new(
+            Clamp(size.Width + other.Width),
+            Clamp(size.Height + other.Height));
 
-    public double Value { get; }
-    public double? Minimum { get; }
-    public double? Maximum { get; }
+    public static GuiSize operator -(
+        GuiSize size,
+        GuiSize other)
+        => new(
+            Clamp(size.Width - other.Width),
+            Clamp(size.Height - other.Height));
 
-    public bool IsAuto => _kind == GuiSizeKind.Auto;
-    public bool IsFixed => _kind == GuiSizeKind.Fixed;
-    public bool IsFraction => _kind == GuiSizeKind.Fraction;
+    public static GuiSize operator +(
+        GuiSize size,
+        GuiThickness thickness)
+        => new(
+            Clamp(size.Width + thickness.Horizontal),
+            Clamp(size.Height + thickness.Vertical));
 
-    private GuiSize(GuiSizeKind kind, double value, double? minimum = null, double? maximum = null)
-    {
-        _kind = kind;
-        Value = value;
-        Minimum = minimum;
-        Maximum = maximum;
-    }
+    public static GuiSize operator -(
+        GuiSize size,
+        GuiThickness thickness)
+        => new(
+            Clamp(size.Width - thickness.Horizontal),
+            Clamp(size.Height - thickness.Vertical));
 
-    public static GuiSize Auto => default;
-    public static GuiSize Fixed(double value) => new(GuiSizeKind.Fixed, value);
-
-    public static GuiSize Fraction(double value, double? minimum = null, double? maximum = null)
-    {
-        if (value < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), "Fractional size must be non-negative.");
-        }
-
-        return new GuiSize(GuiSizeKind.Fraction, value, minimum, maximum);
-    }
-
-    public static GuiSize Parse(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        string trimmed = value.Trim();
-        if (trimmed.EndsWith('%'))
-        {
-            string percent = trimmed[..^1].Trim();
-            return Fraction(double.Parse(percent, CultureInfo.InvariantCulture) / 100.0);
-        }
-
-        return Fixed(double.Parse(trimmed, CultureInfo.InvariantCulture));
-    }
-
-    public double Resolve(double availableSize)
-    {
-        double resolved = _kind switch
-        {
-            GuiSizeKind.Fixed => Value,
-            GuiSizeKind.Fraction => availableSize * Value,
-            _ => throw new InvalidOperationException("Auto sizes cannot be resolved directly."),
-        };
-
-        if (Minimum is not null)
-        {
-            resolved = Math.Max(Minimum.Value, resolved);
-        }
-
-        if (Maximum is not null)
-        {
-            resolved = Math.Min(Maximum.Value, resolved);
-        }
-
-        return resolved;
-    }
-
-    public double FixedOrDefault(double defaultValue)
-        => IsFixed ? Value : defaultValue;
-
-    internal bool CanResolve(double availableSize)
-        => !IsAuto && (!IsFraction || !double.IsPositiveInfinity(availableSize));
-
-    public static implicit operator GuiSize(int value) => Fixed(value);
-    public static implicit operator GuiSize(double value) => Fixed(value);
-    public static implicit operator GuiSize(string value) => Parse(value);
-}
-
-internal enum GuiSizeKind
-{
-    Auto,
-    Fixed,
-    Fraction,
+    private static double? Clamp(double? value)
+        => value is null
+            ? null
+            : Math.Max(0, value.Value);
 }

@@ -2,12 +2,12 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal sealed class ScopedRebuildQueue
 {
-    private Dictionary<GuiRenderFragment, GuiRenderTreeBuilder> _pending = [];
-    private Dictionary<GuiRenderFragment, GuiRenderTreeBuilder> _active = [];
+    private Dictionary<GuiTreeFragment, GuiTreeBuilder> _pending = [];
+    private Dictionary<GuiTreeFragment, GuiTreeBuilder> _active = [];
 
-    internal void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder) => _pending[fragment] = builder;
+    internal void Schedule(GuiTreeFragment fragment, GuiTreeBuilder builder) => _pending[fragment] = builder;
 
-    internal void Cancel(GuiRenderFragment fragment)
+    internal void Cancel(GuiTreeFragment fragment)
     {
         _pending.Remove(fragment);
         _active.Remove(fragment);

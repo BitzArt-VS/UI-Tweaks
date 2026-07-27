@@ -1,4 +1,6 @@
 interface:
   display_name: "Agent Revalidation"
-  short_description: "Revalidate project agent and skill instructions against the current codebase"
+  short_description: "Revalidate agent and skill instructions"
   default_prompt: "Use $revalidation to comprehensively revalidate this project's agent, skill, and instruction files against the current codebase, then update approved discrepancies."
+policy:
+  allow_implicit_invocation: false

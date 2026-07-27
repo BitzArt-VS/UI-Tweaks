@@ -5,10 +5,13 @@ public interface IGuiComponent : IGuiNode
     public GuiComponentLayoutParameters LayoutParameters { get; }
 
     /// <summary>
-    /// Returns the component's intrinsic size given the available space. Called by the
-    /// layout pass for <see cref="GuiSizeMode.FitContent"/> dimensions; not called for
-    /// <see cref="GuiSizeMode.Fill"/>. Override in leaf components (text, icons) to
-    /// report their natural size.
+    /// Attempts to arrange this component within the supplied available bounds.
     /// </summary>
-    public GuiMeasuredSize Measure(double availableWidth, double availableHeight);
+    /// <returns>
+    /// Arranged bounds relative to <paramref name="availableBounds"/> for flow placement,
+    /// or absolute bounds for independent placement. Individual bounds fields are
+    /// <c>null</c> while their geometry is unresolved.
+    /// </returns>
+    public GuiBounds Arrange(
+        GuiBounds availableBounds);
 }

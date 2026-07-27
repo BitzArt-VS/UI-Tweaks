@@ -1,4 +1,6 @@
 interface:
   display_name: "Investigate"
-  short_description: "Use when the user requests to perform an investigation process via explicit requests (not casual mentions of the word 'investigation'), or to review an existing investigation file."
+  short_description: "Investigate the codebase and persist findings."
   default_prompt: "Use $investigate to investigate the current or external codebase."
+policy:
+  allow_implicit_invocation: false

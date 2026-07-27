@@ -14,28 +14,34 @@ internal sealed class ConfigPanel : GuiContainer
 
     public GuiColor FillColor { get; set; } = GuiColor.FromRgba(0.13, 0.10, 0.07, 0.22);
 
-    protected override void DrawBackground(Context context, GuiComponentBounds bounds)
+    protected override void DrawBackground(Context context, GuiBounds bounds)
     {
-        context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double innerX = position.X + InnerLineInset;
+        double innerY = position.Y + InnerLineInset;
+        double innerWidth = width - InnerLineInset * 2;
+        double innerHeight = height - InnerLineInset * 2;
+
+        context.Rectangle(position.X, position.Y, width, height);
         context.FillSolid(FillColor);
 
-        context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+        context.Rectangle(position.X, position.Y, width, height);
         context.StrokeSolid(BorderColor, BorderWidth);
 
-        context.EdgeLine(bounds.X + InnerLineInset, bounds.Y + InnerLineInset,
-            bounds.Width - InnerLineInset * 2, bounds.Height - InnerLineInset * 2, GuiSide.Top);
+        context.EdgeLine(innerX, innerY, innerWidth, innerHeight, GuiSide.Top);
         context.StrokeSolid(TopLeftShadowColor, BorderWidth);
 
-        context.EdgeLine(bounds.X + InnerLineInset, bounds.Y + InnerLineInset,
-            bounds.Width - InnerLineInset * 2, bounds.Height - InnerLineInset * 2, GuiSide.Left);
+        context.EdgeLine(innerX, innerY, innerWidth, innerHeight, GuiSide.Left);
         context.StrokeSolid(TopLeftShadowColor, BorderWidth);
 
-        context.EdgeLine(bounds.X + InnerLineInset, bounds.Y + InnerLineInset,
-            bounds.Width - InnerLineInset * 2, bounds.Height - InnerLineInset * 2, GuiSide.Bottom);
+        context.EdgeLine(innerX, innerY, innerWidth, innerHeight, GuiSide.Bottom);
         context.StrokeSolid(BottomRightHighlightColor, BorderWidth);
 
-        context.EdgeLine(bounds.X + InnerLineInset, bounds.Y + InnerLineInset,
-            bounds.Width - InnerLineInset * 2, bounds.Height - InnerLineInset * 2, GuiSide.Right);
+        context.EdgeLine(innerX, innerY, innerWidth, innerHeight, GuiSide.Right);
         context.StrokeSolid(BottomRightHighlightColor, BorderWidth);
     }
 }

@@ -38,12 +38,12 @@ public sealed class TooltipHost
 
     private readonly struct Region
     {
-        public readonly GuiComponentBounds Bounds;
+        public readonly GuiBounds Bounds;
         public readonly object Token;
-        public readonly GuiRenderFragment Content;
+        public readonly GuiTreeFragment Content;
         public readonly Action<GuiTooltipBackground>? ConfigureBackground;
 
-        public Region(GuiComponentBounds bounds, object token, GuiRenderFragment content, Action<GuiTooltipBackground>? configureBackground)
+        public Region(GuiBounds bounds, object token, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
         {
             Bounds = bounds;
             Token = token;
@@ -51,16 +51,19 @@ public sealed class TooltipHost
             ConfigureBackground = configureBackground;
         }
 
-        public bool Contains(double x, double y) =>
-            x >= Bounds.X && x < Bounds.Right &&
-            y >= Bounds.Y && y < Bounds.Bottom;
+        public bool Contains(double x, double y)
+            => Bounds.Contains(
+                new GuiPoint(
+                    x,
+                    y,
+                    IsAbsolute: true));
     }
 
     internal TooltipHost(FloatingLayerRenderer layer) => _layer = layer;
 
     internal void ResetFrame() => _regions.Clear();
 
-    internal void AddRegion(object token, GuiComponentBounds bounds, GuiRenderFragment content, Action<GuiTooltipBackground>? configureBackground)
+    internal void AddRegion(object token, GuiBounds bounds, GuiTreeFragment content, Action<GuiTooltipBackground>? configureBackground)
         => _regions.Add(new Region(bounds, token, content, configureBackground));
 
     /// <summary>
@@ -93,17 +96,17 @@ public sealed class TooltipHost
         }
     }
 
-    private void ShowTooltip(GuiRenderFragment userContent, Action<GuiTooltipBackground>? configureBackground)
+    private void ShowTooltip(GuiTreeFragment userContent, Action<GuiTooltipBackground>? configureBackground)
     {
         // Wrap the user content in the standard tooltip chrome. The wrapping container
         // slot is keyed by 0 so its instance persists across transitions where only the
         // wrapped fragment changes.
-        GuiRenderFragment wrapped = builder =>
+        GuiTreeFragment wrapped = builder =>
         {
-            var slot = builder.AddContainer<GuiTooltipBackground>(
-                0,
-                padding: new GuiThickness(GuiTooltipBackground.DefaultPadding),
-                content: userContent);
+            var slot = builder.Add<GuiTooltipBackground>(0)
+                .Configure(background => background.Content = userContent)
+                .ConfigureLayout(layout =>
+                    layout.Padding = new GuiThickness(GuiTooltipBackground.DefaultPadding));
             if (configureBackground is not null)
             {
                 slot.Configure(configureBackground);

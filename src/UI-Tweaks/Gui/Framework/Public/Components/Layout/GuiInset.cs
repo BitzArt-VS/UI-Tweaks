@@ -37,16 +37,16 @@ public sealed class GuiInset : GuiComponent
     /// children — rendered after the inset's own background (brightness overlay + emboss
     /// ring) so they appear inside the recessed frame.
     /// </summary>
-    public GuiRenderFragment? Content { get; set; }
+    public GuiTreeFragment? Content { get; set; }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         Content?.Invoke(builder);
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         Draw(ctx, bounds, Depth, Brightness, Radius);
     }
@@ -64,18 +64,23 @@ public sealed class GuiInset : GuiComponent
     /// </para>
     /// </summary>
     internal static void Draw(
-        Context ctx, GuiComponentBounds bounds,
+        Context ctx, GuiBounds bounds,
         int depth, float brightness, double radius,
         bool raised = false)
     {
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         if (!raised && brightness < 1f)
         {
             ctx.SetSourceRGBA(0, 0, 0, 1.0 - brightness);
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.Fill();
         }
 
-        DrawEmboss(ctx, bounds.X, bounds.Y, bounds.Width, bounds.Height, radius, depth, raised);
+        DrawEmboss(ctx, position.X, position.Y, width, height, radius, depth, raised);
     }
 
     // ── Emboss ─────────────────────────────────────────────────────────────────

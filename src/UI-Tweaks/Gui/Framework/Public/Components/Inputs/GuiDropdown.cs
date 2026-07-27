@@ -76,12 +76,12 @@ public class GuiDropdown<T> : GuiInputBase
 
     /// <summary>Renders a single item inside the popup list. Default: a <see cref="GuiLabel"/>
     /// containing <c>item?.ToString()</c>.</summary>
-    public GuiRenderFragment<T>? ItemTemplate { get; set; }
+    public GuiTreeFragment<T>? ItemTemplate { get; set; }
 
     /// <summary>Renders the closed-state header content (excluding chrome and chevron).
     /// Defaults to <see cref="ItemTemplate"/> when null — pass a separate fragment when
     /// the closed-state visual differs from the popup row.</summary>
-    public GuiRenderFragment<T>? SelectedTemplate { get; set; }
+    public GuiTreeFragment<T>? SelectedTemplate { get; set; }
 
     /// <summary>Fired after <see cref="SelectedIndex"/> changes due to user interaction
     /// or <see cref="SetSelectedIndex"/>.</summary>
@@ -149,7 +149,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Cached delegate so repeated <see cref="OverlayHost.Show"/> calls supply
     /// the same fragment reference (otherwise every frame would allocate a new closure
     /// over <see cref="BuildPopup"/>).</summary>
-    private GuiRenderFragment? _popupFragment;
+    private GuiTreeFragment? _popupFragment;
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
@@ -159,7 +159,7 @@ public class GuiDropdown<T> : GuiInputBase
         {
             // The header height is read back from LayoutParameters when positioning the popup.
             layout.Height = 30;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 
@@ -193,7 +193,7 @@ public class GuiDropdown<T> : GuiInputBase
             OnItemSelected.Invoke(Items![clamped]);
         }
 
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Opens the popup. No-op when already open or while disabled.</summary>
@@ -205,7 +205,7 @@ public class GuiDropdown<T> : GuiInputBase
         }
 
         IsOpen = true;
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Closes the popup. No-op when already closed.</summary>
@@ -218,7 +218,7 @@ public class GuiDropdown<T> : GuiInputBase
 
         IsOpen = false;
         _hoveredItemIndex = -1;
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     /// <summary>Flips the popup state.</summary>
@@ -258,7 +258,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <see cref="SelectedTemplate"/> (falling back to <see cref="ItemTemplate"/>) with the
     /// current selection, or render <see cref="Placeholder"/> at half opacity when nothing
     /// is selected.</summary>
-    protected virtual void BuildHeader(IGuiRenderTreeBuilder builder)
+    protected virtual void BuildHeader(IGuiTreeBuilder builder)
     {
         if (Items is { } items && SelectedIndex >= 0 && SelectedIndex < items.Count)
         {
@@ -287,7 +287,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// iterate <see cref="GetItemCount"/> / <see cref="GetItemAt"/>, declaring a hover-
     /// and click-tracked <see cref="GuiContainer"/> per item that invokes
     /// <see cref="ItemTemplate"/> for its content.</summary>
-    protected virtual void BuildPopup(IGuiRenderTreeBuilder builder)
+    protected virtual void BuildPopup(IGuiTreeBuilder builder)
     {
         int count = GetItemCount();
         for (int i = 0; i < count; i++)
@@ -307,18 +307,23 @@ public class GuiDropdown<T> : GuiInputBase
                 rowBg = HoveredItemBackground;
             }
 
-            // Always pass `rowBg` (even when transparent) so the row's GuiContainer.Background
-            // gets reapplied every reconcile. AddContainer's `background:` parameter is
-            // skip-when-null — passing null here would leave a previously-set non-transparent
-            // background in place, which would otherwise leave a row stuck highlighted after
+            // Always apply `rowBg` (even when transparent) so the row's
+            // GuiContainer.Background gets reset every reconciliation pass. Otherwise, a
+            // previously-set non-transparent background would leave a row stuck highlighted after
             // its hover state cleared. Transparent fills are already short-circuited in
             // GuiContainer.DrawBackground (A<=0), so the always-set path costs nothing extra.
-            builder.AddContainer(i,
-                widthMode: GuiSizeMode.Fill,
-                height: ItemHeight,
-                padding: new GuiThickness(0, TextPaddingX),
-                background: rowBg,
-                content: b => RenderItem(b, item))
+            builder.Add<GuiContainer>(i)
+                .Configure(container =>
+                {
+                    container.Background = rowBg;
+                    container.Content = b => RenderItem(b, item);
+                })
+                .ConfigureLayout(layout =>
+                {
+                    layout.Width = GuiLengthRule.Fill;
+                    layout.Height = ItemHeight;
+                    layout.Padding = new GuiThickness(0, TextPaddingX);
+                })
                 .OnMouseEnter(_ => SetHoveredItem(rowIdx))
                 .OnMouseLeave(_ => SetHoveredItem(-1))
                 // Keep dropdown focus while clicking inside the popup so the click-outside
@@ -328,7 +333,7 @@ public class GuiDropdown<T> : GuiInputBase
         }
     }
 
-    private void RenderItem(IGuiRenderTreeBuilder b, T item)
+    private void RenderItem(IGuiTreeBuilder b, T item)
     {
         if (ItemTemplate is { } t)
         {
@@ -343,11 +348,30 @@ public class GuiDropdown<T> : GuiInputBase
     // ── Framework wiring ─────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        // No intrinsic minimum width — fill the row. Height is controlled via
-        // LayoutParameters.Height (set by own-slot defaults).
-        return new GuiMeasuredSize(120, LayoutParameters.Height.FixedOrDefault(30));
+        GuiSize? descendantsSize =
+            descendantsBounds?.Size;
+
+        double measuredWidth =
+            Math.Max(
+                descendantsSize?.Width ?? 0,
+                120);
+
+        double measuredHeight =
+            Math.Max(
+                descendantsSize?.Height ?? 0,
+                Math.Max(
+                    0,
+                    LayoutParameters.Height?.Resolve(null) ?? 30));
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(
+                null,
+                new GuiSize(measuredWidth, measuredHeight)));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)
@@ -407,29 +431,32 @@ public class GuiDropdown<T> : GuiInputBase
     }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
+    protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
         // Inner click capture (key 0) — added by GuiInputBase. Absolutely positioned,
         // fills the input's content area; handles down/up/click/enter/leave for the
         // closed-state trigger.
-        base.BuildRenderTree(builder);
+        base.BuildComponentTree(builder);
 
-        // Header content (key 1) — relative, FitContent height with a vertical-centering
+        // Header content (key 1) — relative, fit-content height with a vertical-centering
         // top margin computed from the font line metrics. The header container sits inside
         // the dropdown's content area; the input click capture (key 0) overlays it for
         // hit-testing without consuming layout space.
         // Right padding reserves the chevron strip; left padding pulls text away from
         // the recessed border. Top margin centres a single line of text within the
         // header height — templated rows that need different vertical layout should set
-        // their own outer margin / heightMode.
-        double headerHeight = LayoutParameters.Height.FixedOrDefault(30);
+        // their own outer margin or height.
+        double headerHeight = LayoutParameters.Height?.Resolve(null) ?? 30;
         double lineHeight = Font.MeasureHeight();
         double topMargin = Math.Max(0, (headerHeight - lineHeight) / 2.0);
 
-        builder.AddContainer(1,
-            widthMode: GuiSizeMode.Fill,
-            margin: new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX),
-            content: BuildHeader);
+        builder.Add<GuiContainer>(1)
+            .Configure(container => container.Content = BuildHeader)
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = GuiLengthRule.Fill;
+                layout.Margin = new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX);
+            });
 
         // Popup is no longer declared as a child slot here — it lives on the dialog's
         // OverlayHost so it paints on top of every regular slot and its rows always win
@@ -438,12 +465,17 @@ public class GuiDropdown<T> : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override void Render(Context ctx, GuiComponentBounds bounds)
+    public override void Render(Context ctx, GuiBounds bounds)
     {
         // Capture LastBounds so popup positioning can use the actual header height on
-        // subsequent reconciles (handles the case where the user customised Height
-        // through Fill / FitContent rather than an explicit value).
+        // subsequent reconciles when the user replaces the explicit Height with
+        // fit-content sizing.
         base.Render(ctx, bounds);
+
+        var position = bounds.Position!.Value;
+        var size = bounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
 
         // Auto-close on focus loss — clicking outside the dialog or tabbing away
         // should dismiss the popup. The mouse-down dispatch path either re-claims
@@ -453,7 +485,7 @@ public class GuiDropdown<T> : GuiInputBase
         {
             IsOpen = false;
             _hoveredItemIndex = -1;
-            RequestReconcile();
+            Slot!.RequestReconcile();
         }
 
         // 1. Recessed chrome — vanilla text-input recipe (depth 2, brightness 0.8, r=1).
@@ -462,7 +494,7 @@ public class GuiDropdown<T> : GuiInputBase
         // 2. Hover / focus wash — same faint flat fill the text input uses.
         if (Enabled && (IsHovered || IsFocused))
         {
-            ctx.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.05);
             ctx.Fill();
         }
@@ -471,7 +503,7 @@ public class GuiDropdown<T> : GuiInputBase
         //    point upward while the popup is open (mirrors common dropdown UX).
         DrawChevron(ctx, bounds);
 
-        // 4. Popup overlay registration. Done from Render (rather than BuildRenderTree)
+        // 4. Popup overlay registration. Done from Render (rather than BuildComponentTree)
         //    so the overlay's bounds are computed from the just-resolved header bounds —
         //    no need to read back stale LastBounds from a prior frame. When closed (or
         //    when no items / no overlay host is available), simply skip registration and
@@ -498,11 +530,11 @@ public class GuiDropdown<T> : GuiInputBase
         double popupHeight = overflow ? MaxPopupHeight : frame;
         _popupOverflow = overflow;
 
-        var popupBounds = new GuiComponentBounds(
-            bounds.X,
-            bounds.Bottom,
-            bounds.Width,
-            popupHeight);
+        var popupPosition = new GuiPoint(
+            position.X,
+            position.Y + height,
+            IsAbsolute: true);
+        var popupBounds = new GuiBounds(popupPosition, new GuiSize(width, popupHeight));
 
         // Cache the fragment so its delegate identity is stable across frames — repeated
         // Show calls with the same fragment let the overlay layer's reuse path skip
@@ -519,22 +551,25 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Stable popup fragment — declares the popup chrome (a
     /// <see cref="GuiDropdownPopup"/> filling the registered overlay bounds) wrapped
     /// around <see cref="BuildPopup"/>.</summary>
-    private void BuildPopupOverlay(IGuiRenderTreeBuilder builder)
+    private void BuildPopupOverlay(IGuiTreeBuilder builder)
     {
         bool overflow = _popupOverflow;
-        builder.AddContainer<GuiDropdownPopup>(0,
-                widthMode: GuiSizeMode.Fill,
-                heightMode: GuiSizeMode.Fill,
-                content: BuildPopup)
-            .Configure(p =>
+        builder.Add<GuiDropdownPopup>(0)
+            .Configure(popup =>
             {
-                p.FillColor = PopupBackground;
-                p.BorderColor = PopupBorder;
-                p.BorderWidth = PopupBorderWidth;
-                p.Radius = PopupRadius;
-                p.LayoutParameters.Padding = new GuiThickness(PopupPadding);
-                p.Scroll = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
-                p.Scrollbar = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+                popup.Content = BuildPopup;
+                popup.FillColor = PopupBackground;
+                popup.BorderColor = PopupBorder;
+                popup.BorderWidth = PopupBorderWidth;
+                popup.Radius = PopupRadius;
+                popup.Scroll = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+                popup.Scrollbar = overflow ? GuiScrollDirection.Vertical : GuiScrollDirection.None;
+            })
+            .ConfigureLayout(layout =>
+            {
+                layout.Width = GuiLengthRule.Fill;
+                layout.Height = GuiLengthRule.Fill;
+                layout.Padding = new GuiThickness(PopupPadding);
             });
     }
 
@@ -549,7 +584,7 @@ public class GuiDropdown<T> : GuiInputBase
         // Rebuild the dropdown subtree so the row's Background config picks up the new
         // hover state. Cheap for typical dropdown sizes — popups usually carry under 50
         // rows, and we only run on hover transitions.
-        RequestReconcile();
+        Slot!.RequestReconcile();
     }
 
     private void SelectAndClose(int actualIndex)
@@ -558,15 +593,20 @@ public class GuiDropdown<T> : GuiInputBase
         Close();
     }
 
-    private void DrawChevron(Context ctx, GuiComponentBounds b)
+    private void DrawChevron(Context ctx, GuiBounds b)
     {
         // Centred inside the right-edge chevron strip, ~6 logical pixels wide and
         // ~4 px tall — matches the visual weight of the header text.
         const double chevronW = 8;
         const double chevronH = 5;
 
-        double cx = b.Right - ChevronAreaWidth / 2.0 - chevronW / 2.0;
-        double cy = b.Y + (b.Height - chevronH) / 2.0;
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        double cx = position.X + width - ChevronAreaWidth / 2.0 - chevronW / 2.0;
+        double cy = position.Y + (height - chevronH) / 2.0;
 
         ctx.NewPath();
         if (IsOpen)

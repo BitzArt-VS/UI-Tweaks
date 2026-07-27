@@ -12,24 +12,26 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     private LoadedTexture _texture;
     private int _physicalWidth;
     private int _physicalHeight;
+    private readonly ClippingContext _clippingContext = new();
     protected float _currentScale;
     protected bool _reconcileRequested;
     protected bool _arrangeRequested;
-    protected bool _paintRequested;
+    protected bool _renderRequested;
 
     public ICoreClientAPI ClientApi => _clientApi;
 
     protected int PhysicalWidth => _physicalWidth;
     protected int PhysicalHeight => _physicalHeight;
-    protected GuiRenderTreeBuilder Builder { get; }
-    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _arrangeRequested || _paintRequested;
+    protected GuiTreeBuilder TreeBuilder { get; }
+    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _arrangeRequested || _renderRequested;
+    internal ClippingContext ClippingContext => _clippingContext;
 
     protected GuiSurfaceRenderer(ICoreClientAPI clientApi)
     {
         _clientApi = clientApi;
         _texture = new LoadedTexture(clientApi);
         _currentScale = RuntimeEnv.GUIScale;
-        Builder = new GuiRenderTreeBuilder(this);
+        TreeBuilder = new GuiTreeBuilder(this);
     }
 
     protected void RequestReconcile()
@@ -41,22 +43,28 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     public void RequestArrange()
     {
         _arrangeRequested = true;
-        RequestPaint();
+        RequestRender();
     }
 
-    public void RequestPaint() => _paintRequested = true;
+    public void RequestRender() => _renderRequested = true;
 
-    public void RequestRender() => RequestPaint();
-
-    public virtual void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder) => RequestReconcile();
-    public virtual void Cancel(GuiRenderFragment fragment) { }
+    public virtual void Schedule(GuiTreeFragment fragment, GuiTreeBuilder builder) => RequestReconcile();
+    public virtual void Cancel(GuiTreeFragment fragment) { }
 
     public virtual void AddInteractiveRegion(in InteractiveRegion region) { }
+    public virtual void AddResizeRegion(in ResizeRegion region) { }
     public virtual void AddKeyboardRegion(in KeyboardRegion region) { }
 
     public virtual bool ContainsScreenPoint(int x, int y) => false;
 
-    internal void SetCascadeChain(CascadingValueChain? chain) => Builder.CascadeChain = chain;
+    internal void SetCascadeChain(CascadingValueChain? chain)
+    {
+        TreeBuilder.CascadeChain = new CascadingValueChain(
+            chain,
+            typeof(ClippingContext),
+            name: null,
+            _clippingContext);
+    }
 
     protected void EnsureSurfaceSize(int physW, int physH)
     {
@@ -73,23 +81,23 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         _physicalHeight = physH;
     }
 
-    protected void DrawSurfaceContents(GuiComponentBounds bounds, GuiDirection direction, float scale, bool arrange)
+    protected void DrawSurfaceContents(GuiBounds bounds, float scale, bool arrange)
     {
         DrawSurfaceContents(bounds, scale, arrange, context =>
         {
             if (arrange)
             {
-                Builder.Render(context, bounds, direction);
+                _clippingContext.Reset();
+                TreeBuilder.ArrangeRoot(bounds);
             }
-            else
-            {
-                Builder.Paint(context);
-            }
+
+            TreeBuilder.Paint(context, registerRegions: arrange);
         });
     }
 
-    private void DrawSurfaceContents(GuiComponentBounds bounds, float scale, bool arrange, Action<Context> draw)
+    private void DrawSurfaceContents(GuiBounds bounds, float scale, bool arrange, Action<Context> draw)
     {
+        ClearInvalidationRequests(arrange);
         _context!.IdentityMatrix();
         _context.Operator = Operator.Source;
         _context.SetSourceRGBA(0, 0, 0, 0);
@@ -100,7 +108,6 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         _surface!.Flush();
         _clientApi.Gui.LoadOrUpdateCairoTexture(_surface, true, ref _texture);
         _currentScale = scale;
-        ClearInvalidationRequests(arrange);
     }
 
     protected void ClearInvalidationRequests(bool arranged)
@@ -110,7 +117,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
             _reconcileRequested = false;
             _arrangeRequested = false;
         }
-        _paintRequested = false;
+        _renderRequested = false;
     }
 
     protected void BlitAt(double posX, double posY)
@@ -126,7 +133,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     public virtual void Dispose()
     {
-        Builder.Dispose();
+        TreeBuilder.Dispose();
         _texture.Dispose();
         _context?.Dispose();
         _surface?.Dispose();

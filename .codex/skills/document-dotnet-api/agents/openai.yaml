@@ -1,0 +1,5 @@
+interface:
+  display_name: "Document .NET API"
+  short_description: "Write useful C# XML documentation comments"
+  default_prompt: "Use $document-dotnet-api to write C# XML documentation comments for this .NET API."
+  

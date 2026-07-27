@@ -42,10 +42,10 @@ public sealed class GuiButton : GuiComponent
     /// support is added later). Defaults to vanilla <c>ActiveButtonTextColor</c>.</summary>
     public GuiFontStyle PressedFont { get; set; } = GuiFontStyle.Default with { Color = GuiVanillaStyle.ActiveButtonTextColor, Weight = FontWeight.Bold };
 
-    /// <summary>Horizontal text padding when sizing to <c>FitContent</c>. Default 8 logical pixels.</summary>
+    /// <summary>Horizontal text padding when fitting content. Default 8 logical pixels.</summary>
     public double HorizontalTextPadding { get; set; } = 8;
 
-    /// <summary>Vertical text padding when sizing to <c>FitContent</c>. Default 4 logical pixels.</summary>
+    /// <summary>Vertical text padding when fitting content. Default 4 logical pixels.</summary>
     public double VerticalTextPadding { get; set; } = 4;
 
     /// <summary>Emboss height for the highlight/shadow bevel, in logical pixels. Default 1.5
@@ -64,47 +64,65 @@ public sealed class GuiButton : GuiComponent
     // the release happened inside or outside — needed because OnMouseUp fires before
     // OnMouseClick, so the position must be checked manually rather than relying on the
     // framework's inside/outside routing.
-    private GuiComponentBounds _lastBounds;
+    private GuiBounds _lastBounds;
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    protected override GuiBounds ResolveFinalBounds(
+        GuiBounds availableBounds,
+        GuiBounds? descendantsBounds)
     {
-        var ts = NormalFont.Measure(Text);
-        return new GuiMeasuredSize(ts.Width + HorizontalTextPadding * 2, ts.Height + VerticalTextPadding * 2);
+        GuiSize textSize = NormalFont.Measure(Text);
+        var measuredSize = new GuiSize(
+            Math.Max(
+                0,
+                (textSize.Width ?? 0) + HorizontalTextPadding * 2),
+            Math.Max(
+                0,
+                (textSize.Height ?? 0) + VerticalTextPadding * 2));
+
+        return LayoutParameters.ResolveBounds(
+            availableBounds,
+            new GuiBounds(null, measuredSize));
     }
 
-    public override void Render(Context ctx, GuiComponentBounds b)
+    public override void Render(Context ctx, GuiBounds b)
     {
         _lastBounds = b;
+
+        var position = b.Position!.Value;
+        var size = b.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
         double emboss = EmbossHeight;
 
         // 1. Solid fill.
-        ctx.Rectangle(b.X, b.Y, b.Width, b.Height);
+        ctx.Rectangle(position.X, position.Y, width, height);
         ctx.FillSolid(BackgroundColor);
 
         // 2. Top highlight (full width minus the right-shadow notch, matches vanilla path math).
-        ctx.Rectangle(b.X, b.Y, b.Width - emboss, emboss);
+        ctx.Rectangle(position.X, position.Y, width - emboss, emboss);
         ctx.SetSourceRGBA(1, 1, 1, 0.15);
         ctx.Fill();
 
         // 3. Left highlight (offset down by emboss so it doesn't double-paint the top corner).
-        ctx.Rectangle(b.X, b.Y + emboss, emboss, b.Height - emboss);
+        ctx.Rectangle(position.X, position.Y + emboss, emboss, height - emboss);
         ctx.SetSourceRGBA(1, 1, 1, 0.15);
         ctx.Fill();
 
         // 4. Bottom shadow.
-        ctx.Rectangle(b.X + emboss, b.Y + b.Height - emboss, b.Width - 2 * emboss, emboss);
+        ctx.Rectangle(position.X + emboss, position.Y + height - emboss, width - 2 * emboss, emboss);
         ctx.SetSourceRGBA(0, 0, 0, 0.2);
         ctx.Fill();
 
         // 5. Right shadow.
-        ctx.Rectangle(b.X + b.Width - emboss, b.Y, emboss, b.Height);
+        ctx.Rectangle(position.X + width - emboss, position.Y, emboss, height);
         ctx.SetSourceRGBA(0, 0, 0, 0.2);
         ctx.Fill();
 
         // 6. Hover overlay — vanilla paints a 10% white wash when the cursor is over the button.
         if (_isHovered && Enabled && !_isPressed)
         {
-            ctx.Rectangle(b.X, b.Y, b.Width, b.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(1, 1, 1, 0.1);
             ctx.Fill();
         }
@@ -113,7 +131,7 @@ public sealed class GuiButton : GuiComponent
         //    held down. This sits *on top* of the bevel, slightly muting it as in vanilla.
         if (_isPressed && Enabled)
         {
-            ctx.Rectangle(b.X, b.Y, b.Width, b.Height);
+            ctx.Rectangle(position.X, position.Y, width, height);
             ctx.SetSourceRGBA(0, 0, 0, 0.4);
             ctx.Fill();
         }
@@ -122,9 +140,9 @@ public sealed class GuiButton : GuiComponent
         if (!string.IsNullOrEmpty(Text))
         {
             var font = (_isPressed && Enabled) ? PressedFont : NormalFont;
-            var ts = font.Measure(Text);
-            double textX = b.X + (b.Width - ts.Width) / 2.0;
-            double textY = b.Y + (b.Height - ts.Height) / 2.0;
+            GuiSize textSize = font.Measure(Text);
+            double textX = position.X + (width - (textSize.Width ?? 0)) / 2.0;
+            double textY = position.Y + (height - (textSize.Height ?? 0)) / 2.0;
             ctx.DrawText(Text, font, textX, textY);
         }
     }
@@ -149,7 +167,7 @@ public sealed class GuiButton : GuiComponent
 
         _isPressed = true;
         ClientApi?.Gui.PlaySound("menubutton_down");
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseUp(GuiMouseEventArgs e)
@@ -160,8 +178,13 @@ public sealed class GuiButton : GuiComponent
         // While captured, OnMouseLeave is suppressed by the renderer (hover tracking only runs
         // on uncaptured moves). Clear _isHovered here based on actual cursor position so the
         // button doesn't stay highlighted after a press-drag-off-release sequence.
-        bool inside = e.Position.X >= _lastBounds.X && e.Position.X < _lastBounds.Right
-                   && e.Position.Y >= _lastBounds.Y && e.Position.Y < _lastBounds.Bottom;
+        var position = _lastBounds.Position!.Value;
+        var size = _lastBounds.Size!.Value;
+        double width = size.Width!.Value;
+        double height = size.Height!.Value;
+
+        bool inside = e.Position.X >= position.X && e.Position.X < position.X + width
+                   && e.Position.Y >= position.Y && e.Position.Y < position.Y + height;
         _isHovered = inside;
         // Play sound on release only when cursor is outside — this is the "pressed, moved off,
         // then released" case. When released inside, OnMouseClick follows immediately after
@@ -171,7 +194,7 @@ public sealed class GuiButton : GuiComponent
             ClientApi?.Gui.PlaySound("menubutton_up");
         }
 
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e)
@@ -192,12 +215,12 @@ public sealed class GuiButton : GuiComponent
             ClientApi?.Gui.PlaySound("menubutton");
         }
 
-        RequestPaint();
+        Slot!.RequestRender();
     }
 
     private void HandleMouseLeave(GuiMouseEventArgs e)
     {
         _isHovered = false;
-        RequestPaint();
+        Slot!.RequestRender();
     }
 }

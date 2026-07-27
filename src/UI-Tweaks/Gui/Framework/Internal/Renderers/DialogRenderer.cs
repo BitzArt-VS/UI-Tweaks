@@ -4,7 +4,7 @@ using Vintagestory.API.Config;
 namespace BitzArt.UI.Tweaks.Gui;
 
 internal sealed class DialogRenderer<TDialog> : DialogRenderer
-    where TDialog : GuiDialog, new()
+    where TDialog : class, IGuiDialog, new()
 {
     internal new TDialog Dialog => (TDialog)base.Dialog;
 
@@ -35,7 +35,6 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
 {
     private IGuiDialog _dialog = null!;
     private bool _isDisposed;
-    private bool _isFocused;
     private Action _requestClose = null!;
 
     private GuiElementAdapter _guiElementAdapter = null!;
@@ -44,20 +43,17 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     private double _currentLogicalHeight;
 
     private readonly ScopedRebuildQueue _rebuildQueue = new();
-    private DialogInputDispatcher _inputDispatcher = null!;
+    private GuiInputRouter _inputRouter = null!;
 
     private FloatingLayerRenderer _tooltipLayer = null!;
     private TooltipHost _tooltipHost = null!;
     private FloatingLayerRenderer _overlayLayer = null!;
     private OverlayHost _overlayHost = null!;
     private readonly GuiCursorHost _cursorHost = new();
-    private string? _dialogOverrideCursor;
 
     private FocusManager _focusManager = null!;
     private FloatingLayerRenderer[] _floatingLayers = [];
 
-    internal GuiCursorHost CursorHost => _cursorHost;
-    internal IGuiNode? FocusedNode => _inputDispatcher.FocusedNode;
     internal IGuiDialog Dialog => _dialog;
 
     protected DialogRenderer(ICoreClientAPI clientApi)
@@ -66,7 +62,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     }
 
     protected TDialog InitializeDialog<TDialog>(Action<TDialog>? configure, Action requestClose)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         _requestClose = requestClose;
 
@@ -75,25 +71,38 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _tooltipHost = new TooltipHost(_tooltipLayer);
         _overlayHost = new OverlayHost(_overlayLayer, this);
         _floatingLayers = [_overlayLayer, _tooltipLayer];
-        _focusManager = new FocusManager(this);
 
-        _inputDispatcher = new DialogInputDispatcher(TryToLogical, _tooltipHost);
+        _guiElementAdapter = new GuiElementAdapter(_clientApi, this);
+        _inputRouter = new GuiInputRouter(
+            _clientApi,
+            TryToLogical,
+            _tooltipHost,
+            _cursorHost,
+            ContainsScreenPoint,
+            ContainsOverlayScreenPoint,
+            () => _clientApi.Gui.RequestFocus(_guiElementAdapter),
+            cursor => _guiElementAdapter.MouseOverCursor = cursor,
+            _requestClose,
+            () => _dialog);
+        _guiElementAdapter.AttachInput(_inputRouter);
+        _focusManager = new FocusManager(_inputRouter);
 
-        Builder.CascadeChain = BuildRootCascadeChain();
-        _tooltipLayer.SetCascadeChain(Builder.CascadeChain);
-        _overlayLayer.SetCascadeChain(Builder.CascadeChain);
+        SetCascadeChain(BuildRootCascadeChain());
+        _tooltipLayer.SetCascadeChain(TreeBuilder.CascadeChain);
+        _overlayLayer.SetCascadeChain(TreeBuilder.CascadeChain);
 
         ReconcileDialogSlot(configure);
         var dialog = (TDialog)_dialog;
 
-        _currentLogicalWidth = dialog.LayoutParameters.Width.Value;
-        _currentLogicalHeight = dialog.LayoutParameters.Height.Value;
+        _currentLogicalWidth = dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        _currentLogicalHeight = dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
         EnsureSurfaceSize(
             (int)Math.Round(_currentLogicalWidth * _currentScale),
             (int)Math.Round(_currentLogicalHeight * _currentScale));
 
-        _guiElementAdapter = new GuiElementAdapter(_clientApi, this);
         _clientApi.Gui.RegisterDialog(_guiElementAdapter);
         _guiElementAdapter.TryOpen();
 
@@ -101,9 +110,9 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     }
 
     protected void ReconcileDialogSlot<TDialog>(Action<TDialog>? configure)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
-        Builder.Run(builder =>
+        TreeBuilder.Run(builder =>
         {
             builder.Add<TDialog>(0)
                 .Configure(dialog =>
@@ -111,7 +120,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
                     if (!ReferenceEquals(_dialog, dialog))
                     {
                         _dialog = dialog;
-                        dialog.AttachRuntime(new GuiDialogRuntime(this, _requestClose));
+                        dialog.AttachDialogRuntime(new GuiDialogRuntime(_inputRouter, _requestClose));
                     }
 
                     configure?.Invoke(dialog);
@@ -123,7 +132,8 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
 
     private void ValidateRootSize()
     {
-        if (!_dialog.LayoutParameters.Width.IsFixed || !_dialog.LayoutParameters.Height.IsFixed)
+        if (_dialog.LayoutParameters.Width?.Resolve(null) is null
+            || _dialog.LayoutParameters.Height?.Resolve(null) is null)
         {
             throw new InvalidOperationException("Dialog must have fixed width and height for rendering.");
         }
@@ -145,7 +155,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             return;
         }
 
-        _inputDispatcher.FocusedNode?.OnFrame(deltaTime);
+        _inputRouter.FocusedNode?.OnFrame(deltaTime);
         if (_rebuildQueue.Drain())
         {
             RequestArrange();
@@ -155,9 +165,9 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         {
             ExecuteArrangeWalk();
         }
-        else if (_paintRequested)
+        else if (_renderRequested)
         {
-            ExecutePaintWalk();
+            ExecuteRenderWalk();
         }
 
         var (posX, posY) = GetScreenOrigin();
@@ -172,8 +182,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     private void RequestSurfaceUpdateForScaleOrSizeChanges()
     {
         float scale = RuntimeEnv.GUIScale;
-        double logicalWidth = _dialog.LayoutParameters.Width.Value;
-        double logicalHeight = _dialog.LayoutParameters.Height.Value;
+        double logicalWidth = _dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        double logicalHeight = _dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
 
         if (scale == _currentScale && logicalWidth == _currentLogicalWidth && logicalHeight == _currentLogicalHeight)
         {
@@ -187,12 +199,12 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             (int)Math.Round(logicalWidth * scale),
             (int)Math.Round(logicalHeight * scale));
 
-        RequestPaint();
+        RequestArrange();
     }
 
     private void ExecuteArrangeWalk()
     {
-        _inputDispatcher.ClearArrangedRegions();
+        _inputRouter.ClearArrangedRegions();
         _tooltipHost.ResetFrame();
 
         for (int i = 0; i < _floatingLayers.Length; i++)
@@ -200,28 +212,32 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             _floatingLayers[i].OnFrameStart();
         }
 
-        var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: true);
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
+        DrawSurfaceContents(bounds, _currentScale, arrange: true);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
         {
             _floatingLayers[i].RunWalk();
         }
 
-        _inputDispatcher.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
+        _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
-    private void ExecutePaintWalk()
+    private void ExecuteRenderWalk()
     {
         _tooltipHost.ResetFrame();
 
-        var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: false);
+        var bounds = new GuiBounds(
+            new GuiPoint(0, 0, IsAbsolute: true),
+            new GuiSize(_currentLogicalWidth, _currentLogicalHeight));
+        DrawSurfaceContents(bounds, _currentScale, arrange: false);
 
-        _inputDispatcher.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
+        _inputRouter.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
-    public override void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder)
+    public override void Schedule(GuiTreeFragment fragment, GuiTreeBuilder builder)
     {
         if (_isDisposed)
         {
@@ -232,152 +248,13 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         RequestReconcile();
     }
 
-    public override void Cancel(GuiRenderFragment fragment) => _rebuildQueue.Cancel(fragment);
+    public override void Cancel(GuiTreeFragment fragment) => _rebuildQueue.Cancel(fragment);
 
-    public override void AddInteractiveRegion(in InteractiveRegion region) => _inputDispatcher.AddInteractiveRegion(region);
-    public override void AddKeyboardRegion(in KeyboardRegion region) => _inputDispatcher.AddKeyboardRegion(region);
+    public override void AddInteractiveRegion(in InteractiveRegion region) => _inputRouter.AddInteractiveRegion(region);
+    public override void AddResizeRegion(in ResizeRegion region) => _inputRouter.AddResizeRegion(region);
+    public override void AddKeyboardRegion(in KeyboardRegion region) => _inputRouter.AddKeyboardRegion(region);
 
-    // --- Lifecycle ---
-
-    internal void RequestFocus() => _clientApi.Gui.RequestFocus(_guiElementAdapter);
-
-    internal void SetMouseOverCursor(string? cursor)
-    {
-        _dialogOverrideCursor = cursor;
-        // Set immediately on the adapter so the cursor is correct even when the
-        // mouse is stationary (e.g. holding down at the start of a resize gesture).
-        _guiElementAdapter.MouseOverCursor = cursor;
-    }
-
-    // --- Focus forwarding ---
-
-    internal void OnFocus()
-    {
-        _isFocused = true;
-        _dialog.OnFocus();
-    }
-
-    internal void OnUnFocus()
-    {
-        _isFocused = false;
-        _dialog.OnUnFocus();
-    }
-
-    internal bool OnEscapePressed() => _dialog.OnEscapePressed();
-
-    // --- Full event handlers (called directly by the adapter) ---
-
-    internal void OnMouseDown(MouseEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        bool hit = _inputDispatcher.DispatchMouseDown(args);
-        if (hit)
-        {
-            RequestFocus();
-            args.Handled = true;
-        }
-    }
-
-    internal void OnMouseUp(MouseEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _inputDispatcher.DispatchMouseUp(args);
-        if (ContainsScreenPoint(args.X, args.Y) || ContainsOverlayScreenPoint(args.X, args.Y))
-        {
-            args.Handled = true;
-        }
-    }
-
-    internal void OnMouseMove(MouseEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        bool dispatched = _inputDispatcher.DispatchMouseMove(args);
-        // Resize cursor (set via SetMouseOverCursor during dispatch) takes priority over
-        // any component hover cursor. Fall back to the hover cursor when not resizing.
-        _guiElementAdapter.MouseOverCursor = _dialogOverrideCursor ?? _cursorHost.HoverCursor;
-        if (dispatched || ContainsScreenPoint(args.X, args.Y) || ContainsOverlayScreenPoint(args.X, args.Y))
-        {
-            args.Handled = true;
-        }
-    }
-
-    internal void OnMouseWheel(MouseWheelEventArgs args)
-    {
-        if (args.IsHandled)
-        {
-            return;
-        }
-
-        if (_isFocused
-            && (ContainsScreenPoint(_clientApi.Input.MouseX, _clientApi.Input.MouseY)
-                || ContainsOverlayScreenPoint(_clientApi.Input.MouseX, _clientApi.Input.MouseY)))
-        {
-            _inputDispatcher.DispatchMouseWheel(_clientApi.Input.MouseX, _clientApi.Input.MouseY, args.deltaPrecise);
-            args.SetHandled(true);
-        }
-    }
-
-    internal void OnKeyDown(KeyEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _dialog.OnKeyDown(args);
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _inputDispatcher.DispatchKeyDown(args);
-    }
-
-    internal void OnKeyUp(KeyEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _dialog.OnKeyUp(args);
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _inputDispatcher.DispatchKeyUp(args);
-    }
-
-    internal void OnKeyPress(KeyEvent args)
-    {
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _dialog.OnKeyPress(args);
-        if (args.Handled)
-        {
-            return;
-        }
-
-        _inputDispatcher.DispatchKeyPress(args);
-    }
-
-    // --- Geometry helpers (used by GuiDialog for resize hit-testing and overlay checks) ---
+    // --- Geometry helpers (used for input, resize-region screen bounds, and overlay checks) ---
 
     public override bool ContainsScreenPoint(int x, int y)
     {
@@ -406,8 +283,12 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     private (int positionX, int positionY, double physicalWidth, double physicalHeight, float scale) ResolveScreenRect()
     {
         float scale = RuntimeEnv.GUIScale;
-        double physicalWidth = Math.Round(_dialog.LayoutParameters.Width.Value * scale);
-        double physicalHeight = Math.Round(_dialog.LayoutParameters.Height.Value * scale);
+        double logicalWidth = _dialog.LayoutParameters.Width?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed width.");
+        double logicalHeight = _dialog.LayoutParameters.Height?.Resolve(null)
+            ?? throw new InvalidOperationException("A dialog requires a fixed height.");
+        double physicalWidth = Math.Round(logicalWidth * scale);
+        double physicalHeight = Math.Round(logicalHeight * scale);
         var (positionX, positionY) = ComputeScreenOrigin(physicalWidth, physicalHeight, scale);
         return (positionX, positionY, physicalWidth, physicalHeight, scale);
     }
@@ -422,8 +303,6 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         return (positionX, positionY);
     }
 
-    internal void SetFocusedNode(IGuiNode? node) => _inputDispatcher.SetFocusedNode(node);
-
     public override void Dispose()
     {
         if (_isDisposed)
@@ -434,7 +313,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _isDisposed = true;
         _tooltipHost?.Hide();
 
-        _inputDispatcher?.SetFocusedNode(null);
+        _inputRouter?.SetFocusedNode(null);
         if (_guiElementAdapter is not null)
         {
             _guiElementAdapter.TryClose();
