@@ -26,7 +26,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// </para>
 /// <para>
 /// <b>Scrolling.</b> Set <see cref="Scroll"/> to enable scrolling on one or both axes.
-/// When enabled, the framework clips drawing to the container's content area and translates
+/// When enabled, the container clips its content tree to the viewport and translates
 /// children by the current scroll offset. A <see langword="null"/> size on a given axis
 /// disables scrolling on that axis because a fit-content container has no overflow.
 /// Scrollbars are visible when content overflows the viewport (filtered by
@@ -75,19 +75,18 @@ public class GuiContainer : GuiComponent
     // ── Inset chrome ──────────────────────────────────────────────────────────
 
     /// <summary>
-    /// When <c>true</c>, the container's <see cref="Content"/> render tree is wrapped in a
-    /// <see cref="GuiInset"/> that fills the container — producing the vanilla recessed-
-    /// border look around the content. Defaults to <c>false</c>. Use
-    /// <see cref="InsetConfiguration"/> to tweak the wrapping inset's
+    /// When <c>true</c>, the container draws an owned <see cref="GuiInset"/> around its
+    /// content viewport, producing the vanilla recessed-border look. Defaults to
+    /// <c>false</c>. Use <see cref="InsetConfiguration"/> to adjust the inset's
     /// <see cref="GuiInset.Depth"/> / <see cref="GuiInset.Brightness"/> /
     /// <see cref="GuiInset.Radius"/> without subclassing.
     /// </summary>
     public bool HasInset { get; set; }
 
     /// <summary>
-    /// Optional configure callback forwarded — verbatim, via <c>.Configure(...)</c> — to
-    /// the wrapping <see cref="GuiInset"/> declared by <see cref="HasInset"/>. Lets external
-    /// callers customise the inset visual without subclassing the container.
+    /// Optional callback that configures the owned <see cref="GuiInset"/> drawn when
+    /// <see cref="HasInset"/> is set. Lets callers customise the inset visual without
+    /// subclassing the container.
     /// </summary>
     public Action<GuiInset>? InsetConfiguration { get; set; }
 
@@ -158,6 +157,258 @@ public class GuiContainer : GuiComponent
 
     // ── Framework wiring ──────────────────────────────────────────────────────
 
+    private ClippingContext? _clippingContext;
+
+    public override GuiBounds Arrange(GuiBounds availableBounds)
+    {
+        var availablePosition =
+            availableBounds.Position
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires an available position.");
+
+        SetMouseTargetBounds(
+            _scrollWheelTarget,
+            bounds: null,
+            availablePosition);
+
+        SetMouseTargetBounds(
+            _verticalScrollbarTarget,
+            bounds: null,
+            availablePosition);
+
+        SetMouseTargetBounds(
+            _horizontalScrollbarTarget,
+            bounds: null,
+            availablePosition);
+
+        var arrangedBounds =
+            base.Arrange(availableBounds);
+
+        var slot = (GuiComponentSlot)Slot!;
+        var resolvedBounds =
+            slot.Bounds
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires resolved bounds.");
+
+        var viewportBounds =
+            slot.ContentBounds
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires resolved content bounds.");
+
+        _effectiveScroll = ResolveEffectiveScroll();
+        if (_effectiveScroll == GuiScrollDirection.None)
+        {
+            _showVScrollbar = false;
+            _showHScrollbar = false;
+            SetContentClip(bounds: null);
+            return arrangedBounds;
+        }
+
+        var viewportPosition =
+            viewportBounds.Position
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires a resolved viewport position.");
+
+        var viewportSize =
+            viewportBounds.Size
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires a resolved viewport size.");
+
+        var viewportWidth =
+            viewportSize.Width
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires a resolved viewport width.");
+
+        var viewportHeight =
+            viewportSize.Height
+            ?? throw new InvalidOperationException(
+                "Scrollable container requires a resolved viewport height.");
+
+        var wantVerticalScrollbar =
+            (_effectiveScroll & GuiScrollDirection.Vertical) != 0
+            && (Scrollbar & GuiScrollDirection.Vertical) != 0;
+
+        var wantHorizontalScrollbar =
+            (_effectiveScroll & GuiScrollDirection.Horizontal) != 0
+            && (Scrollbar & GuiScrollDirection.Horizontal) != 0;
+
+        var showVerticalScrollbar =
+            wantVerticalScrollbar
+            && (AlwaysShowScrollbar & GuiScrollDirection.Vertical) != 0;
+
+        var showHorizontalScrollbar =
+            wantHorizontalScrollbar
+            && (AlwaysShowScrollbar & GuiScrollDirection.Horizontal) != 0;
+
+        var scrollbarReserve =
+            ScrollbarThickness + ScrollbarGap;
+
+        double resolvedViewportWidth;
+        double resolvedViewportHeight;
+        double contentWidth;
+        double contentHeight;
+
+        // Scrollbar visibility only grows during stabilization. With two axes this
+        // reaches a fixed point after at most two visibility changes.
+        while (true)
+        {
+            resolvedViewportWidth =
+                Math.Max(
+                    0,
+                    viewportWidth
+                    - (showVerticalScrollbar ? scrollbarReserve : 0));
+
+            resolvedViewportHeight =
+                Math.Max(
+                    0,
+                    viewportHeight
+                    - (showHorizontalScrollbar ? scrollbarReserve : 0));
+
+            viewportBounds =
+                viewportBounds with
+                {
+                    Size = new GuiSize(
+                        resolvedViewportWidth,
+                        resolvedViewportHeight),
+                };
+
+            var contentSize =
+                ResolveContentSize(
+                    slot.ArrangeChildren(viewportBounds));
+
+            contentWidth =
+                contentSize.Width ?? 0;
+
+            contentHeight =
+                contentSize.Height ?? 0;
+
+            var stabilizedVerticalScrollbar =
+                showVerticalScrollbar
+                || (wantVerticalScrollbar
+                    && contentHeight > resolvedViewportHeight + 0.5);
+
+            var stabilizedHorizontalScrollbar =
+                showHorizontalScrollbar
+                || (wantHorizontalScrollbar
+                    && contentWidth > resolvedViewportWidth + 0.5);
+
+            if (stabilizedVerticalScrollbar == showVerticalScrollbar
+                && stabilizedHorizontalScrollbar == showHorizontalScrollbar)
+            {
+                break;
+            }
+
+            showVerticalScrollbar = stabilizedVerticalScrollbar;
+            showHorizontalScrollbar = stabilizedHorizontalScrollbar;
+        }
+
+        UpdateScrollLayout(
+            resolvedBounds.Position!.Value.X,
+            resolvedBounds.Position.Value.Y,
+            resolvedBounds.Size!.Value.Width!.Value,
+            resolvedBounds.Size.Value.Height!.Value,
+            viewportPosition.X,
+            viewportPosition.Y,
+            resolvedViewportWidth,
+            resolvedViewportHeight,
+            contentWidth,
+            contentHeight,
+            showVerticalScrollbar,
+            showHorizontalScrollbar,
+            ScrollbarThickness);
+
+        SetMouseTargetBounds(
+            _scrollWheelTarget,
+            viewportBounds,
+            viewportPosition);
+
+        SetMouseTargetBounds(
+            _verticalScrollbarTarget,
+            showVerticalScrollbar
+                ? GetVScrollbarTrackBounds()
+                : null,
+            viewportPosition);
+
+        SetMouseTargetBounds(
+            _horizontalScrollbarTarget,
+            showHorizontalScrollbar
+                ? GetHScrollbarTrackBounds()
+                : null,
+            viewportPosition);
+
+        var clipBounds =
+            viewportBounds.Consume(
+                new GuiThickness(
+                    ScrollViewportClipInset));
+
+        SetContentClip(clipBounds);
+
+        var scrolledContentBounds =
+            new GuiBounds(
+                new GuiPoint(
+                    viewportPosition.X - ScrollX,
+                    viewportPosition.Y - ScrollY,
+                    IsAbsolute: true),
+                new GuiSize(
+                    (_effectiveScroll & GuiScrollDirection.Horizontal) != 0
+                        ? Math.Max(resolvedViewportWidth, contentWidth)
+                        : resolvedViewportWidth,
+                    (_effectiveScroll & GuiScrollDirection.Vertical) != 0
+                        ? Math.Max(resolvedViewportHeight, contentHeight)
+                        : resolvedViewportHeight));
+
+        slot.ArrangeChildren(scrolledContentBounds);
+        return arrangedBounds;
+    }
+
+    private GuiScrollDirection ResolveEffectiveScroll()
+    {
+        var effectiveScroll = Scroll;
+
+        if (LayoutParameters.Width is null)
+        {
+            effectiveScroll &= ~GuiScrollDirection.Horizontal;
+        }
+
+        if (LayoutParameters.Height is null)
+        {
+            effectiveScroll &= ~GuiScrollDirection.Vertical;
+        }
+
+        return effectiveScroll;
+    }
+
+    private static GuiSize ResolveContentSize(GuiBounds? descendantsBounds)
+    {
+        if (descendantsBounds is not GuiBounds bounds)
+        {
+            return new GuiSize(0, 0);
+        }
+
+        var size =
+            bounds.Size
+            ?? new GuiSize(0, 0);
+
+        if (bounds.Position is not GuiPoint position
+            || position.IsAbsolute)
+        {
+            return size;
+        }
+
+        return new GuiSize(
+            position.X + size.Width,
+            position.Y + size.Height);
+    }
+
+    private void SetContentClip(GuiBounds? bounds)
+    {
+        if (_clippingContext is not null
+            && _scrollContentScope is not null)
+        {
+            _clippingContext.SetClip(_scrollContentScope, bounds);
+        }
+    }
+
     /// <summary>
     /// Renders the nested <see cref="Content"/> fragment into this container. Subclasses may
     /// override to inject additional children (e.g. an overlay click target); call
@@ -165,7 +416,46 @@ public class GuiContainer : GuiComponent
     /// </summary>
     protected override void BuildComponentTree(IGuiTreeBuilder builder)
     {
-        Content?.Invoke(builder);
+        _scrollWheelTarget = null;
+        _scrollContentScope = null;
+        _verticalScrollbarTarget = null;
+        _horizontalScrollbarTarget = null;
+
+        if (Scroll == GuiScrollDirection.None)
+        {
+            Content?.Invoke(builder);
+            return;
+        }
+
+        builder.Add<ScrollWheelTarget>(int.MinValue)
+            .Configure(target =>
+            {
+                target.Owner = this;
+                _scrollWheelTarget = target;
+            });
+
+        builder.Add<ScrollContentScope>(int.MinValue + 1)
+            .Configure(scope =>
+            {
+                scope.Content = Content;
+                _scrollContentScope = scope;
+            });
+
+        builder.Add<ScrollbarMouseTarget>(int.MinValue + 2)
+            .Configure(target =>
+            {
+                target.Owner = this;
+                target.IsVertical = true;
+                _verticalScrollbarTarget = target;
+            });
+
+        builder.Add<ScrollbarMouseTarget>(int.MinValue + 3)
+            .Configure(target =>
+            {
+                target.Owner = this;
+                target.IsVertical = false;
+                _horizontalScrollbarTarget = target;
+            });
     }
 
     /// <inheritdoc/>
@@ -176,30 +466,38 @@ public class GuiContainer : GuiComponent
     /// </remarks>
     public override void OnParametersSet()
     {
+        base.OnParametersSet();
+        _clippingContext = GetCascadingValue<ClippingContext>();
         InsetConfiguration?.Invoke(_inset);
     }
 
     public sealed override void Render(Context context, GuiBounds bounds)
-        => DrawBackground(context, bounds);
+    {
+        DrawBackground(context, bounds);
+        DrawInsetBackground(
+            context,
+            _effectiveScroll == GuiScrollDirection.None
+                ? bounds
+                : GetScrollInsetBounds());
+    }
 
     public sealed override void RenderOverlay(Context context, GuiBounds bounds)
-        => DrawOverlay(context, bounds);
+    {
+        RenderScrollbars(context);
+        DrawOverlay(context, bounds);
+    }
 
     /// <summary>
-    /// Owned inset instance configured via <see cref="InsetConfiguration"/> and drawn as
-    /// the container's background by the layout pass when <see cref="HasInset"/> is set.
-    /// Single instance per container — no per-frame allocation.
+    /// Owned inset instance configured via <see cref="InsetConfiguration"/> and drawn by
+    /// this container when <see cref="HasInset"/> is set. Single instance per container.
     /// </summary>
     private readonly GuiInset _inset = new();
 
     /// <summary>
     /// Draws the inset background into <paramref name="context"/> at <paramref name="bounds"/>
-    /// when <see cref="HasInset"/> is set; no-op otherwise. Called by the framework's layout
-    /// pass with the correct fixed (non-scrolling) region — the full allocated bounds for
-    /// non-scrollable containers, or the inset region (allocated minus scrollbar gutter) for
-    /// scrollable ones.
+    /// when <see cref="HasInset"/> is set; no-op otherwise.
     /// </summary>
-    internal void DrawInsetBackground(Context context, GuiBounds bounds)
+    private void DrawInsetBackground(Context context, GuiBounds bounds)
     {
         if (!HasInset)
         {
@@ -239,9 +537,8 @@ public class GuiContainer : GuiComponent
     /// </summary>
     private const double HandleInset = 1;
 
-    // Effective scroll axes — set by the framework each layout pass after filtering
-    // fit-content dimensions out of the user-declared Scroll mask. Read by HandleMouseWheel.
-    internal GuiScrollDirection EffectiveScroll;
+    // Requested scroll axes after fit-content dimensions have been filtered out.
+    private GuiScrollDirection _effectiveScroll;
 
     // Cached layout state for the most recent frame, used by RenderScrollbars and the
     // scrollbar mouse handlers. All values in dialog-local logical pixels.
@@ -260,49 +557,15 @@ public class GuiContainer : GuiComponent
     private double _vDragHandleOffset;
     private double _hDragHandleOffset;
 
-    // Stable tokens for scrollbar interactive regions. Allocated once per container —
-    // the input router compares tokens by reference identity for capture matching, so
-    // each axis needs its own object.
-    internal readonly object VScrollbarToken = new();
-    internal readonly object HScrollbarToken = new();
-
-    // Pre-bound mouse-handler callbacks. Building them in the constructor keeps the
-    // per-frame cost of declaring scrollbar interactive regions to zero allocations.
-    internal readonly GuiCallback<GuiMouseEventArgs> OnVScrollbarDown;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnVScrollbarUp;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnVScrollbarMove;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnHScrollbarDown;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnHScrollbarUp;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnHScrollbarMove;
-    internal readonly GuiCallback<GuiMouseEventArgs> OnScrollWheel;
-
-    public GuiContainer()
-    {
-        OnVScrollbarDown = (Action<GuiMouseEventArgs>)HandleVScrollbarDown;
-        OnVScrollbarUp = (Action<GuiMouseEventArgs>)HandleVScrollbarUp;
-        OnVScrollbarMove = (Action<GuiMouseEventArgs>)HandleVScrollbarMove;
-        OnHScrollbarDown = (Action<GuiMouseEventArgs>)HandleHScrollbarDown;
-        OnHScrollbarUp = (Action<GuiMouseEventArgs>)HandleHScrollbarUp;
-        OnHScrollbarMove = (Action<GuiMouseEventArgs>)HandleHScrollbarMove;
-        OnScrollWheel = (Action<GuiMouseEventArgs>)HandleScrollWheel;
-    }
+    private ScrollbarMouseTarget? _verticalScrollbarTarget;
+    private ScrollbarMouseTarget? _horizontalScrollbarTarget;
+    private ScrollWheelTarget? _scrollWheelTarget;
+    private ScrollContentScope? _scrollContentScope;
 
     /// <summary>
-    /// Pushes the latest layout state into this container so subsequent scrollbar drawing
-    /// and interaction can reference it. Called by the framework's layout pass for every
-    /// scrollable container, in dialog-local logical coordinates. Clamps the current scroll
-    /// offsets to the valid range derived from content vs viewport size.
+    /// Caches current component-owned scrolling geometry and clamps offsets to its range.
     /// </summary>
-    /// <summary>
-    /// Pushes the latest layout state into this container so subsequent scrollbar drawing
-    /// and interaction can reference it. Called by the framework's layout pass for every
-    /// scrollable container, in dialog-local logical coordinates. The <c>allocated*</c>
-    /// rectangle is the container's outer bounds (used to anchor the scrollbar track and
-    /// inset region against the container edge); the <c>viewport*</c> rectangle is the
-    /// inner area where children scroll. Clamps the current scroll offsets to the valid
-    /// range derived from content vs viewport size.
-    /// </summary>
-    internal void UpdateScrollLayout(
+    private void UpdateScrollLayout(
         double allocatedX, double allocatedY, double allocatedW, double allocatedH,
         double viewportX, double viewportY, double viewportW, double viewportH,
         double contentW, double contentH,
@@ -349,17 +612,28 @@ public class GuiContainer : GuiComponent
     /// Routes a mouse-wheel event hit on this container's viewport. Vertical wheel scrolls
     /// the vertical axis when enabled, falling back to horizontal otherwise.
     /// </summary>
-    internal void HandleMouseWheel(float deltaPrecise)
+    private void HandleMouseWheel(float deltaPrecise)
     {
         double previousScrollX = ScrollX;
         double previousScrollY = ScrollY;
-        if ((EffectiveScroll & GuiScrollDirection.Vertical) != 0)
+        double maxScrollX = Math.Max(0, _contentW - _viewportW);
+        double maxScrollY = Math.Max(0, _contentH - _viewportH);
+
+        if ((_effectiveScroll & GuiScrollDirection.Vertical) != 0
+            && maxScrollY > 0)
         {
-            ScrollY = Clamp(ScrollY - deltaPrecise * WheelStep, 0, Math.Max(0, _contentH - _viewportH));
+            ScrollY = Clamp(
+                ScrollY - deltaPrecise * WheelStep,
+                0,
+                maxScrollY);
         }
-        else if ((EffectiveScroll & GuiScrollDirection.Horizontal) != 0)
+        else if ((_effectiveScroll & GuiScrollDirection.Horizontal) != 0
+            && maxScrollX > 0)
         {
-            ScrollX = Clamp(ScrollX - deltaPrecise * WheelStep, 0, Math.Max(0, _contentW - _viewportW));
+            ScrollX = Clamp(
+                ScrollX - deltaPrecise * WheelStep,
+                0,
+                maxScrollX);
         }
 
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
@@ -368,15 +642,34 @@ public class GuiContainer : GuiComponent
         }
     }
 
-    private void HandleScrollWheel(GuiMouseEventArgs args) => HandleMouseWheel(args.WheelDelta);
+    private static void SetMouseTargetBounds(
+        GuiComponent? target,
+        GuiBounds? bounds,
+        GuiPoint fallbackPosition)
+    {
+        if (target is null)
+        {
+            return;
+        }
+
+        var position =
+            bounds?.Position
+            ?? fallbackPosition;
+
+        var size =
+            bounds?.Size
+            ?? new GuiSize(0, 0);
+
+        target.LayoutParameters.Position = position;
+        target.LayoutParameters.Width = size.Width ?? 0;
+        target.LayoutParameters.Height = size.Height ?? 0;
+    }
 
     /// <summary>
-    /// Draws the visible scrollbars over the container's allocated bounds. Called by the
-    /// framework's layout pass after children render, before <see cref="DrawOverlay"/>.
-    /// Mirrors the look of vanilla <c>GuiElementScrollbar</c> — dimmed track with a rounded
-    /// highlight handle.
+    /// Draws visible scrollbars after children and before <see cref="DrawOverlay"/>.
+    /// Mirrors vanilla <c>GuiElementScrollbar</c>.
     /// </summary>
-    internal void RenderScrollbars(Context ctx)
+    private void RenderScrollbars(Context ctx)
     {
         if (_showVScrollbar)
         {
@@ -415,7 +708,7 @@ public class GuiContainer : GuiComponent
     /// <summary>Vertical scrollbar track bounds (dialog-local logical px). Anchored
     /// against the container's allocated right edge, with the gap reserved between
     /// viewport and track on the inner side.</summary>
-    internal GuiBounds GetVScrollbarTrackBounds()
+    private GuiBounds GetVScrollbarTrackBounds()
         => new(
             new GuiPoint(
                 _allocatedX + _allocatedW - _sbThickness,
@@ -427,7 +720,7 @@ public class GuiContainer : GuiComponent
 
     /// <summary>Horizontal scrollbar track bounds (dialog-local logical px). Anchored
     /// against the container's allocated bottom edge.</summary>
-    internal GuiBounds GetHScrollbarTrackBounds()
+    private GuiBounds GetHScrollbarTrackBounds()
         => new(
             new GuiPoint(
                 _viewportX,
@@ -444,7 +737,7 @@ public class GuiContainer : GuiComponent
     /// between the inset's emboss and the scrollbar track, so they don't read as one
     /// continuous dark strip.
     /// </summary>
-    internal GuiBounds GetScrollInsetBounds()
+    private GuiBounds GetScrollInsetBounds()
         => new(
             new GuiPoint(
                 _allocatedX,
@@ -459,7 +752,7 @@ public class GuiContainer : GuiComponent
     /// <see cref="HasInset"/> is set, so scrollable content is clipped before it reaches
     /// the emboss ring and cannot paint over it.
     /// </summary>
-    internal double ScrollViewportClipInset => HasInset ? _inset.Depth / RuntimeEnv.GUIScale : 0;
+    private double ScrollViewportClipInset => HasInset ? _inset.Depth / RuntimeEnv.GUIScale : 0;
 
     private static void DrawScrollbarTrack(Context ctx, GuiBounds b)
     {
@@ -645,4 +938,83 @@ public class GuiContainer : GuiComponent
 
     private static double Clamp(double v, double lo, double hi)
         => v < lo ? lo : (v > hi ? hi : v);
+
+    private sealed class ScrollContentScope : GuiNode
+    {
+        public GuiTreeFragment? Content { get; set; }
+
+        public ScrollContentScope() { }
+
+        protected override void BuildComponentTree(IGuiTreeBuilder builder)
+            => Content?.Invoke(builder);
+    }
+
+    private sealed class ScrollWheelTarget : GuiComponent
+    {
+        public GuiContainer? Owner { get; set; }
+
+        public ScrollWheelTarget() { }
+
+        protected override void ConfigureSlot(IGuiSlotBuilder builder)
+        {
+            base.ConfigureSlot(builder);
+            builder.OnMouseWheel(HandleMouseWheel);
+        }
+
+        private void HandleMouseWheel(GuiMouseEventArgs args)
+            => Owner?.HandleMouseWheel(args.WheelDelta);
+    }
+
+    private sealed class ScrollbarMouseTarget : GuiComponent
+    {
+        public GuiContainer? Owner { get; set; }
+        public bool IsVertical { get; set; }
+
+        public ScrollbarMouseTarget() { }
+
+        protected override void ConfigureSlot(IGuiSlotBuilder builder)
+        {
+            base.ConfigureSlot(builder);
+            builder
+                .OnMouseDown(HandleMouseDown)
+                .OnMouseUp(HandleMouseUp)
+                .OnMouseMove(HandleMouseMove);
+        }
+
+        private void HandleMouseDown(GuiMouseEventArgs args)
+        {
+            if (IsVertical)
+            {
+                Owner?.HandleVScrollbarDown(args);
+            }
+            else
+            {
+                Owner?.HandleHScrollbarDown(args);
+            }
+        }
+
+        private void HandleMouseUp(GuiMouseEventArgs args)
+        {
+            if (IsVertical)
+            {
+                Owner?.HandleVScrollbarUp(args);
+            }
+            else
+            {
+                Owner?.HandleHScrollbarUp(args);
+            }
+        }
+
+        private void HandleMouseMove(GuiMouseEventArgs args)
+        {
+            if (IsVertical)
+            {
+                Owner?.HandleVScrollbarMove(args);
+            }
+            else
+            {
+                Owner?.HandleHScrollbarMove(args);
+            }
+        }
+    }
 }

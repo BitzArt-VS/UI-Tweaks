@@ -249,9 +249,9 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
     }
 
     internal void Paint(Context context, bool registerRegions)
-        => PaintInto(context, registerRegions);
+        => PaintInto(context, registerRegions, inheritedClipBounds: null);
 
-    private GuiBounds? PaintInto(Context context, bool registerRegions)
+    private GuiBounds? PaintInto(Context context, bool registerRegions, GuiBounds? inheritedClipBounds)
     {
         GuiBounds? extent = null;
 
@@ -260,9 +260,11 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             if (slot is not GuiComponentSlot componentSlot)
             {
                 GuiBounds? childExtent =
-                    slot.ChildTreeBuilder.PaintInto(
+                    PaintDescendants(
+                        slot,
                         context,
-                        registerRegions);
+                        registerRegions,
+                        inheritedClipBounds);
 
                 if (childExtent is not GuiBounds wrapperBounds)
                 {
@@ -273,7 +275,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
 
                 if (registerRegions)
                 {
-                    RegisterRegions(slot, wrapperBounds);
+                    RegisterRegions(slot, wrapperBounds, inheritedClipBounds);
                 }
 
                 slot.Instance.RenderOverlay(context, wrapperBounds);
@@ -292,48 +294,67 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
 
             if (registerRegions)
             {
-                RegisterRegions(slot, bounds);
+                RegisterRegions(slot, bounds, inheritedClipBounds);
             }
 
-            if (componentSlot.IsScrollable && layoutComponent is GuiContainer scrollContainer)
-            {
-                var clipPosition =
-                    componentSlot.ScrollClipBounds.Position!.Value;
-                var clipSize =
-                    componentSlot.ScrollClipBounds.Size!.Value;
-
-                scrollContainer.DrawInsetBackground(context, scrollContainer.GetScrollInsetBounds());
-                context.Save();
-                context.Rectangle(
-                    clipPosition.X,
-                    clipPosition.Y,
-                    clipSize.Width!.Value,
-                    clipSize.Height!.Value);
-                context.Clip();
-                componentSlot.ChildTreeBuilder.PaintInto(
-                    context,
-                    registerRegions);
-                context.Restore();
-                scrollContainer.RenderScrollbars(context);
-                layoutComponent.RenderOverlay(context, bounds);
-                continue;
-            }
-
-            (layoutComponent as GuiContainer)?.DrawInsetBackground(context, bounds);
-            componentSlot.ChildTreeBuilder.PaintInto(
+            PaintDescendants(
+                slot,
                 context,
-                registerRegions);
+                registerRegions,
+                inheritedClipBounds);
             layoutComponent.RenderOverlay(context, bounds);
         }
 
         return extent;
     }
 
-    private void RegisterRegions(GuiSlot slot, GuiBounds bounds)
+    private GuiBounds? PaintDescendants(
+        GuiSlot slot,
+        Context context,
+        bool registerRegions,
+        GuiBounds? inheritedClipBounds)
+    {
+        if (!_renderer.ClippingContext.TryGetClip(
+                slot.Instance,
+                out var descendantClipBounds))
+        {
+            return slot.ChildTreeBuilder.PaintInto(
+                context,
+                registerRegions,
+                inheritedClipBounds);
+        }
+
+        var clipPosition = descendantClipBounds.Position!.Value;
+        var clipSize = descendantClipBounds.Size!.Value;
+
+        context.Save();
+        try
+        {
+            context.Rectangle(
+                clipPosition.X,
+                clipPosition.Y,
+                clipSize.Width!.Value,
+                clipSize.Height!.Value);
+            context.Clip();
+
+            return slot.ChildTreeBuilder.PaintInto(
+                context,
+                registerRegions,
+                IntersectClipBounds(
+                    inheritedClipBounds,
+                    descendantClipBounds));
+        }
+        finally
+        {
+            context.Restore();
+        }
+    }
+
+    private void RegisterRegions(GuiSlot slot, GuiBounds bounds, GuiBounds? clipBounds)
     {
         if (slot.Instance is IGuiResizable resizable && resizable.SupportedResizeEdges != GuiResizeEdge.None)
         {
-            _renderer.AddResizeRegion(new ResizeRegion(bounds, slot.Instance, resizable));
+            _renderer.AddResizeRegion(new ResizeRegion(bounds, slot.Instance, resizable, clipBounds));
         }
 
         if (slot.HasMouseHandlers)
@@ -346,7 +367,9 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 slot.OnMouseClick,
                 slot.OnMouseMove,
                 slot.OnMouseEnter,
-                slot.OnMouseLeave));
+                slot.OnMouseLeave,
+                slot.OnMouseWheel,
+                clipBounds: clipBounds));
         }
 
         if (slot.HasKeyboardRegionHandlers)
@@ -358,6 +381,34 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 slot.OnKeyPress,
                 slot.OnFocusChanged));
         }
+    }
+
+    private static GuiBounds? IntersectClipBounds(GuiBounds? first, GuiBounds second)
+    {
+        if (first is not GuiBounds firstBounds)
+        {
+            return second;
+        }
+
+        var firstPosition = firstBounds.Position!.Value;
+        var firstSize = firstBounds.Size!.Value;
+        var secondPosition = second.Position!.Value;
+        var secondSize = second.Size!.Value;
+
+        var left = Math.Max(firstPosition.X, secondPosition.X);
+        var top = Math.Max(firstPosition.Y, secondPosition.Y);
+        var right = Math.Min(
+            firstPosition.X + firstSize.Width!.Value,
+            secondPosition.X + secondSize.Width!.Value);
+        var bottom = Math.Min(
+            firstPosition.Y + firstSize.Height!.Value,
+            secondPosition.Y + secondSize.Height!.Value);
+
+        return new GuiBounds(
+            new GuiPoint(left, top, IsAbsolute: true),
+            new GuiSize(
+                Math.Max(0, right - left),
+                Math.Max(0, bottom - top)));
     }
 
     private static GuiBounds? Union(GuiBounds? extent, GuiBounds bounds)
@@ -373,6 +424,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
         public GuiCallback<GuiMouseEventArgs> OnMouseMove;
         public GuiCallback<GuiMouseEventArgs> OnMouseEnter;
         public GuiCallback<GuiMouseEventArgs> OnMouseLeave;
+        public GuiCallback<GuiMouseEventArgs> OnMouseWheel;
 
         public GuiCallback<GuiKeyEventArgs> OnKeyDown;
         public GuiCallback<GuiKeyEventArgs> OnKeyUp;
@@ -400,6 +452,9 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                     break;
                 case GuiMouseEventKind.Leave:
                     OnMouseLeave = GuiCallback<GuiMouseEventArgs>.Combine(OnMouseLeave, callback);
+                    break;
+                case GuiMouseEventKind.Wheel:
+                    OnMouseWheel = GuiCallback<GuiMouseEventArgs>.Combine(OnMouseWheel, callback);
                     break;
             }
         }
@@ -435,6 +490,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
                 OnMouseMove = GuiCallback<GuiMouseEventArgs>.Combine(ownCallbacks.OnMouseMove, externalCallbacks.OnMouseMove),
                 OnMouseEnter = GuiCallback<GuiMouseEventArgs>.Combine(ownCallbacks.OnMouseEnter, externalCallbacks.OnMouseEnter),
                 OnMouseLeave = GuiCallback<GuiMouseEventArgs>.Combine(ownCallbacks.OnMouseLeave, externalCallbacks.OnMouseLeave),
+                OnMouseWheel = GuiCallback<GuiMouseEventArgs>.Combine(ownCallbacks.OnMouseWheel, externalCallbacks.OnMouseWheel),
                 OnKeyDown = GuiCallback<GuiKeyEventArgs>.Combine(ownCallbacks.OnKeyDown, externalCallbacks.OnKeyDown),
                 OnKeyUp = GuiCallback<GuiKeyEventArgs>.Combine(ownCallbacks.OnKeyUp, externalCallbacks.OnKeyUp),
                 OnKeyPress = GuiCallback<GuiKeyEventArgs>.Combine(ownCallbacks.OnKeyPress, externalCallbacks.OnKeyPress),
@@ -450,6 +506,7 @@ internal sealed class GuiTreeBuilder : IGuiTreeBuilder, IDisposable
             slot.OnMouseMove = OnMouseMove;
             slot.OnMouseEnter = OnMouseEnter;
             slot.OnMouseLeave = OnMouseLeave;
+            slot.OnMouseWheel = OnMouseWheel;
             slot.OnKeyDown = OnKeyDown;
             slot.OnKeyUp = OnKeyUp;
             slot.OnKeyPress = OnKeyPress;

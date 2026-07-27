@@ -28,6 +28,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 ///   slot's bounds. Basis for hover overlays and tooltips.</item>
 ///   <item><c>OnMouseLeave</c> fires once when the cursor leaves the slot's bounds (or the
 ///   dialog entirely) after a previous <c>OnMouseEnter</c>. Always paired with Enter.</item>
+///   <item><c>OnMouseWheel</c> fires on the last matching wheel-enabled slot under the
+///   pointer.</item>
 /// </list>
 /// </para>
 /// </summary>
@@ -114,6 +116,20 @@ public static class MouseEventBuilderExtensions
         where TBuilder : IGuiSlotBuilder
     {
         builder.AddMouseHandler(GuiMouseEventKind.Leave, handler);
+        return builder;
+    }
+
+    public static TBuilder OnMouseWheel<TBuilder>(this TBuilder builder, Action<GuiMouseEventArgs> handler)
+        where TBuilder : IGuiSlotBuilder
+    {
+        builder.AddMouseHandler(GuiMouseEventKind.Wheel, handler);
+        return builder;
+    }
+
+    public static TBuilder OnMouseWheel<TBuilder>(this TBuilder builder, Func<GuiMouseEventArgs, Task> handler)
+        where TBuilder : IGuiSlotBuilder
+    {
+        builder.AddMouseHandler(GuiMouseEventKind.Wheel, handler);
         return builder;
     }
 }

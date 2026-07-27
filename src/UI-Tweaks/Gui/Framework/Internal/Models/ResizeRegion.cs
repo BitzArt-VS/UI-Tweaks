@@ -3,24 +3,28 @@ namespace BitzArt.UI.Tweaks.Gui;
 internal readonly struct ResizeRegion
 {
     public readonly GuiBounds Bounds;
+    public readonly GuiBounds? ClipBounds;
     public readonly object Token;
     public readonly IGuiResizable Target;
 
-    public ResizeRegion(GuiBounds bounds, object token, IGuiResizable target)
+    public ResizeRegion(GuiBounds bounds, object token, IGuiResizable target, GuiBounds? clipBounds = null)
     {
         Bounds = bounds;
+        ClipBounds = clipBounds;
         Token = token;
         Target = target;
     }
 
     public bool Contains(double x, double y)
     {
-        var position = Bounds.Position!.Value;
-        var size = Bounds.Size!.Value;
-        double width = size.Width!.Value;
-        double height = size.Height!.Value;
+        var point =
+            new GuiPoint(
+                x,
+                y,
+                IsAbsolute: true);
 
-        return x >= position.X && x < position.X + width
-            && y >= position.Y && y < position.Y + height;
+        return Bounds.Contains(point)
+            && (ClipBounds is not GuiBounds clipBounds
+                || clipBounds.Contains(point));
     }
 }

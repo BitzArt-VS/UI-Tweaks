@@ -95,6 +95,25 @@ public readonly record struct GuiBounds(
         => new(Position + consumed, Size - consumed, Margin, Padding);
 
     /// <summary>
+    /// Whether <paramref name="point"/> lies within these bounds. Left and top edges are
+    /// inclusive; right and bottom edges are exclusive. Unresolved bounds contain no points.
+    /// </summary>
+    public bool Contains(GuiPoint point)
+    {
+        if (Position is not GuiPoint position
+            || Size?.Width is not double width
+            || Size?.Height is not double height)
+        {
+            return false;
+        }
+
+        return point.X >= position.X
+            && point.X < position.X + width
+            && point.Y >= position.Y
+            && point.Y < position.Y + height;
+    }
+
+    /// <summary>
     /// Returns the smallest bounds containing these bounds and the specified bounds.
     /// </summary>
     public GuiBounds Union(GuiBounds other)

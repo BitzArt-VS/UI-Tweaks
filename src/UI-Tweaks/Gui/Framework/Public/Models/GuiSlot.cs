@@ -17,9 +17,7 @@ public abstract class GuiSlot
     // since the slot key includes the type — the frame type always matches.
     internal readonly GuiTreeBuilder.TreeFrame Frame;
 
-    internal bool IsScrollable;
     public bool IsArranging { get; private set; }
-    internal GuiBounds ScrollClipBounds;
 
     internal GuiCallback<GuiMouseEventArgs> OnMouseDown;
     internal GuiCallback<GuiMouseEventArgs> OnMouseUp;
@@ -27,6 +25,7 @@ public abstract class GuiSlot
     internal GuiCallback<GuiMouseEventArgs> OnMouseMove;
     internal GuiCallback<GuiMouseEventArgs> OnMouseEnter;
     internal GuiCallback<GuiMouseEventArgs> OnMouseLeave;
+    internal GuiCallback<GuiMouseEventArgs> OnMouseWheel;
 
     internal GuiCallback<GuiKeyEventArgs> OnKeyDown;
     internal GuiCallback<GuiKeyEventArgs> OnKeyUp;
@@ -68,7 +67,8 @@ public abstract class GuiSlot
     internal bool HasMouseHandlers =>
         OnMouseDown.HasHandler || OnMouseUp.HasHandler
         || OnMouseClick.HasHandler || OnMouseMove.HasHandler
-        || OnMouseEnter.HasHandler || OnMouseLeave.HasHandler;
+        || OnMouseEnter.HasHandler || OnMouseLeave.HasHandler
+        || OnMouseWheel.HasHandler;
 
     internal bool HasKeyboardRegionHandlers =>
         OnKeyDown.HasHandler || OnKeyUp.HasHandler || OnKeyPress.HasHandler || OnFocusChanged.HasHandler;
@@ -245,9 +245,4 @@ public abstract class GuiSlot
                     "Arranged children require an available origin."));
     }
 
-    internal void SetScrollableBounds(GuiBounds scrollClipBounds)
-    {
-        IsScrollable = true;
-        ScrollClipBounds = scrollClipBounds;
-    }
 }

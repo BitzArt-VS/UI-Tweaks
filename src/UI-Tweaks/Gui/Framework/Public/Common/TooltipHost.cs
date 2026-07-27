@@ -52,15 +52,11 @@ public sealed class TooltipHost
         }
 
         public bool Contains(double x, double y)
-        {
-            var position = Bounds.Position!.Value;
-            var size = Bounds.Size!.Value;
-            double width = size.Width!.Value;
-            double height = size.Height!.Value;
-
-            return x >= position.X && x < position.X + width
-                && y >= position.Y && y < position.Y + height;
-        }
+            => Bounds.Contains(
+                new GuiPoint(
+                    x,
+                    y,
+                    IsAbsolute: true));
     }
 
     internal TooltipHost(FloatingLayerRenderer layer) => _layer = layer;

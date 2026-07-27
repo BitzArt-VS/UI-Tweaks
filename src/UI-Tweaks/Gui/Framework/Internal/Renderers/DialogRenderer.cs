@@ -87,7 +87,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _guiElementAdapter.AttachInput(_inputRouter);
         _focusManager = new FocusManager(_inputRouter);
 
-        TreeBuilder.CascadeChain = BuildRootCascadeChain();
+        SetCascadeChain(BuildRootCascadeChain());
         _tooltipLayer.SetCascadeChain(TreeBuilder.CascadeChain);
         _overlayLayer.SetCascadeChain(TreeBuilder.CascadeChain);
 

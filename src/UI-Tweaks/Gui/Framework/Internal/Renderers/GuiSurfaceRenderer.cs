@@ -12,6 +12,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     private LoadedTexture _texture;
     private int _physicalWidth;
     private int _physicalHeight;
+    private readonly ClippingContext _clippingContext = new();
     protected float _currentScale;
     protected bool _reconcileRequested;
     protected bool _layoutRequested;
@@ -23,6 +24,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     protected int PhysicalHeight => _physicalHeight;
     protected GuiTreeBuilder TreeBuilder { get; }
     protected bool HasPendingSurfaceUpdate => _reconcileRequested || _layoutRequested || _renderRequested;
+    internal ClippingContext ClippingContext => _clippingContext;
 
     protected GuiSurfaceRenderer(ICoreClientAPI clientApi)
     {
@@ -55,7 +57,14 @@ internal abstract class GuiSurfaceRenderer : IDisposable
 
     public virtual bool ContainsScreenPoint(int x, int y) => false;
 
-    internal void SetCascadeChain(CascadingValueChain? chain) => TreeBuilder.CascadeChain = chain;
+    internal void SetCascadeChain(CascadingValueChain? chain)
+    {
+        TreeBuilder.CascadeChain = new CascadingValueChain(
+            chain,
+            typeof(ClippingContext),
+            name: null,
+            _clippingContext);
+    }
 
     protected void EnsureSurfaceSize(int physW, int physH)
     {
@@ -78,6 +87,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         {
             if (arrange)
             {
+                _clippingContext.Reset();
                 TreeBuilder.ArrangeRoot(bounds);
             }
 

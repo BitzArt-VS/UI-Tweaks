@@ -3,6 +3,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 internal readonly struct InteractiveRegion
 {
     public readonly GuiBounds Bounds;
+    public readonly GuiBounds? ClipBounds;
     public readonly object Token;
 
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseDown;
@@ -22,9 +23,11 @@ internal readonly struct InteractiveRegion
         GuiCallback<GuiMouseEventArgs> onMouseMove,
         GuiCallback<GuiMouseEventArgs> onMouseEnter,
         GuiCallback<GuiMouseEventArgs> onMouseLeave,
-        GuiCallback<GuiMouseEventArgs> onMouseWheel = default)
+        GuiCallback<GuiMouseEventArgs> onMouseWheel = default,
+        GuiBounds? clipBounds = null)
     {
         Bounds = bounds;
+        ClipBounds = clipBounds;
         Token = token;
         OnMouseDown = onMouseDown;
         OnMouseUp = onMouseUp;
@@ -41,31 +44,21 @@ internal readonly struct InteractiveRegion
 
     public bool Contains(double x, double y)
     {
-        var position = Bounds.Position!.Value;
-        var size = Bounds.Size!.Value;
-        double width = size.Width!.Value;
-        double height = size.Height!.Value;
+        var point =
+            new GuiPoint(
+                x,
+                y,
+                IsAbsolute: true);
 
-        return x >= position.X && x < position.X + width
-            && y >= position.Y && y < position.Y + height;
+        return Bounds.Contains(point)
+            && (ClipBounds is not GuiBounds clipBounds
+                || clipBounds.Contains(point));
     }
 
     public InteractiveRegion Translated(double dx, double dy)
     {
-        var position = Bounds.Position!.Value;
-        var size = Bounds.Size!.Value;
-        double width = size.Width!.Value;
-        double height = size.Height!.Value;
-
-        var translatedBounds = new GuiBounds(
-            new GuiPoint(
-                position.X + dx,
-                position.Y + dy,
-                IsAbsolute: true),
-            new GuiSize(width, height));
-
         return new(
-            translatedBounds,
+            Translate(Bounds, dx, dy),
             Token,
             OnMouseDown,
             OnMouseUp,
@@ -73,6 +66,22 @@ internal readonly struct InteractiveRegion
             OnMouseMove,
             OnMouseEnter,
             OnMouseLeave,
-            OnMouseWheel);
+            OnMouseWheel,
+            ClipBounds is GuiBounds clipBounds
+                ? Translate(clipBounds, dx, dy)
+                : null);
+    }
+
+    private static GuiBounds Translate(GuiBounds bounds, double dx, double dy)
+    {
+        var position = bounds.Position!.Value;
+
+        return bounds with
+        {
+            Position = new GuiPoint(
+                position.X + dx,
+                position.Y + dy,
+                IsAbsolute: true),
+        };
     }
 }
