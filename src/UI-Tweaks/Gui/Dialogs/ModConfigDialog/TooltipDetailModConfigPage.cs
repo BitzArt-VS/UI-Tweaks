@@ -364,7 +364,10 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
         builder.AddLabel(key, text,
                 font: GuiFontStyle.MediumBold)
             .ConfigureLayout(layout =>
-                layout.Margin = new(isFirst ? 0 : SectionSpacing, 0, SectionRuleGap, 0));
+            {
+                layout.Width = GuiLengthRule.Fill;
+                layout.Margin = new(isFirst ? 0 : SectionSpacing, 0, SectionRuleGap, 0);
+            });
         builder.AddRectangle(key + 1, color: SectionSeparatorColor)
             .ConfigureLayout(layout =>
             {

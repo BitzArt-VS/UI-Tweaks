@@ -223,7 +223,17 @@ public abstract class GuiSlot
                 ? marginBounds
                 : lineBounds.Value.Union(marginBounds);
 
-            remainingBounds = remainingBounds.SubtractHorizontal(marginBounds);
+            remainingBounds =
+                remainingBounds.SubtractHorizontal(marginBounds);
+
+            if (remainingBounds.Size?.Width == 0)
+            {
+                remainingVerticalBounds =
+                    remainingVerticalBounds.SubtractVertical(lineBounds.Value);
+
+                remainingBounds = remainingVerticalBounds;
+                lineBounds = null;
+            }
         }
 
         if (arrangedChildrenBounds is null)

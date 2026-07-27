@@ -116,7 +116,10 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
         builder.AddLabel(key, text,
                 font: GuiFontStyle.MediumBold)
             .ConfigureLayout(layout =>
-                layout.Margin = new(0, 0, SectionRuleGap, 0));
+            {
+                layout.Width = GuiLengthRule.Fill;
+                layout.Margin = new(0, 0, SectionRuleGap, 0);
+            });
         builder.AddRectangle(key + 1, color: SectionSeparatorColor)
             .ConfigureLayout(layout =>
             {
