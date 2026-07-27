@@ -15,7 +15,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     private readonly ClippingContext _clippingContext = new();
     protected float _currentScale;
     protected bool _reconcileRequested;
-    protected bool _layoutRequested;
+    protected bool _arrangeRequested;
     protected bool _renderRequested;
 
     public ICoreClientAPI ClientApi => _clientApi;
@@ -23,7 +23,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     protected int PhysicalWidth => _physicalWidth;
     protected int PhysicalHeight => _physicalHeight;
     protected GuiTreeBuilder TreeBuilder { get; }
-    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _layoutRequested || _renderRequested;
+    protected bool HasPendingSurfaceUpdate => _reconcileRequested || _arrangeRequested || _renderRequested;
     internal ClippingContext ClippingContext => _clippingContext;
 
     protected GuiSurfaceRenderer(ICoreClientAPI clientApi)
@@ -37,12 +37,12 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     protected void RequestReconcile()
     {
         _reconcileRequested = true;
-        RequestLayout();
+        RequestArrange();
     }
 
-    public void RequestLayout()
+    public void RequestArrange()
     {
-        _layoutRequested = true;
+        _arrangeRequested = true;
         RequestRender();
     }
 
@@ -115,7 +115,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
         if (arranged)
         {
             _reconcileRequested = false;
-            _layoutRequested = false;
+            _arrangeRequested = false;
         }
         _renderRequested = false;
     }

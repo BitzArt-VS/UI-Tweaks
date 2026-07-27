@@ -3,7 +3,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <summary>
 /// Default base class for layout-participating components. Extends <see cref="GuiNode"/>
 /// with the <see cref="LayoutParameters"/> bundle and a virtual <see cref="Arrange"/>
-/// hook consumed by the layout pass. Pure decorators that do not occupy layout space
+/// hook used during arrangement. Pure decorators that do not occupy layout space
 /// should inherit from <see cref="GuiNode"/> directly instead.
 /// </summary>
 public abstract class GuiComponent : GuiNode, IGuiComponent

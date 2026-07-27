@@ -79,7 +79,7 @@ public class ModConfigDialog : Gui.GuiDialog, IDisposable
 
     protected override void OnResizeUpdated(bool sizeChanged)
     {
-        Slot!.RequestLayout();
+        Slot!.RequestArrange();
     }
 
     protected override void ConfigureSlot(IGuiSlotBuilder builder)

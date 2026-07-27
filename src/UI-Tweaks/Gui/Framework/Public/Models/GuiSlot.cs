@@ -76,8 +76,8 @@ public abstract class GuiSlot
     public void RequestReconcile()
         => _renderer.Schedule(Instance.TreeFragment, ChildTreeBuilder);
 
-    public void RequestLayout()
-        => _renderer.RequestLayout();
+    public void RequestArrange()
+        => _renderer.RequestArrange();
 
     public void RequestRender()
         => _renderer.RequestRender();

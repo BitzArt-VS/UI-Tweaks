@@ -43,7 +43,7 @@ public abstract class GuiInputBase : GuiComponent
 
     /// <summary>The most recently arranged bounds, captured at the start of <see cref="Render"/>
     /// — exposed so subclasses don't need to thread bounds through their own state when
-    /// reacting to mouse events that fire after layout.</summary>
+    /// reacting to mouse events that fire after arrangement.</summary>
     protected GuiBounds LastBounds { get; private set; }
 
     /// <inheritdoc/>

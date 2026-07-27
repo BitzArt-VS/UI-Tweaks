@@ -1,9 +1,9 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
-/// Carries the layout and spacing configuration for a single slot in the render tree.
-/// Created by <see cref="GuiRenderTreeBuilder"/> when a component is declared, then mutated
-/// in place through the fluent <see cref="IGuiTreeBuilder"/> API; consumed by the layout pass.
+/// Carries placement, sizing, and spacing configuration for a <see cref="GuiComponent"/>.
+/// The component owns this mutable state; tree declarations configure it through
+/// <see cref="IGuiTreeBuilder"/>, and arrangement consumes it.
 /// </summary>
 public sealed class GuiComponentLayoutParameters
 {
@@ -66,7 +66,7 @@ public sealed class GuiComponentLayoutParameters
     public GuiAlignment VerticalAlignment { get; set; } = GuiAlignment.Start;
 
     /// <summary>
-    /// Resolves provisional component bounds used to measure descendants.
+    /// Resolves provisional component bounds used to arrange descendants.
     /// </summary>
     public GuiBounds ResolveBounds(
         GuiBounds availableBounds)
@@ -86,20 +86,20 @@ public sealed class GuiComponentLayoutParameters
                 useAvailableSize: false);
 
     /// <summary>
-    /// Resolves final component bounds from measured descendant margin bounds.
+    /// Resolves final component bounds from arranged descendant margin bounds.
     /// </summary>
     /// <param name="innerContentBounds">
-    /// Measured descendant margin bounds, or <see langword="null"/> for empty content.
+    /// Arranged descendant margin bounds, or <see langword="null"/> for empty content.
     /// </param>
     public GuiBounds ResolveBounds(
         GuiBounds availableBounds,
         GuiBounds? innerContentBounds)
         => ResolveBounds(
             availableBounds,
-            MeasureContentExtent(innerContentBounds) + Padding,
+            ResolveContentExtent(innerContentBounds) + Padding,
             useAvailableSize: false);
 
-    private static GuiSize MeasureContentExtent(
+    private static GuiSize ResolveContentExtent(
         GuiBounds? contentBounds)
     {
         var contentSize =

@@ -5,7 +5,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal class FloatingLayerRenderer : GuiSurfaceRenderer
 {
-    protected GuiSize _measuredSize;
+    protected GuiSize _arrangedSize;
 
     private object? _activeToken;
     private FloatingLayerPlacement _activePlacement;
@@ -15,11 +15,11 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     internal bool IsActive => ActiveFragment is not null;
 
-    private double MeasuredWidth =>
-        _measuredSize.Width ?? 0;
+    private double ArrangedWidth =>
+        _arrangedSize.Width ?? 0;
 
-    private double MeasuredHeight =>
-        _measuredSize.Height ?? 0;
+    private double ArrangedHeight =>
+        _arrangedSize.Height ?? 0;
 
     public FloatingLayerRenderer(ICoreClientAPI clientApi) : base(clientApi) { }
 
@@ -29,7 +29,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         ActiveFragment = content;
         _activePlacement = placement;
         _refreshedThisFrame = true;
-        RequestLayout();
+        RequestArrange();
     }
 
     public void Hide(object token)
@@ -62,7 +62,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         // even an unchanged layer must re-walk so its regions get re-registered.
         if (ActiveFragment is not null)
         {
-            RequestLayout();
+            RequestArrange();
         }
         Update();
     }
@@ -105,9 +105,9 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        ReconcileAndMeasure();
+        ReconcileAndArrange();
 
-        if (MeasuredWidth <= 0 || MeasuredHeight <= 0)
+        if (ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
             return;
         }
@@ -116,10 +116,10 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         DrawToSurface(scale);
     }
 
-    private void ReconcileAndMeasure()
+    private void ReconcileAndArrange()
     {
         TreeBuilder.Run(BuildRootFragment);
-        _measuredSize = ResolveLogicalSize();
+        _arrangedSize = ResolveLogicalSize();
     }
 
     private void BuildRootFragment(IGuiTreeBuilder builder)
@@ -148,8 +148,8 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void ReallocateSurfaceIfNeeded(float scale)
     {
-        int physW = (int)Math.Ceiling(MeasuredWidth * scale);
-        int physH = (int)Math.Ceiling(MeasuredHeight * scale);
+        int physW = (int)Math.Ceiling(ArrangedWidth * scale);
+        int physH = (int)Math.Ceiling(ArrangedHeight * scale);
         EnsureSurfaceSize(physW, physH);
     }
 
@@ -157,7 +157,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
     {
         var bounds = new GuiBounds(
             new GuiPoint(0, 0, IsAbsolute: true),
-            new GuiSize(MeasuredWidth, MeasuredHeight));
+            new GuiSize(ArrangedWidth, ArrangedHeight));
         DrawSurfaceContents(bounds, scale, arrange: true);
     }
 
@@ -168,7 +168,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return;
         }
 
-        if (MeasuredWidth <= 0 || MeasuredHeight <= 0)
+        if (ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
             return;
         }
@@ -179,7 +179,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     public override bool ContainsScreenPoint(int x, int y)
     {
-        if (!IsActive || MeasuredWidth <= 0 || MeasuredHeight <= 0)
+        if (!IsActive || ArrangedWidth <= 0 || ArrangedHeight <= 0)
         {
             return false;
         }

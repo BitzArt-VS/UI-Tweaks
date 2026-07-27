@@ -99,8 +99,8 @@ public class GuiContainer : GuiComponent
     public double ScrollY { get; private set; }
 
     /// <summary>
-    /// Sets scroll offsets explicitly. Values are clamped to the valid range on the next
-    /// layout pass. Pass a negative value to leave an axis unchanged.
+    /// Sets scroll offsets explicitly. Values are clamped to the valid range during the next
+    /// arrangement. Pass a negative value to leave an axis unchanged.
     /// </summary>
     public void ScrollTo(double scrollX, double scrollY)
     {
@@ -118,7 +118,7 @@ public class GuiContainer : GuiComponent
 
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
         {
-            Slot!.RequestLayout();
+            Slot!.RequestArrange();
         }
     }
 
@@ -638,7 +638,7 @@ public class GuiContainer : GuiComponent
 
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
         {
-            Slot!.RequestLayout();
+            Slot!.RequestArrange();
         }
     }
 
@@ -918,7 +918,7 @@ public class GuiContainer : GuiComponent
         ScrollY = rel * maxScroll;
         if (ScrollY != previousScrollY)
         {
-            Slot!.RequestLayout();
+            Slot!.RequestArrange();
         }
     }
 
@@ -932,7 +932,7 @@ public class GuiContainer : GuiComponent
         ScrollX = rel * maxScroll;
         if (ScrollX != previousScrollX)
         {
-            Slot!.RequestLayout();
+            Slot!.RequestArrange();
         }
     }
 

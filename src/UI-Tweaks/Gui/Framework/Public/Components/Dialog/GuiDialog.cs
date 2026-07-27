@@ -149,7 +149,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
     {
         if (sizeChanged)
         {
-            Slot!.RequestLayout();
+            Slot!.RequestArrange();
         }
     }
 

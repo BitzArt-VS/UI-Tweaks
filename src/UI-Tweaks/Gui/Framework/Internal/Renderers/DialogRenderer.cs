@@ -127,7 +127,7 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
                 });
         });
         ValidateRootSize();
-        RequestLayout();
+        RequestArrange();
     }
 
     private void ValidateRootSize()
@@ -158,12 +158,12 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
         _inputRouter.FocusedNode?.OnFrame(deltaTime);
         if (_rebuildQueue.Drain())
         {
-            RequestLayout();
+            RequestArrange();
         }
         RequestSurfaceUpdateForScaleOrSizeChanges();
-        if (_layoutRequested)
+        if (_arrangeRequested)
         {
-            ExecuteLayoutWalk();
+            ExecuteArrangeWalk();
         }
         else if (_renderRequested)
         {
@@ -199,10 +199,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             (int)Math.Round(logicalWidth * scale),
             (int)Math.Round(logicalHeight * scale));
 
-        RequestLayout();
+        RequestArrange();
     }
 
-    private void ExecuteLayoutWalk()
+    private void ExecuteArrangeWalk()
     {
         _inputRouter.ClearArrangedRegions();
         _tooltipHost.ResetFrame();

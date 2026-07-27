@@ -9,7 +9,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// anywhere over this component's allocated bounds.
 /// <para>
 /// <b>Layout-transparent</b>: <see cref="GuiTooltip"/> implements only <see cref="IGuiNode"/>
-/// (not <see cref="IGuiComponent"/>), so the layout pass treats it as invisible. Its
+/// (not <see cref="IGuiComponent"/>), so it is transparent to arrangement. Its
 /// <see cref="Content"/> children flow at the wrapper's declaration site as if they had
 /// been declared directly there. The wrapper's bounds — used for hover hit-testing — are
 /// derived from the union of those children's allocated rectangles along the parent's
