@@ -9,9 +9,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// declared via <see cref="Content"/>, flows children from left to right with line
 /// wrapping, and optionally paints a background fill.
 /// <para>
-/// Both <see cref="GuiComponentLayoutParameters.WidthMode"/> and
-/// <see cref="GuiComponentLayoutParameters.HeightMode"/> default to
-/// <see cref="GuiSizeMode.FitContent"/> — override via fluent extensions.
+/// A <see langword="null"/> width or height fits content. Set an explicit
+/// <see cref="GuiLengthRule"/> to use a fixed or fractional size.
 /// </para>
 /// <para>
 /// <b>Drawing.</b> The painting pass is split into two overrideable hooks called by the
@@ -28,9 +27,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <para>
 /// <b>Scrolling.</b> Set <see cref="Scroll"/> to enable scrolling on one or both axes.
 /// When enabled, the framework clips drawing to the container's content area and translates
-/// children by the current scroll offset. <see cref="GuiSizeMode.FitContent"/> on a given
-/// axis disables scrolling on that axis (a fit-to-content container has no overflow by
-/// definition). Scrollbars are visible when content overflows the viewport (filtered by
+/// children by the current scroll offset. A <see langword="null"/> size on a given axis
+/// disables scrolling on that axis because a fit-content container has no overflow.
+/// Scrollbars are visible when content overflows the viewport (filtered by
 /// <see cref="Scrollbar"/>) or when forced via <see cref="AlwaysShowScrollbar"/>.
 /// </para>
 /// </summary>
@@ -53,8 +52,8 @@ public class GuiContainer : GuiComponent
 
     /// <summary>
     /// Axes on which scrolling is enabled. Defaults to <see cref="GuiScrollDirection.None"/>.
-    /// An axis whose corresponding size mode is <see cref="GuiSizeMode.FitContent"/>
-    /// is silently ignored — a fit-to-content container has no overflow.
+    /// An axis whose corresponding width or height is <see langword="null"/> is silently
+    /// ignored because a fit-content container has no overflow.
     /// </summary>
     public GuiScrollDirection Scroll { get; set; } = GuiScrollDirection.None;
 
@@ -241,7 +240,7 @@ public class GuiContainer : GuiComponent
     private const double HandleInset = 1;
 
     // Effective scroll axes — set by the framework each layout pass after filtering
-    // FitContent dimensions out of the user-declared Scroll mask. Read by HandleMouseWheel.
+    // fit-content dimensions out of the user-declared Scroll mask. Read by HandleMouseWheel.
     internal GuiScrollDirection EffectiveScroll;
 
     // Cached layout state for the most recent frame, used by RenderScrollbars and the

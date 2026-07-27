@@ -151,7 +151,7 @@ public class GuiBreadcrumbs<T> : GuiComponent
             .Configure(container => container.Content = BuildRow)
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Margin = bottomMargin;
             });
     }

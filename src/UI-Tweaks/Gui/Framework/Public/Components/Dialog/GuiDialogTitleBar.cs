@@ -90,7 +90,7 @@ public class GuiDialogTitleBar : GuiContainer
         builder.ConfigureLayout(layout =>
         {
             layout.Height = GuiVanillaStyle.TitleBarHeight;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 
@@ -190,8 +190,8 @@ public class GuiDialogTitleBar : GuiContainer
         builder.Add<GuiRectangle>(0)
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
-                layout.HeightMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
+                layout.Height = GuiLengthRule.Fill;
                 layout.Positioning = GuiComponentPositioning.Absolute;
             });
     }

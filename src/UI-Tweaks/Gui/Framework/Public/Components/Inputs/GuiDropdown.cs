@@ -159,7 +159,7 @@ public class GuiDropdown<T> : GuiInputBase
         {
             // The header height is read back from LayoutParameters when positioning the popup.
             layout.Height = 30;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 
@@ -320,7 +320,7 @@ public class GuiDropdown<T> : GuiInputBase
                 })
                 .ConfigureLayout(layout =>
                 {
-                    layout.WidthMode = GuiSizeMode.Fill;
+                    layout.Width = GuiLengthRule.Fill;
                     layout.Height = ItemHeight;
                     layout.Padding = new GuiThickness(0, TextPaddingX);
                 })
@@ -438,14 +438,14 @@ public class GuiDropdown<T> : GuiInputBase
         // closed-state trigger.
         base.BuildComponentTree(builder);
 
-        // Header content (key 1) — relative, FitContent height with a vertical-centering
+        // Header content (key 1) — relative, fit-content height with a vertical-centering
         // top margin computed from the font line metrics. The header container sits inside
         // the dropdown's content area; the input click capture (key 0) overlays it for
         // hit-testing without consuming layout space.
         // Right padding reserves the chevron strip; left padding pulls text away from
         // the recessed border. Top margin centres a single line of text within the
         // header height — templated rows that need different vertical layout should set
-        // their own outer margin / heightMode.
+        // their own outer margin or height.
         double headerHeight = LayoutParameters.Height?.Resolve(null) ?? 30;
         double lineHeight = Font.MeasureHeight();
         double topMargin = Math.Max(0, (headerHeight - lineHeight) / 2.0);
@@ -454,7 +454,7 @@ public class GuiDropdown<T> : GuiInputBase
             .Configure(container => container.Content = BuildHeader)
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Margin = new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX);
             });
 
@@ -468,8 +468,8 @@ public class GuiDropdown<T> : GuiInputBase
     public override void Render(Context ctx, GuiBounds bounds)
     {
         // Capture LastBounds so popup positioning can use the actual header height on
-        // subsequent reconciles (handles the case where the user customised Height
-        // through Fill / FitContent rather than an explicit value).
+        // subsequent reconciles when the user replaces the explicit Height with
+        // fit-content sizing.
         base.Render(ctx, bounds);
 
         var position = bounds.Position!.Value;
@@ -564,8 +564,8 @@ public class GuiDropdown<T> : GuiInputBase
             })
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
-                layout.HeightMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
+                layout.Height = GuiLengthRule.Fill;
                 layout.Padding = new GuiThickness(PopupPadding);
             });
     }

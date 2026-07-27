@@ -23,7 +23,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         // then carries resolved descendant results back up as each call returns. A layout
         // parent's bounds are still provisional during this call, just as this slot's
         // bounds remain provisional until its own Arrange call returns. Fit-content and
-        // fill rules can share a top-down constraint envelope while producing different
+        // explicit rules can share a top-down constraint envelope while producing different
         // bottom-up results, and dependency-sensitive layouts may involve repeated passes.
         var slot = (GuiComponentSlot)Slot!;
 

@@ -26,6 +26,12 @@ public readonly struct GuiLengthRule
     public static GuiLengthRule Fixed(double value)
         => new(Kind.Fixed, fixedValue: value);
 
+    /// <summary>
+    /// A fractional rule that consumes all available length.
+    /// </summary>
+    public static GuiLengthRule Fill
+        => Fraction(1);
+
     public static GuiLengthRule Fraction(double value)
     {
         if (value < 0)

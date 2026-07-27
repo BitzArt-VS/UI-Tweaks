@@ -4,9 +4,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// A leaf component that fills its bounds with a solid <see cref="Color"/>.
-/// Both axes default to <see cref="GuiSizeMode.FitContent"/> — override via fluent
-/// extensions or set explicit <c>width</c>/<c>height</c> at the call site to produce a
-/// fixed-size filled rectangle.
+/// Both axes fit content by default; set explicit width and height rules at the call site
+/// to produce a fixed or fractional filled rectangle.
 /// </summary>
 public class GuiRectangle : GuiComponent
 {

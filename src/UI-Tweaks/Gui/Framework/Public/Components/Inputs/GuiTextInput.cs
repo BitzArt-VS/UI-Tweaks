@@ -99,7 +99,7 @@ public sealed class GuiTextInput : GuiInputBase
         builder.ConfigureLayout(layout =>
         {
             layout.Height = 30;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 

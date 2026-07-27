@@ -21,8 +21,8 @@ public sealed class GuiComponentLayoutParameters
     public GuiLengthRule? MinimumWidth { get; set; }
 
     /// <summary>
-    /// Optional explicit width override. When <c>null</c>, the size is determined by <see cref="WidthMode"/>.
-    /// Takes priority over <see cref="WidthMode"/> when set.
+    /// Explicit width, or <see langword="null"/> to fit descendant margin bounds plus
+    /// horizontal <see cref="Padding"/>.
     /// </summary>
     public GuiLengthRule? Width { get; set; }
 
@@ -37,8 +37,8 @@ public sealed class GuiComponentLayoutParameters
     public GuiLengthRule? MinimumHeight { get; set; }
 
     /// <summary>
-    /// Optional explicit height override. When <c>null</c>, the size is determined by <see cref="HeightMode"/>.
-    /// Takes priority over <see cref="HeightMode"/> when set.
+    /// Explicit height, or <see langword="null"/> to fit descendant margin bounds plus
+    /// vertical <see cref="Padding"/>.
     /// </summary>
     public GuiLengthRule? Height { get; set; }
 
@@ -48,46 +48,49 @@ public sealed class GuiComponentLayoutParameters
     public GuiLengthRule? MaximumHeight { get; set; }
 
     /// <summary>
-    /// How to resolve width when <see cref="Width"/> is <c>null</c>.
-    /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> uses measured content width plus padding.
-    /// </summary>
-    public GuiSizeMode WidthMode { get; set; } = GuiSizeMode.FitContent;
-
-    /// <summary>
-    /// How to resolve height when <see cref="Height"/> is <c>null</c>.
-    /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> uses measured content height plus padding.
-    /// </summary>
-    public GuiSizeMode HeightMode { get; set; } = GuiSizeMode.FitContent;
-
-    /// <summary>
     /// Horizontal alignment of this slot within the available cross-axis space. Applies on
     /// the cross axis of relative slots whose parent stacks vertically, and on both axes of
-    /// absolute slots. Has no effect when <see cref="WidthMode"/> is <see cref="GuiSizeMode.Fill"/>
-    /// (no slack to align against). See <see cref="GuiHorizontalAlignment"/>.
+    /// absolute slots. Has no effect when <see cref="Width"/> consumes all available width.
+    /// See <see cref="GuiHorizontalAlignment"/>.
     /// </summary>
     public GuiHorizontalAlignment HorizontalAlignment { get; set; } = GuiHorizontalAlignment.Left;
 
     /// <summary>
     /// Vertical alignment of this slot within the available cross-axis space. Applies on
     /// the cross axis of relative slots whose parent stacks horizontally, and on both axes
-    /// of absolute slots. Has no effect when <see cref="HeightMode"/> is <see cref="GuiSizeMode.Fill"/>
-    /// (no slack to align against). See <see cref="GuiVerticalAlignment"/>.
+    /// of absolute slots. Has no effect when <see cref="Height"/> consumes all available height.
+    /// See <see cref="GuiVerticalAlignment"/>.
     /// </summary>
     public GuiVerticalAlignment VerticalAlignment { get; set; } = GuiVerticalAlignment.Top;
 
+    /// <summary>
+    /// Resolves provisional component bounds used to measure descendants.
+    /// </summary>
     public GuiBounds ResolveBounds(
         GuiBounds availableBounds)
-        => ResolveBounds(availableBounds, null);
+        => ResolveBounds(
+            availableBounds,
+            innerContentBounds: null,
+            isContentMeasured: false);
 
     /// <summary>
-    /// Resolves component bounds from the space supplied by its parent and the
-    /// inner bounds produced by its descendants.
+    /// Resolves final component bounds from measured descendant margin bounds.
     /// </summary>
+    /// <param name="innerContentBounds">
+    /// Measured descendant margin bounds, or <see langword="null"/> for empty content.
+    /// </param>
     public GuiBounds ResolveBounds(
         GuiBounds availableBounds,
         GuiBounds? innerContentBounds)
+        => ResolveBounds(
+            availableBounds,
+            innerContentBounds,
+            isContentMeasured: true);
+
+    private GuiBounds ResolveBounds(
+        GuiBounds availableBounds,
+        GuiBounds? innerContentBounds,
+        bool isContentMeasured)
     {
         GuiBounds adjustedAvailableBounds =
             availableBounds.Consume(Margin);
@@ -95,13 +98,9 @@ public sealed class GuiComponentLayoutParameters
         GuiSize? availableSize =
             adjustedAvailableBounds.Size;
 
-        GuiSize? contentSize =
-            innerContentBounds?.Size is GuiSize innerContentSize
-                ? innerContentSize + Padding
-                : null;
-
-        bool isProvisional =
-            innerContentBounds is null;
+        GuiSize? contentSize = isContentMeasured
+            ? (innerContentBounds?.Size ?? new GuiSize(0, 0)) + Padding
+            : null;
 
         return new GuiBounds(
             adjustedAvailableBounds.Position,
@@ -109,16 +108,14 @@ public sealed class GuiComponentLayoutParameters
                 ResolveLength(
                     availableSize?.Width,
                     contentSize?.Width,
-                    isProvisional,
-                    WidthMode,
+                    isContentMeasured,
                     Width,
                     MinimumWidth,
                     MaximumWidth),
                 ResolveLength(
                     availableSize?.Height,
                     contentSize?.Height,
-                    isProvisional,
-                    HeightMode,
+                    isContentMeasured,
                     Height,
                     MinimumHeight,
                     MaximumHeight)),
@@ -129,18 +126,14 @@ public sealed class GuiComponentLayoutParameters
     private static double? ResolveLength(
         double? availableLength,
         double? contentLength,
-        bool isProvisional,
-        GuiSizeMode sizeMode,
+        bool isContentMeasured,
         GuiLengthRule? explicitRule,
         GuiLengthRule? minimumRule,
         GuiLengthRule? maximumRule)
     {
-        double? candidate = isProvisional
-            ? availableLength
-            : ResolveFinalCandidate(
-                availableLength,
-                contentLength,
-                sizeMode);
+        double? candidate = isContentMeasured
+            ? contentLength
+            : availableLength;
 
         return GuiLengthRule.Resolve(
             availableLength,
@@ -149,20 +142,6 @@ public sealed class GuiComponentLayoutParameters
             minimumRule,
             maximumRule);
     }
-
-    private static double? ResolveFinalCandidate(
-        double? availableLength,
-        double? contentLength,
-        GuiSizeMode sizeMode)
-        => sizeMode switch
-        {
-            GuiSizeMode.FitContent => contentLength,
-            GuiSizeMode.Fill => availableLength ?? contentLength,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(sizeMode),
-                sizeMode,
-                "Unsupported GUI size mode."),
-        };
 
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on
@@ -181,8 +160,6 @@ public sealed class GuiComponentLayoutParameters
         MinimumHeight = null;
         Height = null;
         MaximumHeight = null;
-        WidthMode = GuiSizeMode.FitContent;
-        HeightMode = GuiSizeMode.FitContent;
         HorizontalAlignment = GuiHorizontalAlignment.Left;
         VerticalAlignment = GuiVerticalAlignment.Top;
     }

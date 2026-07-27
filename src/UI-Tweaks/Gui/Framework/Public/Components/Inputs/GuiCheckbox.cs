@@ -36,11 +36,6 @@ public sealed class GuiCheckbox : GuiInputBase
     {
         base.ConfigureSlot(builder);
         builder.OnKeyDown(HandleKeyDown);
-        builder.ConfigureLayout(layout =>
-        {
-            layout.WidthMode = GuiSizeMode.FitContent;
-            layout.HeightMode = GuiSizeMode.FitContent;
-        });
     }
 
     /// <inheritdoc/>

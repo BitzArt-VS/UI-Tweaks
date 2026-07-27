@@ -369,7 +369,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
             .ConfigureLayout(layout =>
             {
                 layout.Height = 1;
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
@@ -397,13 +397,13 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                     .Configure(container => container.Content = control)
                     .ConfigureLayout(layout =>
                     {
-                        layout.WidthMode = GuiSizeMode.Fill;
-                        layout.HeightMode = GuiSizeMode.Fill;
+                        layout.Width = GuiLengthRule.Fill;
+                        layout.Height = GuiLengthRule.Fill;
                     });
             })
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Height = RowHeight;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });

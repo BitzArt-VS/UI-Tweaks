@@ -121,7 +121,7 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
             .ConfigureLayout(layout =>
             {
                 layout.Height = 1;
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
@@ -157,18 +157,18 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                         }));
 
                 // Control column — fills the rest of the row; the control inside should
-                // also use widthMode: Fill (or fill: true) to stretch with the dialog.
+                // also use GuiLengthRule.Fill to stretch with the dialog.
                 builder.Add<GuiContainer>(1)
                     .Configure(container => container.Content = control)
                     .ConfigureLayout(layout =>
                     {
-                        layout.WidthMode = GuiSizeMode.Fill;
-                        layout.HeightMode = GuiSizeMode.Fill;
+                        layout.Width = GuiLengthRule.Fill;
+                        layout.Height = GuiLengthRule.Fill;
                     });
             })
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Height = RowHeight;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });

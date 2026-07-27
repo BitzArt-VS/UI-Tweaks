@@ -79,7 +79,7 @@ public sealed class GuiSlider : GuiInputBase
             // 24 is a touch taller than vanilla's 20 so the bevelled handle has more presence
             // without the wood-pattern fill we deliberately drop here.
             layout.Height = 24;
-            layout.WidthMode = GuiSizeMode.Fill;
+            layout.Width = GuiLengthRule.Fill;
         });
     }
 

@@ -146,13 +146,13 @@ internal sealed class ZoomModConfigPage : GuiComponent, IModConfigPage
                     .Configure(container => container.Content = control)
                     .ConfigureLayout(layout =>
                     {
-                        layout.WidthMode = GuiSizeMode.Fill;
-                        layout.HeightMode = GuiSizeMode.Fill;
+                        layout.Width = GuiLengthRule.Fill;
+                        layout.Height = GuiLengthRule.Fill;
                     });
             })
             .ConfigureLayout(layout =>
             {
-                layout.WidthMode = GuiSizeMode.Fill;
+                layout.Width = GuiLengthRule.Fill;
                 layout.Height = RowHeight;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });

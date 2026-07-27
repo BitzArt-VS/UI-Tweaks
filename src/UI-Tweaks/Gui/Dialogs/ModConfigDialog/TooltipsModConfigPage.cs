@@ -47,7 +47,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
                         .ConfigureLayout(layout =>
                         {
                             layout.Height = ListItemHeight;
-                            layout.WidthMode = GuiSizeMode.Fill;
+                            layout.Width = GuiLengthRule.Fill;
                         })
                         .Configure(row =>
                         {
@@ -56,7 +56,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
                         });
                 }
             })
-            .ConfigureLayout(layout => layout.WidthMode = GuiSizeMode.Fill);
+            .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill);
     }
 
     private void OpenTooltip(int index)
@@ -66,7 +66,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
         var options = entry.Resolve(_context!.Config.Hud.Tooltips);
         _navigator!.Push(tooltipName,
             builder => builder.Add<TooltipDetailModConfigPage>(0)
-                .ConfigureLayout(layout => layout.WidthMode = GuiSizeMode.Fill)
+                .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill)
                 .Configure(c => c.Options = options));
     }
 }
