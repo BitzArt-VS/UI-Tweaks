@@ -23,8 +23,6 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
     private Harmony? _harmony;
     private ZoomOverlayRenderer? _overlayRenderer;
     private ZoomUpdateRenderer? _zoomUpdateRenderer;
-    private int? _activeZoomKeyCode;
-    private bool _isKeyUpSubscribed;
     private bool _isZoomRequested;
     private float _zoomProgress;
 
@@ -48,12 +46,17 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         ZoomMouseSensitivityPatch.Patch(_harmony);
 
         clientApi.Event.RegisterRenderer(zoomUpdateRenderer, EnumRenderStage.Before, ZoomUpdateProfilingName);
-        clientApi.Input.AddHotKey(ModHotKeys.Zoom, _ => StartZooming());
+        clientApi.Input.AddHotKey(ModHotKeys.Zoom, mapping =>
+        {
+            _isZoomRequested = !mapping.OnKeyUp;
+            return true;
+        });
+
+        clientApi.Input.GetHotKeyByCode(ModHotKeys.Zoom.Code).TriggerOnUpAlso = true;
     }
 
     public override void Dispose()
     {
-        UnsubscribeFromKeyUp();
         UnregisterZoomUpdateRenderer();
         _isZoomRequested = false;
         _zoomProgress = 0;
@@ -84,54 +87,6 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
 
         _zoomUpdateRenderer?.Dispose();
         _zoomUpdateRenderer = null;
-    }
-
-    private bool StartZooming()
-    {
-        if (_clientApi is null || _clientMain is null)
-        {
-            return false;
-        }
-
-        _isZoomRequested = true;
-        _activeZoomKeyCode = _clientApi.Input.GetHotKeyByCode(ModHotKeys.Zoom.Code).CurrentMapping.KeyCode;
-        SubscribeToKeyUp();
-
-        return true;
-    }
-
-    private void OnKeyUp(KeyEvent keyEvent)
-    {
-        if (_activeZoomKeyCode != keyEvent.KeyCode)
-        {
-            return;
-        }
-
-        _activeZoomKeyCode = null;
-        _isZoomRequested = false;
-        UnsubscribeFromKeyUp();
-    }
-
-    private void SubscribeToKeyUp()
-    {
-        if (_clientApi is null || _isKeyUpSubscribed)
-        {
-            return;
-        }
-
-        _clientApi.Event.KeyUp += OnKeyUp;
-        _isKeyUpSubscribed = true;
-    }
-
-    private void UnsubscribeFromKeyUp()
-    {
-        if (_clientApi is null || !_isKeyUpSubscribed)
-        {
-            return;
-        }
-
-        _clientApi.Event.KeyUp -= OnKeyUp;
-        _isKeyUpSubscribed = false;
     }
 
     private void UpdateZoom(float deltaTime)
