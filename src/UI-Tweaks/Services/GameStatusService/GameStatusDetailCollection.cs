@@ -1,6 +1,8 @@
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.GameStatus;
 using Vintagestory.API.Client;
+using Vintagestory.API.Config;
+using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks.Services;
@@ -163,6 +165,21 @@ internal sealed class GameStatusDetailCollection
             }
 
             return new(Math.Abs(percent.Value - oldValue.Value) >= hysteresis, percent);
+        });
+
+        Add<string?>("player-cardinal-direction", (clientApi, oldValue) =>
+        {
+            var playerEntity = clientApi.World?.Player?.Entity;
+
+            if (playerEntity is null)
+            {
+                return new(oldValue is not null, null);
+            }
+
+            var direction = BlockFacing.HorizontalFromYaw(playerEntity.Pos.Yaw);
+            var value = Lang.Get($"facing-{direction.Code}");
+
+            return new(oldValue != value, value);
         });
 
         Add<PlayerCoordinates?>("player-location-coordinates", (clientApi, oldValue) =>
