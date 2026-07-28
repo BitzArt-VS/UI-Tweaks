@@ -5,8 +5,6 @@ namespace BitzArt.UI.Tweaks;
 
 internal static class ZoomProjectionPatch
 {
-    private const float RadiansToDegrees = 180 / MathF.PI;
-
     public static void Patch(Harmony harmony)
     {
         var original = AccessTools.Method(typeof(ClientMain), nameof(ClientMain.Set3DProjection), [typeof(float), typeof(float)]);
@@ -26,7 +24,7 @@ internal static class ZoomProjectionPatch
 
         fov *= fieldOfViewFactor;
 
-        float fieldOfViewDegrees = fov * RadiansToDegrees;
+        var fieldOfViewDegrees = float.RadiansToDegrees(fov);
         __instance.MainCamera.ZNear = Math.Clamp(0.1f - fieldOfViewDegrees / 90f / 25f, 0.025f, 0.1f);
     }
 }
