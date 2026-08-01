@@ -1,5 +1,0 @@
-web_search = "live"
-model_instructions_file = "personality.md"
-
-[features]
-default_mode_request_user_input = true

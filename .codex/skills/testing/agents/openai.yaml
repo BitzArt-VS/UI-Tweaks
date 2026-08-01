@@ -1,6 +1,0 @@
-interface:
-  display_name: "Testing"
-  short_description: "Guide focused, readable project tests"
-  default_prompt: "Use $testing when working on testing tasks."
-policy:
-  allow_implicit_invocation: true

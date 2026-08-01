@@ -48,7 +48,7 @@ jobs:
 
       - name: Publish
         run: |
-          dotnet publish ./src/UI-Tweaks/UI-Tweaks.csproj -o ./release/${VERSION}/src
+          dotnet publish ./src/UI-Tweaks/UI-Tweaks/UI-Tweaks.csproj -o ./release/${VERSION}/src
           mv ./release/${VERSION}/UI-Tweaks.zip ./release/${VERSION}/UI-Tweaks_v${VERSION}.zip
 
       - name: Generate changelog
