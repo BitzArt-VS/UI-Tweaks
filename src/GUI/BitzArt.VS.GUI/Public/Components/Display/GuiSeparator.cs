@@ -7,7 +7,7 @@ namespace BitzArt.VS.GUI;
 /// within the vanilla aesthetic.
 /// <para>
 /// Layout parameters may be overridden via fluent extensions; the defaults
-/// (<c>height = 1</c>, <c>width = GuiLengthRule.Fill</c>) are restored each pass through the
+/// (<c>height = 1</c>, <c>width = GuiLength.Fill</c>) are restored each pass through the
 /// component's own slot configuration.
 /// </para>
 /// </summary>
@@ -23,7 +23,7 @@ public sealed class GuiSeparator : GuiRectangle
         builder.ConfigureLayout(layout =>
         {
             layout.Height = 1;
-            layout.Width = GuiLengthRule.Fill;
+            layout.Width = GuiLength.Fill;
         });
     }
 }

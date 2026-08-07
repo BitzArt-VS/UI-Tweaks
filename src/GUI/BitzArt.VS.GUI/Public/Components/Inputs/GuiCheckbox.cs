@@ -16,12 +16,12 @@ public sealed class GuiCheckbox : GuiInputBase
     /// raise the event.</summary>
     public bool Checked { get; set; }
 
-    /// <summary>Side length of the checkbox in logical pixels. Default 24 — slightly
+    /// <summary>Side length of the checkbox in logical pixels before display scaling. Default 24 — slightly
     /// smaller than vanilla's 30, which fits modern dialogs better while keeping the same
     /// proportions.</summary>
     public double Size { get; set; } = 24;
 
-    /// <summary>Padding between the chrome and the inner mark, in logical pixels.</summary>
+    /// <summary>Padding between the chrome and the inner mark, in logical pixels before display scaling.</summary>
     public double Padding { get; set; } = 4;
 
     /// <summary>Fill colour of the inner check mark when <see cref="Checked"/>. Defaults

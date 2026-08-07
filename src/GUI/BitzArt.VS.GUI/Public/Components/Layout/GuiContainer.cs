@@ -10,7 +10,7 @@ namespace BitzArt.VS.GUI;
 /// wrapping, and optionally paints a background fill.
 /// <para>
 /// A <see langword="null"/> width or height fits content. Set an explicit
-/// <see cref="GuiLengthRule"/> to use a fixed or fractional size.
+/// <see cref="GuiLength"/> to use a fixed or fractional size.
 /// </para>
 /// <para>
 /// <b>Drawing.</b> The painting pass is split into two overrideable hooks called by the
@@ -90,11 +90,11 @@ public class GuiContainer : GuiComponent
     /// </summary>
     public Action<GuiInset>? InsetConfiguration { get; set; }
 
-    /// <summary>Current horizontal scroll offset in logical pixels. Mutate via user input
+    /// <summary>Current horizontal scroll offset in logical pixels before display scaling. Mutate via user input
     /// (mouse wheel / scrollbar drag) or <see cref="ScrollTo"/>.</summary>
     public double ScrollX { get; private set; }
 
-    /// <summary>Current vertical scroll offset in logical pixels. Mutate via user input
+    /// <summary>Current vertical scroll offset in logical pixels before display scaling. Mutate via user input
     /// (mouse wheel / scrollbar drag) or <see cref="ScrollTo"/>.</summary>
     public double ScrollY { get; private set; }
 
@@ -511,23 +511,26 @@ public class GuiContainer : GuiComponent
     // ── Scrollbar layout / drawing / interaction ─────────────────────────────
 
     /// <summary>
-    /// Default scrollbar thickness in logical pixels. Mirrors vanilla
+    /// Default scrollbar thickness in logical pixels before display scaling. Mirrors vanilla
     /// <c>GuiElementScrollbar.DefaultScrollbarWidth</c> (20).
     /// </summary>
     public const double ScrollbarThickness = 20;
 
     /// <summary>
-    /// Logical-pixel gap reserved between the scrollable viewport and the scrollbar track —
+    /// Gap reserved between the scrollable viewport and the scrollbar track in logical
+    /// pixels before display scaling —
     /// keeps content from butting up against the scrollbar handle. The scrollbar itself
     /// still sits flush against the container's allocated edge.
     /// </summary>
     public const double ScrollbarGap = 2;
 
-    /// <summary>Minimum scrollbar handle length in logical pixels — keeps the handle
+    /// <summary>Minimum scrollbar handle length in logical pixels before display scaling — keeps the handle
     /// grabbable when content vastly exceeds the viewport. Matches vanilla.</summary>
     private const double MinHandleLength = 10;
 
-    /// <summary>Approximate logical-pixel scroll distance per mouse-wheel notch.</summary>
+    /// <summary>
+    /// Approximate scroll distance per mouse-wheel notch in logical pixels before display scaling.
+    /// </summary>
     private const double WheelStep = 30;
 
     /// <summary>
@@ -749,7 +752,7 @@ public class GuiContainer : GuiComponent
                 _allocatedH - (_showHScrollbar ? _sbThickness + ScrollbarGap : 0)));
 
     /// <summary>
-    /// Per-side logical-pixel inset to apply to the scroll viewport clip region when
+    /// Per-side inset in logical pixels before display scaling to apply to the scroll viewport clip region when
     /// <see cref="HasInset"/> is set, so scrollable content is clipped before it reaches
     /// the emboss ring and cannot paint over it.
     /// </summary>

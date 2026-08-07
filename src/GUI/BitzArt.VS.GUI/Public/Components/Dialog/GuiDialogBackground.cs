@@ -52,7 +52,10 @@ public class GuiDialogBackground : GuiContainer
     /// </summary>
     public double StrokeWidth { get; set; } = 2;
 
-    /// <summary>Corner radius for the rounded rectangle, in logical pixels. Default <see cref="GuiStyle.DialogBgRadius"/>.</summary>
+    /// <summary>
+    /// Corner radius for the rounded rectangle in logical pixels before display scaling.
+    /// Default <see cref="GuiStyle.DialogBgRadius"/>.
+    /// </summary>
     public double Radius { get; set; } = GuiVanillaStyle.DialogBgRadius;
 
     protected override void DrawBackground(Context ctx, GuiBounds bounds)

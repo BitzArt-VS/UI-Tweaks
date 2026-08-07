@@ -16,8 +16,9 @@ namespace BitzArt.VS.GUI;
 /// </para>
 /// <para>
 /// Bounds geometry: the visible cross spans <see cref="CrossSize"/> + 2× <see cref="CrossLineWidth"/>
-/// logical pixels (lines run from <c>(lw, lw)</c> to <c>(lw + size, lw + size)</c> per
-/// vanilla <c>IconUtil.DrawCross</c>). The drop shadow extends one extra logical pixel
+/// logical pixels before display scaling (lines run from <c>(lw, lw)</c> to
+/// <c>(lw + size, lw + size)</c> per vanilla <c>IconUtil.DrawCross</c>). The drop shadow
+/// extends one extra logical pixel before display scaling
 /// past the cross on the bottom-right; the component's allocated bounds are sized to
 /// fit the whole thing — a 19×19 box at the default <c>CrossSize = 15</c> +
 /// <c>CrossLineWidth = 2</c>. The mouse-hit region matches that bounding box exactly,
@@ -26,10 +27,16 @@ namespace BitzArt.VS.GUI;
 /// </summary>
 public class GuiDialogCloseIcon : GuiComponent
 {
-    /// <summary>Visible cross size (length of each diagonal line) in logical pixels. Default 15 — vanilla <c>unscaledCloseIconSize</c>.</summary>
+    /// <summary>
+    /// Visible cross size (length of each diagonal line) in logical pixels before display scaling.
+    /// Default 15 — vanilla <c>unscaledCloseIconSize</c>.
+    /// </summary>
     public double CrossSize { get; set; } = 15;
 
-    /// <summary>Cross stroke width in logical pixels. Default 2 — vanilla <c>scaled(2)</c>.</summary>
+    /// <summary>
+    /// Cross stroke width in logical pixels before display scaling.
+    /// Default 2 — vanilla <c>scaled(2)</c>.
+    /// </summary>
     public double CrossLineWidth { get; set; } = 2;
 
     /// <summary>Idle-state cross colour. Default <see cref="GuiStyle.DialogDefaultTextColor"/>.</summary>

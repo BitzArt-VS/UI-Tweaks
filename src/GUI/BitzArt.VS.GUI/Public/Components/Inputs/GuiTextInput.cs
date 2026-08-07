@@ -50,7 +50,7 @@ public sealed class GuiTextInput : GuiInputBase
     /// <see cref="SetTextAsync"/>. Not raised when the candidate is rejected by <see cref="Mode"/>.</summary>
     public GuiCallback<string>? OnTextChanged { get; set; }
 
-    /// <summary>Horizontal padding between the input chrome and the text, in logical pixels.</summary>
+    /// <summary>Horizontal padding between the input chrome and the text, in logical pixels before display scaling.</summary>
     public double TextPaddingX { get; set; } = 4;
 
     /// <summary>
@@ -84,7 +84,7 @@ public sealed class GuiTextInput : GuiInputBase
     private bool _caretBlinkOn = true;
 
     /// <summary>Width of the spinner-button gutter on the right edge of the input, in
-    /// logical pixels. Matches vanilla <c>GuiElementNumberInput.rightSpacing</c>.</summary>
+    /// logical pixels before display scaling. Matches vanilla <c>GuiElementNumberInput.rightSpacing</c>.</summary>
     private const double SpinnerGutterWidth = 17;
 
     /// <summary>True when the spinner buttons should be declared / drawn for the current
@@ -101,7 +101,7 @@ public sealed class GuiTextInput : GuiInputBase
         builder.ConfigureLayout(layout =>
         {
             layout.Height = 30;
-            layout.Width = GuiLengthRule.Fill;
+            layout.Width = GuiLength.Fill;
         });
     }
 

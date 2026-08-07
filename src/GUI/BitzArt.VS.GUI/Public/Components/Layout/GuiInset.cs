@@ -27,7 +27,7 @@ public sealed class GuiInset : GuiComponent
     public float Brightness { get; set; } = 0.85f;
 
     /// <summary>
-    /// Corner radius of the emboss ring in logical pixels. Default
+    /// Corner radius of the emboss ring in logical pixels before display scaling. Default
     /// <see cref="GuiVanillaStyle.ElementBgRadius"/> (1).
     /// </summary>
     public double Radius { get; set; } = GuiVanillaStyle.ElementBgRadius;

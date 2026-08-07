@@ -24,34 +24,34 @@ public sealed class GuiComponentLayoutParameters
     /// <summary>
     /// Optional minimum width constraint.
     /// </summary>
-    public GuiLengthRule? MinimumWidth { get; set; }
+    public GuiLength? MinimumWidth { get; set; }
 
     /// <summary>
     /// Explicit width, or <see langword="null"/> to fit descendant margin bounds plus
     /// horizontal <see cref="Padding"/>.
     /// </summary>
-    public GuiLengthRule? Width { get; set; }
+    public GuiLength? Width { get; set; }
 
     /// <summary>
     /// Optional maximum width constraint.
     /// </summary>
-    public GuiLengthRule? MaximumWidth { get; set; }
+    public GuiLength? MaximumWidth { get; set; }
 
     /// <summary>
     /// Optional minimum height constraint.
     /// </summary>
-    public GuiLengthRule? MinimumHeight { get; set; }
+    public GuiLength? MinimumHeight { get; set; }
 
     /// <summary>
     /// Explicit height, or <see langword="null"/> to fit descendant margin bounds plus
     /// vertical <see cref="Padding"/>.
     /// </summary>
-    public GuiLengthRule? Height { get; set; }
+    public GuiLength? Height { get; set; }
 
     /// <summary>
     /// Optional maximum height constraint.
     /// </summary>
-    public GuiLengthRule? MaximumHeight { get; set; }
+    public GuiLength? MaximumHeight { get; set; }
 
     /// <summary>
     /// Horizontal alignment within the available width. Has no effect when
@@ -238,15 +238,15 @@ public sealed class GuiComponentLayoutParameters
     private static double? ResolveLength(
         double? availableLength,
         double? candidateLength,
-        GuiLengthRule? explicitRule,
-        GuiLengthRule? minimumRule,
-        GuiLengthRule? maximumRule)
-        => GuiLengthRule.Resolve(
+        GuiLength? explicitLength,
+        GuiLength? minimumLength,
+        GuiLength? maximumLength)
+        => GuiLength.Resolve(
             availableLength,
             candidateLength,
-            explicitRule,
-            minimumRule,
-            maximumRule);
+            explicitLength,
+            minimumLength,
+            maximumLength);
 
     /// <summary>
     /// Resets all properties to their documented defaults. Called by the reconciler on

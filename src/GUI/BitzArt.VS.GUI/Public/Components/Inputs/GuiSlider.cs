@@ -59,11 +59,11 @@ public sealed class GuiSlider : GuiInputBase
     /// <see cref="SetValueAsync"/>.</summary>
     public GuiCallback<int>? OnValueChanged { get; set; }
 
-    /// <summary>Width of the draggable handle in logical pixels. Default 12.</summary>
+    /// <summary>Width of the draggable handle in logical pixels before display scaling. Default 12.</summary>
     public double HandleWidth { get; set; } = 12;
 
     /// <summary>Horizontal padding between the track ends and the centre of the handle's
-    /// extreme positions, in logical pixels. Default 4.</summary>
+    /// extreme positions, in logical pixels before display scaling. Default 4.</summary>
     public double Padding { get; set; } = 4;
 
     /// <summary>Font used to render the floating value tooltip while the user is
@@ -79,7 +79,7 @@ public sealed class GuiSlider : GuiInputBase
             // 24 is a touch taller than vanilla's 20 so the bevelled handle has more presence
             // without the wood-pattern fill we deliberately drop here.
             layout.Height = 24;
-            layout.Width = GuiLengthRule.Fill;
+            layout.Width = GuiLength.Fill;
         });
     }
 

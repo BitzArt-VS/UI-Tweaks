@@ -39,13 +39,13 @@ public sealed class GuiButton : GuiComponent
     /// support is added later). Defaults to vanilla <c>ActiveButtonTextColor</c>.</summary>
     public GuiFontStyle PressedFont { get; set; } = GuiFontStyle.Default with { Color = GuiVanillaStyle.ActiveButtonTextColor, Weight = FontWeight.Bold };
 
-    /// <summary>Horizontal text padding when fitting content. Default 8 logical pixels.</summary>
+    /// <summary>Horizontal text padding when fitting content. Default 8 logical pixels before display scaling.</summary>
     public double HorizontalTextPadding { get; set; } = 8;
 
-    /// <summary>Vertical text padding when fitting content. Default 4 logical pixels.</summary>
+    /// <summary>Vertical text padding when fitting content. Default 4 logical pixels before display scaling.</summary>
     public double VerticalTextPadding { get; set; } = 4;
 
-    /// <summary>Emboss height for the highlight/shadow bevel, in logical pixels. Default 1.5
+    /// <summary>Emboss height for the highlight/shadow bevel, in logical pixels before display scaling. Default 1.5
     /// (matches vanilla <c>EnumButtonStyle.Normal</c>).</summary>
     public double EmbossHeight { get; set; } = 1.5;
 

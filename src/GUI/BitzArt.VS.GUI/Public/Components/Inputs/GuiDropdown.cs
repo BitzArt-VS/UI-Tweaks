@@ -97,17 +97,17 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Font used for the placeholder + the default label fallback.</summary>
     public GuiFontStyle Font { get; set; } = GuiFontStyle.Default;
 
-    /// <summary>Horizontal padding between the chrome and the header text, in logical pixels.</summary>
+    /// <summary>Horizontal padding between the chrome and the header text, in logical pixels before display scaling.</summary>
     public double TextPaddingX { get; set; } = 6;
 
     /// <summary>Width of the chevron-icon area on the right edge of the header. The
     /// header content is laid out left of this region.</summary>
     public double ChevronAreaWidth { get; set; } = 24;
 
-    /// <summary>Height of a single item row in the popup, in logical pixels.</summary>
+    /// <summary>Height of a single item row in the popup, in logical pixels before display scaling.</summary>
     public double ItemHeight { get; set; } = 26;
 
-    /// <summary>Maximum popup height, in logical pixels. When the total item content
+    /// <summary>Maximum popup height, in logical pixels before display scaling. When the total item content
     /// would exceed this, the popup container scrolls vertically.</summary>
     public double MaxPopupHeight { get; set; } = 240;
 
@@ -121,7 +121,7 @@ public class GuiDropdown<T> : GuiInputBase
     /// <see cref="GuiTooltipBackground"/>).</summary>
     public double PopupBorderWidth { get; set; } = 3;
 
-    /// <summary>Corner radius of the popup chrome, in logical pixels.</summary>
+    /// <summary>Corner radius of the popup chrome, in logical pixels before display scaling.</summary>
     public double PopupRadius { get; set; } = GuiVanillaStyle.ElementBgRadius;
 
     /// <summary>Inner padding of the popup chrome — the gap between the popup border and
@@ -159,7 +159,7 @@ public class GuiDropdown<T> : GuiInputBase
         {
             // The header height is read back from LayoutParameters when positioning the popup.
             layout.Height = 30;
-            layout.Width = GuiLengthRule.Fill;
+            layout.Width = GuiLength.Fill;
         });
     }
 
@@ -327,7 +327,7 @@ public class GuiDropdown<T> : GuiInputBase
                 })
                 .ConfigureLayout(layout =>
                 {
-                    layout.Width = GuiLengthRule.Fill;
+                    layout.Width = GuiLength.Fill;
                     layout.Height = ItemHeight;
                     layout.Padding = new GuiThickness(0, TextPaddingX);
                 })
@@ -462,7 +462,7 @@ public class GuiDropdown<T> : GuiInputBase
             .Configure(container => container.Content = BuildHeader)
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
                 layout.Margin = new GuiThickness(topMargin, ChevronAreaWidth, 0, TextPaddingX);
             });
 
@@ -575,8 +575,8 @@ public class GuiDropdown<T> : GuiInputBase
             })
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
-                layout.Height = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
+                layout.Height = GuiLength.Fill;
                 layout.Padding = new GuiThickness(PopupPadding);
             });
     }

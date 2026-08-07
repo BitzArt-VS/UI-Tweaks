@@ -17,6 +17,18 @@ public abstract class GuiSlot
     // since the slot key includes the type — the frame type always matches.
     internal readonly GuiTreeBuilder.TreeFrame Frame;
 
+    /// <summary>
+    /// Gets or sets this slot's current complete arrangement bounds.
+    /// </summary>
+    /// <remarks>
+    /// While <see cref="IsArranging"/> is <see langword="true"/>, this value is
+    /// provisional and may change as arrangement dependencies are resolved. Otherwise,
+    /// it is the cached result of the most recently completed arrangement operation.
+    /// <see langword="null"/> means that no arrangement result is currently available.
+    /// Reading this property does not initiate arrangement.
+    /// </remarks>
+    public GuiComponentBounds? Bounds { get; set; }
+
     public bool IsArranging { get; private set; }
 
     internal GuiCallback<GuiMouseEventArgs>? OnMouseDown;
@@ -150,130 +162,6 @@ public abstract class GuiSlot
     /// Transparent child slots recursively forward arrangement to their own children.
     /// </summary>
     public GuiBounds? ArrangeChildren(GuiBounds availableBounds)
-        => ArrangeChildren(
-            availableBounds,
-            availableBounds);
-
-    internal GuiBounds? ArrangeChildren(
-        GuiBounds availableBounds,
-        GuiBounds completeBounds)
-    {
-        var remainingVerticalBounds = availableBounds;
-        var remainingBounds = availableBounds;
-        GuiBounds? lineBounds = null;
-        GuiBounds? arrangedChildrenBounds = null;
-
-        foreach (var child in Children)
-        {
-            var childBounds = child.Arrange(
-                remainingBounds,
-                completeBounds);
-            if (childBounds is null)
-            {
-                continue;
-            }
-
-            if (childBounds.Value.Position?.IsAbsolute == true)
-            {
-                continue;
-            }
-
-            var resolvedChildBounds = new GuiBounds(
-                childBounds.Value.Position?.Resolve(
-                    remainingBounds.Position
-                    ?? throw new InvalidOperationException(
-                        "A child requires a resolved parent position.")),
-                childBounds.Value.Size);
-
-            var marginBounds =
-                resolvedChildBounds;
-
-            if (lineBounds is not null
-                && ExceedsAvailableWidth(marginBounds, remainingBounds))
-            {
-                remainingVerticalBounds =
-                    remainingVerticalBounds.SubtractVertical(lineBounds.Value);
-
-                remainingBounds = remainingVerticalBounds;
-                lineBounds = null;
-
-                childBounds = child.Arrange(
-                    remainingBounds,
-                    completeBounds);
-                if (childBounds is null)
-                {
-                    continue;
-                }
-
-                if (childBounds.Value.Position?.IsAbsolute == true)
-                {
-                    continue;
-                }
-
-                resolvedChildBounds = new GuiBounds(
-                    childBounds.Value.Position?.Resolve(
-                        remainingBounds.Position
-                        ?? throw new InvalidOperationException(
-                            "A child requires a resolved parent position.")),
-                    childBounds.Value.Size);
-
-                marginBounds =
-                    resolvedChildBounds;
-            }
-
-            arrangedChildrenBounds = arrangedChildrenBounds is null
-                ? marginBounds
-                : arrangedChildrenBounds.Value.Union(marginBounds);
-
-            lineBounds = lineBounds is null
-                ? marginBounds
-                : lineBounds.Value.Union(marginBounds);
-
-            remainingBounds =
-                remainingBounds.SubtractHorizontal(marginBounds);
-
-            if (remainingBounds.Size?.Width == 0)
-            {
-                remainingVerticalBounds =
-                    remainingVerticalBounds.SubtractVertical(lineBounds.Value);
-
-                remainingBounds = remainingVerticalBounds;
-                lineBounds = null;
-            }
-        }
-
-        if (arrangedChildrenBounds is null)
-        {
-            return null;
-        }
-
-        return new GuiBounds(
-            arrangedChildrenBounds.Value.Position is GuiPoint arrangedPosition
-                ? new GuiPoint(
-                    arrangedPosition.X
-                        - (availableBounds.Position
-                            ?? throw new InvalidOperationException(
-                                "Arranged children require an available origin."))
-                            .X,
-                    arrangedPosition.Y - availableBounds.Position.Value.Y)
-                : null,
-            arrangedChildrenBounds.Value.Size);
-    }
-
-    private static bool ExceedsAvailableWidth(
-        GuiBounds contentBounds,
-        GuiBounds availableBounds)
-    {
-        if (contentBounds.Position is not GuiPoint contentPosition
-            || contentBounds.Size?.Width is not double contentWidth
-            || availableBounds.Position is not GuiPoint availablePosition
-            || availableBounds.Size?.Width is not double availableWidth)
-        {
-            return false;
-        }
-
-        return contentPosition.X + contentWidth
-            > availablePosition.X + availableWidth;
-    }
+        => throw new NotImplementedException();
 
 }

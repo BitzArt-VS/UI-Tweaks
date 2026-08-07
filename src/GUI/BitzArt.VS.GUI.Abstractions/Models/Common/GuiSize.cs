@@ -1,7 +1,7 @@
 namespace BitzArt.VS;
 
 /// <summary>
-/// Represents width and height measured in logical GUI pixels.
+/// Represents width and height in logical pixels before display scaling.
 /// </summary>
 /// <remarks>
 /// Arithmetic treats each dimension independently. A <see langword="null"/> input

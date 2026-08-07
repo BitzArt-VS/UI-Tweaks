@@ -22,11 +22,11 @@ public sealed class GuiShadow : GuiComponent
     /// cost of fill rate. Default <c>3</c>.</summary>
     public int Steps { get; set; } = 3;
 
-    /// <summary>Per-step offset toward the bottom-right, in logical pixels. The total
+    /// <summary>Per-step offset toward the bottom-right, in logical pixels before display scaling. The total
     /// visible offset is <c>Steps * Offset</c>. Default <c>1.0</c>.</summary>
     public double Offset { get; set; } = 1.0;
 
-    /// <summary>Per-step spread (outward growth on every side), in logical pixels. The
+    /// <summary>Per-step spread (outward growth on every side), in logical pixels before display scaling. The
     /// outermost layer is <c>Steps * Spread</c> larger than the bounds on each side.
     /// Default <c>0.5</c>.</summary>
     public double Spread { get; set; } = 0.5;
@@ -35,7 +35,7 @@ public sealed class GuiShadow : GuiComponent
     /// outer layers fade linearly toward zero. Default <c>0.18</c>.</summary>
     public double Alpha { get; set; } = 0.18;
 
-    /// <summary>Corner radius of the shadow rectangles, in logical pixels. Default
+    /// <summary>Corner radius of the shadow rectangles, in logical pixels before display scaling. Default
     /// <see cref="GuiVanillaStyle.ElementBgRadius"/> (1).</summary>
     public double Radius { get; set; } = GuiVanillaStyle.ElementBgRadius;
 

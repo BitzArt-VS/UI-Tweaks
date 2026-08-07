@@ -8,7 +8,7 @@ namespace BitzArt.UI.Tweaks;
 public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
 {
     private const int SaveDebounceMs = 10000;
-    private static readonly GuiLengthRule SidebarWidth = GuiLengthRule.Fraction(0.2);
+    private static readonly GuiLength SidebarWidth = GuiLength.Fraction(0.2);
     private const double SidebarSeparatorWidth = 1;
     private const double NavigationRowHeight = 44;
 
@@ -28,7 +28,7 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
 
     private static NavPage CreateNavPage<T>() where T : IModConfigPage, new()
         => new(T.PageName, builder => builder.Add<T>(0)
-            .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill));
+            .ConfigureLayout(layout => layout.Width = GuiLength.Fill));
 
     private UiTweaksModConfig? _config;
     private ModConfigContext? _context;
@@ -112,14 +112,14 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                         .AddDialogBackground(1, content: BuildBody)
                         .ConfigureLayout(layout =>
                         {
-                            layout.Width = GuiLengthRule.Fill;
-                            layout.Height = GuiLengthRule.Fill;
+                            layout.Width = GuiLength.Fill;
+                            layout.Height = GuiLength.Fill;
                         });
                 })
                 .ConfigureLayout(layout =>
                 {
-                    layout.Width = GuiLengthRule.Fill;
-                    layout.Height = GuiLengthRule.Fill;
+                    layout.Width = GuiLength.Fill;
+                    layout.Height = GuiLength.Fill;
                 });
         }));
     }
@@ -143,7 +143,7 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                                     .ConfigureLayout(layout =>
                                     {
                                         layout.Height = NavigationRowHeight;
-                                        layout.Width = GuiLengthRule.Fill;
+                                        layout.Width = GuiLength.Fill;
                                     })
                                     .Configure(row =>
                                     {
@@ -158,14 +158,14 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                     {
                         layout.MinimumWidth = 200;
                         layout.Width = SidebarWidth;
-                        layout.Height = GuiLengthRule.Fill;
+                        layout.Height = GuiLength.Fill;
                     });
 
                 builder.AddRectangle(1, color: SidebarSeparatorColor)
                     .ConfigureLayout(layout =>
                     {
                         layout.Width = SidebarSeparatorWidth;
-                        layout.Height = GuiLengthRule.Fill;
+                        layout.Height = GuiLength.Fill;
                     });
 
                 builder.Add<GuiContainer>(2)
@@ -181,7 +181,7 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                                         .Configure(container => container.Content = builder =>
                                         {
                                             builder.Add<GuiBreadcrumbs>(0)
-                                                .ConfigureLayout(layout => layout.Width = GuiLengthRule.Fill)
+                                                .ConfigureLayout(layout => layout.Width = GuiLength.Fill)
                                                 .Configure(c =>
                                                 {
                                                     c.CurrentItem = Navigator.CurrentPageName;
@@ -193,12 +193,12 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                                                 .ConfigureLayout(layout =>
                                                 {
                                                     layout.Height = 2;
-                                                    layout.Width = GuiLengthRule.Fill;
+                                                    layout.Width = GuiLength.Fill;
                                                 });
                                         })
                                         .ConfigureLayout(layout =>
                                         {
-                                            layout.Width = GuiLengthRule.Fill;
+                                            layout.Width = GuiLength.Fill;
                                             layout.Padding = new GuiThickness(Top: 14, Right: 10, Bottom: 8, Left: 10);
                                         });
 
@@ -206,28 +206,28 @@ public class ModConfigDialog : VS.GUI.GuiDialog, IDisposable
                                         .Configure(container => container.Content = Navigator.CurrentContent)
                                         .ConfigureLayout(layout =>
                                         {
-                                            layout.Width = GuiLengthRule.Fill;
-                                            layout.Height = GuiLengthRule.Fill;
+                                            layout.Width = GuiLength.Fill;
+                                            layout.Height = GuiLength.Fill;
                                             layout.Margin = new GuiThickness(0, 8, 8, 8);
                                         });
                                 })
                                 .ConfigureLayout(layout =>
                                 {
-                                    layout.Width = GuiLengthRule.Fill;
-                                    layout.Height = GuiLengthRule.Fill;
+                                    layout.Width = GuiLength.Fill;
+                                    layout.Height = GuiLength.Fill;
                                 });
                         };
                     })
                     .ConfigureLayout(layout =>
                     {
-                        layout.Width = GuiLengthRule.Fill;
-                        layout.Height = GuiLengthRule.Fill;
+                        layout.Width = GuiLength.Fill;
+                        layout.Height = GuiLength.Fill;
                     });
             })
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
-                layout.Height = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
+                layout.Height = GuiLength.Fill;
             });
     }
 

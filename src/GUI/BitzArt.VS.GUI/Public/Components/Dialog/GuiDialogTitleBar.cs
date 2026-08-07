@@ -28,7 +28,10 @@ public class GuiDialogTitleBar : GuiContainer
     /// <summary>Font used to draw <see cref="Title"/>. Defaults to <see cref="GuiFontStyle.Default"/>.</summary>
     public GuiFontStyle TitleFont { get; set; } = GuiFontStyle.Default;
 
-    /// <summary>Horizontal inset of the title text from the left edge in logical pixels. Default: <see cref="GuiVanillaStyle.ElementToDialogPadding"/> (20, vanilla).</summary>
+    /// <summary>
+    /// Horizontal inset of the title text from the left edge in logical pixels before display scaling.
+    /// Default: <see cref="GuiVanillaStyle.ElementToDialogPadding"/> (20, vanilla).
+    /// </summary>
     public double TitleLeftPadding { get; set; } = GuiVanillaStyle.ElementToDialogPadding;
 
     /// <summary>The base fill colour of the bar. Default: <see cref="GuiVanillaStyle.DialogTitleBarBgColor"/> (vanilla strong bg × 1.2).</summary>
@@ -61,13 +64,13 @@ public class GuiDialogTitleBar : GuiContainer
     public GuiCallback? OnClose { get; set; }
 
     /// <summary>
-    /// Right-edge inset of the close icon in logical pixels. Matches vanilla's
+    /// Right-edge inset of the close icon in logical pixels before display scaling. Matches vanilla's
     /// <c>scaled(12)</c> spacing between the icon and the bar's right edge.
     /// </summary>
     public double CloseIconRightPadding { get; set; } = 12;
 
     /// <summary>
-    /// Top inset of the close icon in logical pixels. Matches vanilla's <c>scaled(7)</c>.
+    /// Top inset of the close icon in logical pixels before display scaling. Matches vanilla's <c>scaled(7)</c>.
     /// </summary>
     public double CloseIconTopPadding { get; set; } = 7;
 
@@ -89,7 +92,7 @@ public class GuiDialogTitleBar : GuiContainer
         builder.ConfigureLayout(layout =>
         {
             layout.Height = GuiVanillaStyle.TitleBarHeight;
-            layout.Width = GuiLengthRule.Fill;
+            layout.Width = GuiLength.Fill;
         });
     }
 
@@ -221,8 +224,8 @@ public class GuiDialogTitleBar : GuiContainer
                 _dragTarget = rectangle)
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
-                layout.Height = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
+                layout.Height = GuiLength.Fill;
             });
     }
 

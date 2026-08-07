@@ -47,8 +47,10 @@ public sealed class OverlayHost
     /// <param name="token">A stable identity for the requesting component — typically
     /// <c>this</c>. Used by <see cref="Hide"/> to ensure only the original requester can
     /// dismiss the overlay.</param>
-    /// <param name="dialogLocalBounds">The on-screen rectangle of the overlay in
-    /// dialog-local logical pixels. The overlay's Cairo surface is sized to match.</param>
+    /// <param name="dialogLocalBounds">
+    /// On-screen overlay rectangle in dialog-local logical pixels before display scaling.
+    /// The overlay's Cairo surface is sized to match.
+    /// </param>
     /// <param name="content">The render fragment producing the overlay's content. Should
     /// be reference-stable across frames where the overlay's identity is unchanged so the
     /// renderer's reuse path skips per-frame closures.</param>

@@ -90,7 +90,8 @@ public readonly record struct GuiFontStyle
     // ── Measurement ───────────────────────────────────────────────────────
 
     /// <summary>
-    /// Returns the advance width and line height of <paramref name="text"/> in logical pixels.
+    /// Returns the advance width and line height of <paramref name="text"/> in logical pixels
+    /// before display scaling.
     /// Thread-unsafe — call from the render thread only.
     /// </summary>
     public GuiSize Measure(string text)
@@ -104,7 +105,7 @@ public readonly record struct GuiFontStyle
         return new GuiSize(te.XAdvance * inv, fe.Height * inv);
     }
 
-    /// <summary>Returns the line height of this font in logical pixels.</summary>
+    /// <summary>Returns the line height of this font in logical pixels before display scaling.</summary>
     public double MeasureHeight()
     {
         Apply(_measureContext);

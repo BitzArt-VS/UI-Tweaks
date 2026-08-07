@@ -127,8 +127,8 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void BuildRootFragment(IGuiTreeBuilder builder)
     {
-        GuiLengthRule? width = null;
-        GuiLengthRule? height = null;
+        GuiLength? width = null;
+        GuiLength? height = null;
 
         if (_activePlacement.FixedLogicalSize is GuiSize fixedSize)
         {

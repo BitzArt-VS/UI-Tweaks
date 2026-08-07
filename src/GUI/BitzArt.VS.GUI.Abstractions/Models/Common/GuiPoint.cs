@@ -1,7 +1,7 @@
 namespace BitzArt.VS;
 
 /// <summary>
-/// Represents a two-dimensional position or offset measured in logical GUI pixels.
+/// Represents a two-dimensional position or offset in logical pixels before display scaling.
 /// </summary>
 /// <param name="X">Horizontal position or offset, increasing to the right.</param>
 /// <param name="Y">Vertical position or offset, increasing downward.</param>

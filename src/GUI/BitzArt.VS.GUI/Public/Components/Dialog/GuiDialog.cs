@@ -34,7 +34,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
     double IGuiDialog.OffsetY => OffsetY;
 
     /// <summary>
-    /// Adds a delta (logical pixels) to the dialog's screen-position offset. Intended as the
+    /// Adds a delta in logical pixels before display scaling to the dialog's screen-position offset. Intended as the
     /// drag-handler target for <see cref="GuiDialogTitleBar.OnDrag"/>: pass <c>this.Move</c> as
     /// the title bar's <c>onDrag</c> callback to make the title bar drag the dialog around.
     /// </summary>
@@ -75,13 +75,13 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
     /// </summary>
     protected virtual GuiEdge ResizeEdges => GuiEdge.Right | GuiEdge.Bottom;
 
-    /// <summary>Minimum logical-pixel width enforced while resizing. Default 200.</summary>
+    /// <summary>Minimum width enforced while resizing, in logical pixels before display scaling. Default 200.</summary>
     public int MinWidth { get; set; } = 200;
-    /// <summary>Minimum logical-pixel height enforced while resizing. Default 100.</summary>
+    /// <summary>Minimum height enforced while resizing, in logical pixels before display scaling. Default 100.</summary>
     public int MinHeight { get; set; } = 100;
-    /// <summary>Maximum logical-pixel width enforced while resizing. Default 2000.</summary>
+    /// <summary>Maximum width enforced while resizing, in logical pixels before display scaling. Default 2000.</summary>
     public int MaxWidth { get; set; } = 2000;
-    /// <summary>Maximum logical-pixel height enforced while resizing. Default 1500.</summary>
+    /// <summary>Maximum height enforced while resizing, in logical pixels before display scaling. Default 1500.</summary>
     public int MaxHeight { get; set; } = 1500;
 
     protected GuiDialog()

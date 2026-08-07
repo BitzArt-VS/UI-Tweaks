@@ -100,11 +100,17 @@ public static class GuiVanillaStyle
 
     // ── Dimensions ──────────────────────────────────────────────────────────
 
-    /// <summary>The vanilla title bar height in logical pixels (31).</summary>
+    /// <summary>
+    /// Vanilla title bar height: 31 logical pixels before display scaling.
+    /// </summary>
     public const double TitleBarHeight = 31;
-    /// <summary>The vanilla dialog background corner radius in logical pixels (1).</summary>
+    /// <summary>
+    /// Vanilla dialog background corner radius: 1 logical pixel before display scaling.
+    /// </summary>
     public const double DialogBgRadius = 1;
-    /// <summary>The vanilla element background corner radius in logical pixels (1).</summary>
+    /// <summary>
+    /// Vanilla element background corner radius: 1 logical pixel before display scaling.
+    /// </summary>
     public const double ElementBgRadius = 1;
     /// <summary>The vanilla padding between an element and its enclosing dialog (20).</summary>
     public const double ElementToDialogPadding = 20;

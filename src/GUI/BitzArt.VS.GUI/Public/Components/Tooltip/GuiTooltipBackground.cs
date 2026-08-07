@@ -18,7 +18,9 @@ namespace BitzArt.VS.GUI;
 /// </summary>
 public class GuiTooltipBackground : GuiContainer
 {
-    /// <summary>Vanilla tooltip default content padding (5 logical pixels).</summary>
+    /// <summary>
+    /// Vanilla tooltip default content padding: 5 logical pixels before display scaling.
+    /// </summary>
     public const double DefaultPadding = 5;
 
     /// <summary>The base fill colour. Default: vanilla dialog strong bg.</summary>
@@ -34,7 +36,9 @@ public class GuiTooltipBackground : GuiContainer
     /// </summary>
     public double BorderWidth { get; set; } = 3;
 
-    /// <summary>Corner radius in logical pixels. Default 1 — vanilla tooltip radius.</summary>
+    /// <summary>
+    /// Corner radius in logical pixels before display scaling. Default 1 — vanilla tooltip radius.
+    /// </summary>
     public double Radius { get; set; } = GuiVanillaStyle.ElementBgRadius;
 
     protected override void DrawBackground(Context ctx, GuiBounds bounds)

@@ -124,7 +124,10 @@ public static class CairoContextExtensions
         }
     }
 
-    /// <summary>Strokes the current path with <paramref name="color"/> at <paramref name="width"/> logical pixels.</summary>
+    /// <summary>
+    /// Strokes the current path with <paramref name="color"/> at <paramref name="width"/>
+    /// logical pixels before display scaling.
+    /// </summary>
     public static void StrokeSolid(this Context ctx, GuiColor color, double width, bool preserve = false)
     {
         ctx.SetSourceRGBA(color.R, color.G, color.B, color.A);
@@ -253,7 +256,8 @@ public static class CairoContextExtensions
     // ── Text ──────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Draws a single line of text at logical-pixel position (<paramref name="x"/>, <paramref name="y"/>),
+    /// Draws a single line of text at (<paramref name="x"/>, <paramref name="y"/>) in
+    /// logical pixels before display scaling,
     /// where <paramref name="y"/> is the <i>top</i> of the line (not the baseline). Handles the
     /// physical-pixel CTM dance required by vanilla-style font hinting + subpixel AA — same
     /// recipe as <see cref="GuiLabel"/>. Save/restore is performed internally so the caller's

@@ -113,14 +113,14 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                 font: GuiFontStyle.MediumBold)
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
                 layout.Margin = new(0, 0, SectionRuleGap, 0);
             });
         builder.AddRectangle(key + 1, color: SectionSeparatorColor)
             .ConfigureLayout(layout =>
             {
                 layout.Height = 1;
-                layout.Width = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });
     }
@@ -156,18 +156,18 @@ internal sealed class GeneralModConfigPage : GuiComponent, IModConfigPage
                         }));
 
                 // Control column — fills the rest of the row; the control inside should
-                // also use GuiLengthRule.Fill to stretch with the dialog.
+                // also use GuiLength.Fill to stretch with the dialog.
                 builder.Add<GuiContainer>(1)
                     .Configure(container => container.Content = control)
                     .ConfigureLayout(layout =>
                     {
-                        layout.Width = GuiLengthRule.Fill;
-                        layout.Height = GuiLengthRule.Fill;
+                        layout.Width = GuiLength.Fill;
+                        layout.Height = GuiLength.Fill;
                     });
             })
             .ConfigureLayout(layout =>
             {
-                layout.Width = GuiLengthRule.Fill;
+                layout.Width = GuiLength.Fill;
                 layout.Height = RowHeight;
                 layout.Margin = new(0, 0, RowSpacing, 0);
             });

@@ -6,13 +6,13 @@ namespace BitzArt.VS;
 /// <summary>
 /// Defines a component's size in one direction.
 /// </summary>
-public readonly struct GuiLengthRule
+public readonly struct GuiLength
 {
     private readonly Kind _kind;
     private readonly double _fixedValue;
     private readonly double _fractionalValue;
 
-    private GuiLengthRule(
+    private GuiLength(
         Kind kind,
         double fixedValue = 0,
         double fractionalValue = 0)
@@ -23,15 +23,15 @@ public readonly struct GuiLengthRule
     }
 
     /// <summary>
-    /// Specifies a fixed size in logical pixels.
+    /// Specifies a fixed size in logical pixels before display scaling.
     /// </summary>
-    public static GuiLengthRule Fixed(double value)
+    public static GuiLength Fixed(double value)
         => new(Kind.Fixed, fixedValue: value);
 
     /// <summary>
     /// Fills the available space.
     /// </summary>
-    public static GuiLengthRule Fill
+    public static GuiLength Fill
         => Fraction(1);
 
     /// <summary>
@@ -43,20 +43,21 @@ public readonly struct GuiLengthRule
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="value"/> is negative.
     /// </exception>
-    public static GuiLengthRule Fraction(double value)
+    public static GuiLength Fraction(double value)
     {
         if (value < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(value), "Fractional length must be non-negative.");
         }
 
-        return new GuiLengthRule(
+        return new GuiLength(
             Kind.Fraction,
             fractionalValue: value);
     }
 
     /// <summary>
-    /// Parses a fixed logical-pixel size or a percentage of available space.
+    /// Parses a fixed size in logical pixels before display scaling, or a percentage
+    /// of available space.
     /// </summary>
     /// <param name="value">Text to parse using the invariant culture.</param>
     /// <exception cref="ArgumentNullException">
@@ -68,7 +69,7 @@ public readonly struct GuiLengthRule
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="value"/> specifies a negative percentage.
     /// </exception>
-    public static GuiLengthRule Parse(string value)
+    public static GuiLength Parse(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -86,11 +87,12 @@ public readonly struct GuiLengthRule
     /// Calculates the resulting size for the given amount of available space.
     /// </summary>
     /// <param name="availableLength">
-    /// Available length in logical pixels, or <see langword="null"/> if it is unknown.
+    /// Available length in logical pixels before display scaling, or
+    /// <see langword="null"/> if it is unknown.
     /// </param>
     /// <returns>
-    /// Resulting size in logical pixels, or <see langword="null"/> if it cannot be
-    /// determined without an available length.
+    /// Resulting size in logical pixels before display scaling, or
+    /// <see langword="null"/> if it cannot be determined without an available length.
     /// </returns>
     public double? Resolve(double? availableLength)
     {
@@ -109,45 +111,46 @@ public readonly struct GuiLengthRule
     /// Resolves a component size from its optional fixed, minimum, and maximum lengths.
     /// </summary>
     /// <param name="available">
-    /// Space available to the component in logical pixels.
+    /// Space available to the component in logical pixels before display scaling.
     /// </param>
-    /// <param name="fixedRule">
+    /// <param name="fixedLength">
     /// Fixed size specified by the component, or <see langword="null"/> if none.
     /// </param>
-    /// <param name="minimumRule">
+    /// <param name="minimumLength">
     /// Minimum size specified by the component, or <see langword="null"/> if none.
     /// </param>
-    /// <param name="maximumRule">
+    /// <param name="maximumLength">
     /// Maximum size specified by the component, or <see langword="null"/> if none.
     /// </param>
     /// <returns>
-    /// Resolved component size in logical pixels, or <see langword="null"/> if it cannot
-    /// be determined.
+    /// Resolved component size in logical pixels before display scaling, or
+    /// <see langword="null"/> if it cannot be determined.
     /// </returns>
     public static double? Resolve(
         double? available,
-        GuiLengthRule? fixedRule,
-        GuiLengthRule? minimumRule,
-        GuiLengthRule? maximumRule)
+        GuiLength? fixedLength,
+        GuiLength? minimumLength,
+        GuiLength? maximumLength)
         => Resolve(
             available,
             candidate: available,
-            fixedRule,
-            minimumRule,
-            maximumRule);
+            fixedLength,
+            minimumLength,
+            maximumLength);
 
-    /// <inheritdoc cref="Resolve(double?, GuiLengthRule?, GuiLengthRule?, GuiLengthRule?)"/>
+    /// <inheritdoc cref="Resolve(double?, GuiLength?, GuiLength?, GuiLength?)"/>
     /// <param name="candidate">
-    /// Size proposed by the layout in logical pixels, or <see langword="null"/> if unknown.
+    /// Size proposed by the layout in logical pixels before display scaling, or
+    /// <see langword="null"/> if unknown.
     /// </param>
-    public static double? Resolve(double? available, double? candidate, GuiLengthRule? fixedRule, GuiLengthRule? minimumRule, GuiLengthRule? maximumRule)
+    public static double? Resolve(double? available, double? candidate, GuiLength? fixedLength, GuiLength? minimumLength, GuiLength? maximumLength)
     {
-        var value = fixedRule is not null
-            ? fixedRule.Value.Resolve(available)
+        var value = fixedLength is not null
+            ? fixedLength.Value.Resolve(available)
             : candidate;
 
-        var minimum = minimumRule?.Resolve(available);
-        var maximum = maximumRule?.Resolve(available);
+        var minimum = minimumLength?.Resolve(available);
+        var maximum = maximumLength?.Resolve(available);
 
         return Clamp(value, minimum, maximum);
     }
@@ -173,19 +176,21 @@ public readonly struct GuiLengthRule
     }
 
     /// <summary>
-    /// Converts an integer to a fixed size in logical pixels.
+    /// Converts an integer to a fixed size in logical pixels before display scaling.
     /// </summary>
-    public static implicit operator GuiLengthRule(int value) => Fixed(value);
+    public static implicit operator GuiLength(int value) => Fixed(value);
     /// <summary>
-    /// Converts a <see langword="float"/> value to a fixed size in logical pixels.
+    /// Converts a <see langword="float"/> value to a fixed size in logical pixels
+    /// before display scaling.
     /// </summary>
-    public static implicit operator GuiLengthRule(float value) => Fixed(value);
+    public static implicit operator GuiLength(float value) => Fixed(value);
     /// <summary>
-    /// Converts a <see langword="double"/> value to a fixed size in logical pixels.
+    /// Converts a <see langword="double"/> value to a fixed size in logical pixels
+    /// before display scaling.
     /// </summary>
-    public static implicit operator GuiLengthRule(double value) => Fixed(value);
+    public static implicit operator GuiLength(double value) => Fixed(value);
     /// <inheritdoc cref="Parse(string)"/>
-    public static implicit operator GuiLengthRule(string value) => Parse(value);
+    public static implicit operator GuiLength(string value) => Parse(value);
 
     private enum Kind
     {

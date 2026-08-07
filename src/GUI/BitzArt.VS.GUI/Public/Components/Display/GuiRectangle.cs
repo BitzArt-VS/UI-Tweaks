@@ -4,7 +4,7 @@ namespace BitzArt.VS.GUI;
 
 /// <summary>
 /// A leaf component that fills its bounds with a solid <see cref="Color"/>.
-/// Both axes fit content by default; set explicit width and height rules at the call site
+/// Both axes fit content by default; set explicit width and height at the call site
 /// to produce a fixed or fractional filled rectangle.
 /// </summary>
 public class GuiRectangle : GuiComponent
