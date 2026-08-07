@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 public readonly record struct GuiComponentBounds(
     GuiBounds Bounds,

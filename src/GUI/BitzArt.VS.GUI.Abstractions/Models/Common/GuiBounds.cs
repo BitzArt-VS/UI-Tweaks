@@ -1,21 +1,57 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
+/// <summary>
+/// Describes the position and size of a rectangular area in the user interface.
+/// </summary>
+/// <param name="Position">
+/// <see cref="GuiPoint"/> defining the position of the area's upper-left corner,
+/// or <see langword="null"/> when the area has not been placed.
+/// </param>
+/// <param name="Size">
+/// <see cref="GuiSize"/> defining the area's width and height,
+/// or <see langword="null"/> when the area has not been sized.
+/// </param>
 public readonly record struct GuiBounds(
     GuiPoint? Position,
     GuiSize? Size)
 {
+    /// <summary>
+    /// Extends each edge outward by its specified thickness.
+    /// </summary>
+    /// <param name="thickness">
+    /// <see cref="GuiThickness"/> applied to the edges.
+    /// </param>
+    /// <returns>Expanded bounds.</returns>
     public GuiBounds Expand(GuiThickness thickness)
     {
         var position = Position?.Offset(-thickness.Left, -thickness.Top);
         return new GuiBounds(position, Size + thickness);
     }
 
+    /// <summary>
+    /// Moves each edge inward by its specified thickness.
+    /// </summary>
+    /// <param name="thickness">
+    /// <see cref="GuiThickness"/> applied to the edges.
+    /// </param>
+    /// <returns>Contracted bounds with dimensions clamped to zero.</returns>
     public GuiBounds Contract(GuiThickness thickness)
     {
         var position = Position?.Offset(thickness.Left, thickness.Top);
         return new GuiBounds(position, Size - thickness);
     }
 
+    /// <summary>
+    /// Tests whether a point lies within the area.
+    /// </summary>
+    /// <param name="point">
+    /// <see cref="GuiPoint"/> to test.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the point lies within bounds that have a position,
+    /// width, and height; otherwise <see langword="false"/>. Top and left edges are
+    /// included; bottom and right edges are excluded.
+    /// </returns>
     public bool Contains(GuiPoint point)
     {
         if (Position is not GuiPoint position
@@ -31,12 +67,31 @@ public readonly record struct GuiBounds(
             && point.Y < position.Y + height;
     }
 
+    /// <summary>
+    /// Returns the smallest rectangle containing both bounds, including any gap between them.
+    /// </summary>
+    /// <param name="other">
+    /// <see cref="GuiBounds"/> to include.
+    /// </param>
+    /// <returns>
+    /// Enclosing bounds with the same position type as the inputs. Missing either
+    /// position leaves the result without a position or size. A missing dimension
+    /// remains missing.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// One position is absolute and the other is relative.
+    /// </exception>
     public GuiBounds Union(GuiBounds other)
     {
-        if (Position is not GuiPoint position
-            || other.Position is not GuiPoint otherPosition)
+        if (Position is not GuiPoint position || other.Position is not GuiPoint otherPosition)
         {
             return new(null, null);
+        }
+
+        if (position.IsAbsolute != otherPosition.IsAbsolute)
+        {
+            throw new InvalidOperationException(
+                "Bounds union requires both positions to be absolute or both to be relative.");
         }
 
         var left = Math.Min(position.X, otherPosition.X);
@@ -55,10 +110,8 @@ public readonly record struct GuiBounds(
                 : null;
 
         return new(
-            new(left, top, IsAbsolute: true),
-            new(
-                right - left,
-                bottom - top));
+            new(left, top, position.IsAbsolute),
+            new(right - left, bottom - top));
     }
 
     private static double? GetEnd(
@@ -68,69 +121,4 @@ public readonly record struct GuiBounds(
             ? start + resolvedLength
             : null;
 
-    public GuiBounds SubtractHorizontal(GuiBounds consumedBounds)
-    {
-        if (Position is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds from an unresolved position.");
-        }
-
-        if (Size is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds from an unresolved size.");
-        }
-
-        if (consumedBounds.Size is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds with an unresolved size.");
-        }
-
-        var consumedWidth =
-            consumedBounds.Position!.Value.X
-            - Position.Value.X
-            + (consumedBounds.Size.Value.Width
-                ?? Size.Value.Width
-                ?? 0);
-
-        var remainingWidth = consumedBounds.Size.Value.Width is null
-            ? 0
-            : (Size.Value - new GuiSize(consumedWidth, 0)).Width;
-
-        return new(
-            Position.Value + new GuiPoint(consumedWidth, 0),
-            new GuiSize(remainingWidth, Size.Value.Height));
-    }
-
-    public GuiBounds SubtractVertical(GuiBounds consumedBounds)
-    {
-        if (Position is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds from an unresolved position.");
-        }
-
-        if (Size is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds from an unresolved size.");
-        }
-
-        if (consumedBounds.Size is null)
-        {
-            throw new InvalidOperationException("Cannot subtract bounds with an unresolved size.");
-        }
-
-        var consumedHeight =
-            consumedBounds.Position!.Value.Y
-            - Position.Value.Y
-            + (consumedBounds.Size.Value.Height
-                ?? Size.Value.Height
-                ?? 0);
-
-        var remainingHeight = consumedBounds.Size.Value.Height is null
-            ? 0
-            : (Size.Value - new GuiSize(0, consumedHeight)).Height;
-
-        return new(
-            Position.Value + new GuiPoint(0, consumedHeight),
-            new GuiSize(Size.Value.Width, remainingHeight));
-    }
 }

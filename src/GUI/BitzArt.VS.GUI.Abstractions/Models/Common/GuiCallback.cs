@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 /// <summary>
 /// Represents a callback through which a GUI component invokes a user-defined handler

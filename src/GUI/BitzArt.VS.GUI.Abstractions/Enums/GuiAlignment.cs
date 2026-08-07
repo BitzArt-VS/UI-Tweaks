@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 /// <summary>
 /// Specifies where a component aligns within its available space.

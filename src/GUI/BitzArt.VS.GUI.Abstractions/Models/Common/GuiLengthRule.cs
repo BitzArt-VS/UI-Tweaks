@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 /// <summary>
 /// Defines a component's size in one direction.

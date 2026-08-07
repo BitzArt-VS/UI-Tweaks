@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 /// <summary>
 /// Specifies one or more edges of rectangular bounds.

@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 /// <summary>
 /// Represents width and height measured in logical GUI pixels.
@@ -16,32 +16,6 @@ namespace BitzArt.VS.GUI;
 /// </param>
 public readonly record struct GuiSize(double? Width, double? Height)
 {
-    /// <summary>
-    /// Adds the corresponding dimensions of two sizes.
-    /// </summary>
-    /// <param name="size">First size to add.</param>
-    /// <param name="other">Second size to add.</param>
-    /// <returns>The combined size.</returns>
-    public static GuiSize operator +(
-        GuiSize size,
-        GuiSize other)
-        => new(
-            Clamp(size.Width + other.Width),
-            Clamp(size.Height + other.Height));
-
-    /// <summary>
-    /// Subtracts the corresponding dimensions of one size from another.
-    /// </summary>
-    /// <param name="size">Size from which to subtract.</param>
-    /// <param name="other">Size to subtract.</param>
-    /// <returns>The reduced size.</returns>
-    public static GuiSize operator -(
-        GuiSize size,
-        GuiSize other)
-        => new(
-            Clamp(size.Width - other.Width),
-            Clamp(size.Height - other.Height));
-
     /// <summary>
     /// Expands a size by the horizontal and vertical totals of a thickness.
     /// </summary>

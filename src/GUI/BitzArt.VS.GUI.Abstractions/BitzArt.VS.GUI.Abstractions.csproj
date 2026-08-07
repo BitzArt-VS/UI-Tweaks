@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<RootNamespace>BitzArt.VS.GUI</RootNamespace>
+		<RootNamespace>BitzArt.VS</RootNamespace>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 

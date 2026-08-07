@@ -1,6 +1,6 @@
 using Vintagestory.API.Client;
 
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 public readonly struct GuiKeyEventArgs
 {

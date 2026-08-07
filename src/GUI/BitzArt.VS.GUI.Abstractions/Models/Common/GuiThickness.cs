@@ -1,4 +1,4 @@
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 public readonly record struct GuiThickness(double Top, double Right, double Bottom, double Left)
 {

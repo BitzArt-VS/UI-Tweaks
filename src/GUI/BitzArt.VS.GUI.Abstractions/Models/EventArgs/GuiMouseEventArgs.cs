@@ -1,6 +1,6 @@
 using Vintagestory.API.Common;
 
-namespace BitzArt.VS.GUI;
+namespace BitzArt.VS;
 
 public readonly record struct GuiMouseEventArgs(
     GuiPoint Position,
